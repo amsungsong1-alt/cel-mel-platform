@@ -1,0 +1,11 @@
+streamlit>=1.30
+streamlit-authenticator>=0.3
+sqlalchemy>=2.0
+pandas
+openpyxl
+plotly
+reportlab
+requests
+pyyaml
+bcrypt
+python-docx
