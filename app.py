@@ -20,7 +20,7 @@ It addresses three of Laudon's six strategic business objectives:
   • Customer/Supplier Intimacy— Module A         (partner commitments & delivery)
 """
 import streamlit as st
-from database.db import init_db, run_query
+from database.db import init_db, run_query, run_write
 
 st.set_page_config(
     page_title="CEL MEL Platform",
@@ -44,7 +44,7 @@ NAVY = "#0D2B5E"
 GOLD = "#C8A951"
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
-from utils.auth import get_authenticator
+from utils.auth import get_authenticator, can
 
 try:
     authenticator, config = get_authenticator()
@@ -209,6 +209,127 @@ for level, colour, mod, page, objective, users, description in MODULES:
     c2.markdown(f"**{page}**")
     c3.markdown(f"<span style='font-size:0.82em;color:#555;'>🎯 {objective}</span>", unsafe_allow_html=True)
     c4.markdown(f"<span style='font-size:0.8em;'>{description}</span><br><span style='font-size:0.74em;color:#888;'>👤 {users}</span>", unsafe_allow_html=True)
+
+st.markdown("---")
+
+# ── CEL Project Portfolio by Sector ──────────────────────────────────────────
+st.markdown("#### CEL Project Portfolio")
+st.caption("All programmes and projects grouped by CEL service sector. Admins can register upcoming projects.")
+
+# Static portfolio sourced from CEL presentation slides (July 2026) + celghana.com
+_CEL_PORTFOLIO = [
+    # ── Aquaculture & Fisheries ───────────────────────────────────────────────
+    {"sector": "🐟 Aquaculture & Fisheries",
+     "name": "SAWA", "period": "2026–2030", "status": "Active",
+     "donor": "FCDO / Gates Foundation",
+     "cel_role": "Implementing Partner — BDS, safeguarding focal point, WAN establishment",
+     "description": "National aquaculture initiative for 80,000 young women, PWDs & displaced youth across Ghana (Catfish + Tilapia value chain)"},
+    # ── Blue Economy ──────────────────────────────────────────────────────────
+    {"sector": "🌊 Blue Economy & Marine Innovation",
+     "name": "A3MAtlantic", "period": "Ongoing", "status": "Active",
+     "donor": "EU / INTERREG MAC",
+     "cel_role": "CEL representing Ghana",
+     "description": "Strengthening SME competitiveness in the blue economy across the Mid-Atlantic"},
+    {"sector": "🌊 Blue Economy & Marine Innovation",
+     "name": "RED BEAM", "period": "Ongoing", "status": "Active",
+     "donor": "EU",
+     "cel_role": "CEL Local Partner in Ghana",
+     "description": "Accelerating ocean tech innovation across Macaronesia and West Africa"},
+    {"sector": "🌊 Blue Economy & Marine Innovation",
+     "name": "Blue Supply Chain", "period": "Ongoing", "status": "Active",
+     "donor": "EU",
+     "cel_role": "CEL Local Partner",
+     "description": "Strengthening regional value chains for offshore renewable energy in West Africa"},
+    # ── Digital Innovation ────────────────────────────────────────────────────
+    {"sector": "💻 Digital Innovation & Tech",
+     "name": "INNOVAMOS", "period": "Ongoing", "status": "Active",
+     "donor": "EU / INTERREG MAC",
+     "cel_role": "CEL Lead Partner",
+     "description": "Connecting researchers and businesses for innovation in agri-food, blue growth, and creative sectors"},
+    {"sector": "💻 Digital Innovation & Tech",
+     "name": "AFRICANTECH", "period": "Ongoing", "status": "Active",
+     "donor": "EU",
+     "cel_role": "CEL Local Partner (via Ghana Innovation Hub)",
+     "description": "Strengthening SME competitiveness through digital innovation across West Africa and the Canary Islands"},
+    # ── Circular Economy ──────────────────────────────────────────────────────
+    {"sector": "♻️ Circular Economy & Green Business",
+     "name": "OWTVI — Organic Waste-to-Value", "period": "2022–2026", "status": "Active",
+     "donor": "GIZ / develoPPP / Invest for Jobs",
+     "cel_role": "CEL Implementing Partner (with MDF) — Circular Economy Hub, Nsawam",
+     "description": "Creation of 120 new jobs through organic waste-to-value chain in Nsawam District (Eastern Region)"},
+    {"sector": "♻️ Circular Economy & Green Business",
+     "name": "Greenovations Africa", "period": "Ongoing", "status": "Active",
+     "donor": "AfriLabs / UNU",
+     "cel_role": "CEL Lead Hub — Waste Management Track",
+     "description": "Pan-African initiative empowering young entrepreneurs in green business development"},
+    # ── Agribusiness ─────────────────────────────────────────────────────────
+    {"sector": "🌾 Agribusiness & Value Chains",
+     "name": "Cassava Transformation Project", "period": "2020–2026", "status": "Active",
+     "donor": "—",
+     "cel_role": "Implementation Partner",
+     "description": "Enhance competitiveness and regional integration of Liberia's cassava sector through value chain approach"},
+    {"sector": "🌾 Agribusiness & Value Chains",
+     "name": "AGROPAL West Africa", "period": "Ongoing", "status": "Active",
+     "donor": "Private / CERATH Development",
+     "cel_role": "Technical Assistance Provider",
+     "description": "Dried fruits processing and export company; CEL supports technical assistance, farmer productivity, and investment readiness"},
+    # ── Enterprise Development ────────────────────────────────────────────────
+    {"sector": "🏢 Enterprise Development & Incubation",
+     "name": "Orange Corners Ghana", "period": "Ongoing", "status": "Active",
+     "donor": "Netherlands Embassy / Orange Corners",
+     "cel_role": "CEL Lead Implementer (Ghana Innovation Hub)",
+     "description": "Youth entrepreneurship incubation with proof-of-concept funding (OCIF). Alumni: SETECH, Dercol Bags, Eazz Foods, Wash King, SAYeTech, Asili Coffee"},
+]
+
+# Group by sector
+_sectors: dict[str, list] = {}
+for _p in _CEL_PORTFOLIO:
+    _sectors.setdefault(_p["sector"], []).append(_p)
+
+_STATUS_COLOURS = {"Active": "#2E7D32", "Planned": "#1565C0", "Completed": "#555"}
+
+for _sector, _projects in _sectors.items():
+    with st.expander(_sector, expanded=False):
+        for _proj in _projects:
+            _sc = _STATUS_COLOURS.get(_proj["status"], "#555")
+            st.markdown(
+                f'<div style="border-left:4px solid {_sc};padding:8px 14px;'
+                f'margin-bottom:8px;background:#fafafa;border-radius:4px;">'
+                f'<span style="font-weight:bold;">{_proj["name"]}</span>'
+                f'&nbsp;<span style="background:{_sc};color:white;padding:1px 7px;'
+                f'border-radius:10px;font-size:0.72em;">{_proj["status"]}</span>'
+                f'&nbsp;<span style="color:#888;font-size:0.78em;">{_proj["period"]} · {_proj["donor"]}</span><br>'
+                f'<span style="font-size:0.82em;color:#444;">{_proj["description"]}</span><br>'
+                f'<span style="font-size:0.76em;color:#555;"><em>CEL role:</em> {_proj["cel_role"]}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+# Admin expander: register a new / future project into the DB ─────────────────
+if can("admin"):
+    with st.expander("➕ Register a New / Future Project", expanded=False):
+        with st.form("new_project_form"):
+            np_name   = st.text_input("Project name *")
+            np_donor  = st.text_input("Donor / funder")
+            np_budget = st.number_input("Budget (USD)", min_value=0, step=10000)
+            c1, c2 = st.columns(2)
+            np_start  = c1.text_input("Start date (YYYY-MM-DD)")
+            np_end    = c2.text_input("End date (YYYY-MM-DD)")
+            submitted = st.form_submit_button("Register project")
+            if submitted and np_name:
+                try:
+                    run_write(
+                        """INSERT INTO projects (name, donor, budget_total, start_date, end_date)
+                           VALUES (:name, :donor, :budget, :start, :end)""",
+                        {"name": np_name, "donor": np_donor, "budget": int(np_budget),
+                         "start": np_start or None, "end": np_end or None},
+                    )
+                    st.success(f"Project **{np_name}** registered. It now appears in the project selector.")
+                    st.rerun()
+                except Exception as _exc:
+                    st.error(f"Insert failed: {_exc}")
+            elif submitted:
+                st.warning("Project name is required.")
 
 st.markdown("---")
 

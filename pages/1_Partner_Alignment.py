@@ -237,6 +237,102 @@ st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 
+# ── CEL's Role in SAWA ────────────────────────────────────────────────────────
+st.subheader("CEL's Delivery Role in SAWA")
+st.caption("Source: CEL SAWA proposal (Value Chain Pathway & Job Roles slide, July 2026)")
+
+rc1, rc2, rc3 = st.columns(3)
+with rc1:
+    st.markdown(
+        '<div style="background:#E8F5E9;border-left:4px solid #2E7D32;'
+        'border-radius:6px;padding:12px 16px;">'
+        '<p style="margin:0 0 6px 0;font-weight:bold;color:#2E7D32;">Jobs Target</p>'
+        '<p style="margin:0;font-size:1.3em;font-weight:700;color:#1B5E20;">600 D&amp;F</p>'
+        '<p style="margin:0;font-size:0.78em;color:#555;">Displaced &amp; Female participants</p>'
+        '<p style="margin:8px 0 0 0;font-size:1.3em;font-weight:700;color:#1B5E20;">800 YiW</p>'
+        '<p style="margin:0;font-size:0.78em;color:#555;">Youth in Work</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+with rc2:
+    st.markdown(
+        '<div style="background:#FFF8E1;border-left:4px solid #E65100;'
+        'border-radius:6px;padding:12px 16px;">'
+        '<p style="margin:0 0 6px 0;font-weight:bold;color:#E65100;">CEL Delivers</p>'
+        '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#444;">'
+        '<li>BDS support at Grow-Out stage</li>'
+        '<li>Training delivery at Hatchery stage</li>'
+        '<li>Entrepreneurship &amp; business skills training (Fry→Juvenile)</li>'
+        '<li>Business development for grow-out enterprises</li>'
+        '<li>Mentorship &amp; enterprise coaching</li>'
+        '</ul>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+with rc3:
+    st.markdown(
+        '<div style="background:#E3F2FD;border-left:4px solid #1565C0;'
+        'border-radius:6px;padding:12px 16px;">'
+        '<p style="margin:0 0 6px 0;font-weight:bold;color:#1565C0;">National Mandate</p>'
+        '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#444;">'
+        '<li>Enterprise training (national)</li>'
+        '<li>Safeguarding focal point across all IPs</li>'
+        '<li>Women in Aquaculture Network (WAN) establishment</li>'
+        '<li>Independently manages programme grievance mechanism</li>'
+        '<li>PWD target: 30 D&amp;F / 40 YiW</li>'
+        '</ul>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ── Partner Roles & Expectations ─────────────────────────────────────────────
+st.subheader("Partner Roles & Expectations")
+st.caption("Source: SAWA Partner Roles & Expectations slide — defines the mutual accountability framework.")
+
+pe1, pe2 = st.columns(2)
+with pe1:
+    st.markdown(
+        '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:6px;overflow:hidden;">'
+        '<div style="background:#BF360C;padding:8px 14px;">'
+        '<p style="margin:0;color:white;font-weight:bold;font-size:0.9em;">WHAT SAWA / AGRI-IMPACT PROVIDES</p>'
+        '</div>'
+        '<div style="padding:12px 16px;">'
+        '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#222;">'
+        '<li>Funding and resource mobilisation</li>'
+        '<li>Program management and coordination</li>'
+        '<li>Training and capacity building support</li>'
+        '<li>MEL systems and reporting frameworks</li>'
+        '<li>Safeguarding infrastructure</li>'
+        '<li>Market linkage facilitation</li>'
+        '</ul>'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+with pe2:
+    st.markdown(
+        '<div style="background:#E3F2FD;border:1px solid #90CAF9;border-radius:6px;overflow:hidden;">'
+        '<div style="background:#BF360C;padding:8px 14px;">'
+        '<p style="margin:0;color:white;font-weight:bold;font-size:0.9em;">WHAT IMPLEMENTING PARTNERS COMMIT TO</p>'
+        '</div>'
+        '<div style="padding:12px 16px;">'
+        '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#222;">'
+        '<li>Infrastructure and facility access</li>'
+        '<li>Technical expertise and last-mile delivery</li>'
+        '<li>Participant recruitment and mobilisation</li>'
+        '<li>Compliance with safeguarding standards</li>'
+        '<li>Data reporting and MEL participation</li>'
+        '<li>Co-investment and private sector leverage</li>'
+        '</ul>'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+st.divider()
+
 # ── PDF export ────────────────────────────────────────────────────────────────
 def _build_pdf() -> bytes:
     from reportlab.lib.pagesizes import landscape, A4
