@@ -36,6 +36,8 @@ if not run_query("SELECT 1 FROM projects LIMIT 1", {}):
     try:
         from database.seed_sawa import seed as _seed
         _seed()
+        from database.seed_sample_data import seed as _seed_sample
+        _seed_sample()
     except Exception as _e:
         st.warning(f"Auto-seed skipped: {_e}")
 
