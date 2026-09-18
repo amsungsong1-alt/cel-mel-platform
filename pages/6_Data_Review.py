@@ -24,7 +24,7 @@ import streamlit as st
 
 from database.db import init_db, run_query, run_write, insert_returning_id
 from utils.shared_widgets import project_selector
-from utils.auth import can
+from utils.auth import can, can_write_module
 
 st.set_page_config(page_title="Data Review — CEL MEL", layout="wide")
 init_db()
@@ -350,7 +350,7 @@ st.divider()
 # ═══════════════════════════════════════════════════════════════════════════════
 st.subheader("📝 Log a Review")
 
-if not can("write"):
+if not can_write_module("F"):
     st.info("Viewer access: review logging requires Editor or Admin role.")
 else:
     proto_map = {p["data_type"]: p for p in protocols}
@@ -520,7 +520,7 @@ else:
 
     # Resurface Y follow-up entries with a quick link to Module G
     y_entries = [e for e in log_entries if e.get("follow_up_required") == "Y"]
-    if y_entries and can("write"):
+    if y_entries and can_write_module("F"):
         with st.expander(f"⚡ {len(y_entries)} review(s) with outstanding follow-up"):
             for e in y_entries:
                 raw_ids   = (e.get("linked_indicator_ids") or "").split(",")

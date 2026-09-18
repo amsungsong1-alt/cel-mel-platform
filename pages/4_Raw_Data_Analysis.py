@@ -21,7 +21,7 @@ import pandas as pd
 
 from database.db import init_db, run_query, run_write
 from utils.shared_widgets import project_selector
-from utils.auth import can
+from utils.auth import can, can_write_module
 
 st.set_page_config(page_title="Raw Data Analysis — CEL MEL", layout="wide")
 init_db()
@@ -315,7 +315,7 @@ col_config = {
     "Action Description":st.column_config.TextColumn("Action Description", width="large"),
 }
 
-if can("write"):
+if can_write_module("D"):
     st.caption(
         "✏️ **Admin/Editor** — edit highlighted fields then **Save changes**. "
         "Action Description is **required** whenever Action Status is not "
@@ -462,7 +462,7 @@ if suggestions:
                 f'</div>',
                 unsafe_allow_html=True,
             )
-            if not already and can("write"):
+            if not already and can_write_module("D"):
                 if st.button(
                     f"Accept for {sg['code']}",
                     key=f"sg_{sg['id']}",

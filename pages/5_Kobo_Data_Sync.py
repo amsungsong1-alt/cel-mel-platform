@@ -23,7 +23,7 @@ import pandas as pd
 
 from database.db import init_db, run_query, run_write, insert_returning_id
 from utils.shared_widgets import project_selector
-from utils.auth import can
+from utils.auth import can, can_write_module
 from utils.kobo_client import (
     KoboClient,
     save_api_token,
@@ -388,7 +388,7 @@ else:
             for m in form_mappings
         ])
 
-        if can("write"):
+        if can_write_module("E"):
             edited_map = st.data_editor(
                 df_map,
                 column_config={
@@ -438,7 +438,7 @@ else:
         st.divider()
 
 # ── Add new form (manual entry) ───────────────────────────────────────────────
-if can("write"):
+if can_write_module("E"):
     with st.expander("➕ Register a new form manually"):
         nc1, nc2, nc3 = st.columns(3)
         with nc1:

@@ -73,7 +73,9 @@ if not auth_status:
 # ── Post-login: attach role to session state ──────────────────────────────────
 username = st.session_state.get("username", "")
 creds = config.get("credentials", {}).get("usernames", {})
-st.session_state["role"] = creds.get(username, {}).get("role", "Viewer")
+user_record = creds.get(username, {})
+st.session_state["role"] = user_record.get("role", "Viewer")
+st.session_state["write_modules"] = user_record.get("write_modules", None)
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:

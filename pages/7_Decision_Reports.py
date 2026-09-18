@@ -30,7 +30,7 @@ import streamlit as st
 
 from database.db import init_db, run_query, run_write, insert_returning_id
 from utils.shared_widgets import project_selector
-from utils.auth import can
+from utils.auth import can, can_write_module
 
 st.set_page_config(page_title="Decision Reports — CEL MEL", layout="wide")
 init_db()
@@ -411,7 +411,7 @@ with tab_dash:
 # TAB 2 — REPORT EDITOR
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab_edit:
-    if not can("write"):
+    if not can_write_module("G"):
         st.info("Viewer access: report editing requires Editor or Admin role.")
         st.stop()
 

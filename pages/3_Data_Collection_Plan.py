@@ -15,7 +15,7 @@ import plotly.graph_objects as go
 
 from database.db import init_db, run_query, run_write
 from utils.shared_widgets import project_selector
-from utils.auth import can
+from utils.auth import can, can_write_module
 
 st.set_page_config(page_title="Data Collection Plan — CEL MEL", layout="wide")
 init_db()
@@ -207,7 +207,7 @@ with tab_plan:
                                       "Responsible", options=RESPONSIBLE_OPTIONS, width="medium"),
     }
 
-    if can("write"):
+    if can_write_module("C"):
         st.caption(
             "✏️ **Admin/Editor view** — edit any non-greyed field, then click **Save changes**."
         )

@@ -16,7 +16,7 @@ import plotly.graph_objects as go
 
 from database.db import init_db, run_query, run_write
 from utils.shared_widgets import project_selector
-from utils.auth import can
+from utils.auth import can, can_write_module
 from projects.sawa import PILLAR_BUDGETS
 
 st.set_page_config(page_title="Partner Alignment — CEL MEL", layout="wide")
@@ -78,7 +78,7 @@ st.caption(
     "programme impact.  Source documents shown on hover."
 )
 
-editable = can("write")
+editable = can_write_module("A")
 
 # ── Band configuration ────────────────────────────────────────────────────────
 BANDS = {

@@ -105,6 +105,20 @@ def can(action: str) -> bool:
     return action in ROLE_PERMISSIONS.get(role, [])
 
 
+def can_write_module(module: str) -> bool:
+    """Return True if the current user can write to *module* (e.g. 'D', 'F').
+
+    Admins always pass.  Editors pass only if their write_modules list includes
+    the module, or if they have no list (unrestricted editor).  Viewers never pass.
+    """
+    if not can("write"):
+        return False
+    write_modules = st.session_state.get("write_modules")
+    if write_modules is None:
+        return True  # Admin or unrestricted editor
+    return module.upper() in [m.upper() for m in write_modules]
+
+
 def require(action: str):
     """Halt the page with an error if the user lacks *action*."""
     if not can(action):

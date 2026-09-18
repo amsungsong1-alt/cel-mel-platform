@@ -10,7 +10,7 @@ import pandas as pd
 
 from database.db import init_db, run_query, run_write
 from utils.shared_widgets import project_selector
-from utils.auth import can
+from utils.auth import can, can_write_module
 
 st.set_page_config(page_title="ToC & Logframe — CEL MEL", layout="wide")
 init_db()
@@ -265,7 +265,7 @@ with tab_lf:
     }
 
     # ── Render table ──────────────────────────────────────────────────────────
-    if can("write"):
+    if can_write_module("B"):
         st.caption(
             "✏️ **Admin/Editor view** — edit any yellow-highlighted field, then click **Save changes**. "
             "Every edit is logged with your name and a timestamp."
