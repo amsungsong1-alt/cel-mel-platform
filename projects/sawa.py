@@ -2,7 +2,7 @@
 
 PROJECT = {
     "name":         "SAWA",
-    "donor":        "FCDO / Gates Foundation",
+    "donor":        "Mastercard Foundation",
     "budget_total": 39_810_000,   # USD 39.81M
     "start_date":   "2026-01-01",
     "end_date":     "2030-12-31",

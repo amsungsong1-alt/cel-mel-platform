@@ -90,7 +90,7 @@ st.markdown(
     f'<span style="color:{GOLD};font-size:0.9em;margin-left:12px;">'
     'Community &amp; Enterprise-Level Monitoring, Evaluation &amp; Learning</span><br>'
     '<span style="font-size:0.78em;opacity:0.7;margin-top:4px;display:block;">'
-    'SAWA Programme · Fisheries &amp; Aquaculture Development · Ghana</span>'
+    'SAWA Programme · Fisheries &amp; Aquaculture Development · Ghana · Funded by Mastercard Foundation</span>'
     '</div>',
     unsafe_allow_html=True,
 )
@@ -157,7 +157,7 @@ MODULES = [
     # (level, badge_colour, module, page_name, is_objective, users, nav_hint)
     ("Senior Management", "#1565C0", "H", "Impact Dashboard",
      "Improved Decision Making",
-     "Programme Director, Donors, FCDO / Gates Foundation",
+     "Programme Director, Donors, Mastercard Foundation",
      "Auto-captured impact story: KPIs, results chain, partner funnel, key findings"),
     ("Senior Management", "#1565C0", "A", "Partner Alignment",
      "Customer & Supplier Intimacy",
@@ -221,7 +221,7 @@ _CEL_PORTFOLIO = [
     # ── Aquaculture & Fisheries ───────────────────────────────────────────────
     {"sector": "🐟 Aquaculture & Fisheries",
      "name": "SAWA", "period": "2026–2030", "status": "Active",
-     "donor": "FCDO / Gates Foundation",
+     "donor": "Mastercard Foundation",
      "cel_role": "Implementing Partner — BDS, safeguarding focal point, WAN establishment",
      "description": "National aquaculture initiative for 80,000 young women, PWDs & displaced youth across Ghana (Catfish + Tilapia value chain)"},
     # ── Blue Economy ──────────────────────────────────────────────────────────
@@ -396,7 +396,7 @@ with st.expander("📚 MIS Framework Context (Laudon & Laudon, 16e)", expanded=F
             ("Customer & Supplier Intimacy", "Partner Alignment (A) tracks commitment and delivery across all implementing partners.", "✅"),
             ("Improved Decision Making", "Data Review (F) quality-assures evidence; Decision Reports (G) surface actions to decision-makers.", "✅"),
             ("Competitive Advantage", "Rigorous MEAL data positions SAWA for continued donor investment and scale.", "✅"),
-            ("Survival", "Structured reporting in Module G ensures compliance with FCDO/Gates Foundation reporting requirements.", "✅"),
+            ("Survival", "Structured reporting in Module G ensures compliance with Mastercard Foundation reporting requirements.", "✅"),
         ]
         for obj, note, tick in objectives:
             st.markdown(f"{tick} **{obj}** — {note}")
