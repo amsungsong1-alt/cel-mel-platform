@@ -17,6 +17,16 @@ from database.db import run_query
 from utils.auth import require
 from utils.shared_widgets import project_selector
 
+
+def _num(val, default=0):
+    """Safely convert a DB value (string, int, float, None) to float."""
+    if val is None or val == "" or val == "—":
+        return default
+    try:
+        return float(str(val).replace(",", "").replace("%", "").replace("≥", "").replace("+", "").strip())
+    except (ValueError, TypeError):
+        return default
+
 st.set_page_config(
     page_title="Impact Dashboard · CEL MEL",
     page_icon="🌟",
@@ -138,21 +148,21 @@ highlight  = pd.concat([outcome_df, output_df]).head(4)
 
 kpi_cols = st.columns(len(highlight) if len(highlight) > 0 else 1)
 for col, (_, row) in zip(kpi_cols, highlight.iterrows()):
-    actual  = row["actual_year"]
-    target  = row["rda_target"] or 0
+    actual  = _num(row["actual_year"])
+    target  = _num(row["rda_target"])
     status  = row["indicator_status"] or "Not Started"
     colour  = STATUS_COLOUR.get(status, "#757575")
     level_c = LEVEL_COLOUR.get(row["result_level"], NAVY)
     label   = (row["indicator_statement"] or "")[:60] + ("…" if len(row["indicator_statement"] or "") > 60 else "")
-    pct     = round(actual / target * 100, 1) if target and target > 0 else 0
+    pct     = round(actual / target * 100, 1) if target > 0 else 0
 
     col.markdown(
         f'<div style="border:1px solid {level_c}50;border-left:4px solid {level_c};'
         f'border-radius:6px;padding:14px 12px;background:{level_c}08;">'
         f'<div style="font-size:0.7em;color:{level_c};font-weight:bold;text-transform:uppercase;">'
         f'{row["result_level"]} · {row["indicator_code"]}</div>'
-        f'<div style="font-size:1.9em;font-weight:bold;color:{NAVY};margin:4px 0;">{actual:,}</div>'
-        f'<div style="font-size:0.75em;color:#555;">of {target:,} target ({pct}%)</div>'
+        f'<div style="font-size:1.9em;font-weight:bold;color:{NAVY};margin:4px 0;">{actual:,.0f}</div>'
+        f'<div style="font-size:0.75em;color:#555;">of {target:,.0f} target ({pct}%)</div>'
         f'<div style="font-size:0.7em;margin-top:4px;color:{colour};font-weight:bold;">● {status}</div>'
         f'<div style="font-size:0.68em;color:#777;margin-top:6px;">{label}</div>'
         '</div>',
@@ -173,9 +183,9 @@ with col_chart:
         if sub.empty:
             continue
         for _, r in sub.iterrows():
-            t = r["rda_target"] or 0
-            a = r["actual_year"]
-            pct = min(round(a / t * 100, 1) if t and t > 0 else 0, 150)
+            t = _num(r["rda_target"])
+            a = _num(r["actual_year"])
+            pct = min(round(a / t * 100, 1) if t > 0 else 0, 150)
             rows_by_level.append({
                 "Code": r["indicator_code"],
                 "Level": lvl,
@@ -221,16 +231,16 @@ with col_table:
             unsafe_allow_html=True,
         )
         for _, r in sub.iterrows():
-            t = r["rda_target"] or 0
-            a = r["actual_year"]
-            pct = round(a / t * 100, 1) if t and t > 0 else 0
+            t = _num(r["rda_target"])
+            a = _num(r["actual_year"])
+            pct = round(a / t * 100, 1) if t > 0 else 0
             status = r["indicator_status"] or "Not Started"
             sc = STATUS_COLOUR.get(status, "#757575")
             stmt = (r["indicator_statement"] or "")[:70]
             st.markdown(
                 f'<div style="padding:5px 6px 5px 12px;border-bottom:1px solid #eee;font-size:0.75em;">'
                 f'<b style="color:{NAVY};">{r["indicator_code"]}</b> — {stmt}<br>'
-                f'<span style="color:#555;">{a:,} / {t:,}</span> '
+                f'<span style="color:#555;">{a:,.0f} / {t:,.0f}</span> '
                 f'<span style="color:{sc};font-weight:bold;">({pct}%) {status}</span>'
                 '</div>',
                 unsafe_allow_html=True,
