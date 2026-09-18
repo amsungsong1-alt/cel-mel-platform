@@ -5,3 +5,4 @@ venv/
 *.db
 .kobo_token
 .streamlit/secrets.toml
+database/credentials.yaml
