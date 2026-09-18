@@ -132,6 +132,16 @@ for col, (icon, label, sub, bg, fg) in zip(cols, cycle_steps):
             unsafe_allow_html=True,
         )
 
+st.markdown(
+    f'<div style="text-align:center;font-size:0.78em;color:#555;margin-top:6px;">'
+    f'<span style="color:{GOLD};font-weight:bold;">↩ Feedback loop</span> — '
+    'Impact findings from Module H inform the next data collection cycle '
+    '(back to Modules C &amp; E), closing the IS cycle as described in '
+    'Laudon &amp; Laudon Figure 1.4.'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
 st.markdown("---")
 
 # ── Module Table by Management Level ─────────────────────────────────────────
