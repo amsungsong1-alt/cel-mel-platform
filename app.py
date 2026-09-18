@@ -98,7 +98,8 @@ st.markdown("#### MEL Information System Cycle")
 st.caption(
     "Based on Laudon & Laudon (2020) Figure 1.4 — an information system "
     "collects data (Input), converts it into meaningful findings (Processing), "
-    "distributes them (Output), and channels results back to improve collection (Feedback)."
+    "distributes them (Output), and channels results back to improve collection (Feedback). "
+    "Module H closes the cycle by automatically assembling all outputs into a shareable impact story."
 )
 
 cols = st.columns([2, 1, 2, 1, 2, 1, 2, 1, 2])
@@ -109,9 +110,9 @@ cycle_steps = [
     ("→", "", "", "white", NAVY),
     ("🔍 REVIEW", "Quality-check", "Module F", "#F3E5F5", "#6A1B9A"),
     ("→", "", "", "white", NAVY),
-    ("📋 OUTPUT", "Decide & Act", "Module G", "#E8F5E9", "#2E7D32"),
-    ("↩", "Feedback", "Informs next cycle", "white", NAVY),
-    ("📊 ALIGN", "Commitments", "Module A, B", f"{NAVY}15", NAVY),
+    ("📋 DECIDE", "Act & Report", "Module G", "#E8F5E9", "#2E7D32"),
+    ("→", "", "", "white", NAVY),
+    ("🌟 IMPACT", "Tell the Story", "Module H", f"#C8A95120", GOLD),
 ]
 for col, (icon, label, sub, bg, fg) in zip(cols, cycle_steps):
     if icon in ("→", "↩"):
@@ -142,6 +143,10 @@ st.caption(
 
 MODULES = [
     # (level, badge_colour, module, page_name, is_objective, users, nav_hint)
+    ("Senior Management", "#1565C0", "H", "Impact Dashboard",
+     "Improved Decision Making",
+     "Programme Director, Donors, FCDO / Gates Foundation",
+     "Auto-captured impact story: KPIs, results chain, partner funnel, key findings"),
     ("Senior Management", "#1565C0", "A", "Partner Alignment",
      "Customer & Supplier Intimacy",
      "Programme Director, Donors",
@@ -215,9 +220,9 @@ quick_start_map = {
     "Viewer": {
         "icon": "👁",
         "colour": "#2E7D32",
-        "start": "Module G",
-        "tip": "Decision Reports (Module G) give the clearest programme overview. Module A shows partner delivery.",
-        "daily": "Module G → view approved reports · Module A → check partner alignment.",
+        "start": "Module H",
+        "tip": "Impact Dashboard (Module H) gives the full programme picture instantly — KPIs, results chain, partner delivery and key findings in one view.",
+        "daily": "Module H → impact snapshot · Module G → approved reports · Module A → partner alignment.",
     },
 }
 qs = quick_start_map.get(role, quick_start_map["Viewer"])
