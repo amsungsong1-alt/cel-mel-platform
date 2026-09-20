@@ -25,17 +25,21 @@ _CSS = """
     margin: 0 !important;
     padding: 0 !important;
 }}
-/* ── sticky nav row ────────────────────────────────────────── */
+/* ── fixed nav row — sticky fails when a parent has overflow:hidden ── */
 [data-testid="stMarkdown"]:has(span#_nav_marker)
 + [data-testid="stHorizontalBlock"] {{
-    position: sticky !important;
-    top: 0 !important;
+    position: fixed !important;
+    top: 2.875rem !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
     z-index: 9999 !important;
     background: {navy} !important;
     padding: 0.32rem 0.8rem !important;
     border-radius: 0 !important;
     gap: 0 !important;
-    margin-bottom: 0.75rem !important;
+    margin-bottom: 0 !important;
+    box-sizing: border-box !important;
 }}
 /* ── inactive page_link pill ───────────────────────────────── */
 [data-testid="stMarkdown"]:has(span#_nav_marker)
@@ -131,3 +135,9 @@ def render_nav_strip(current_stage: str = "") -> None:
                 )
             else:
                 st.page_link(page, label=label, use_container_width=True)
+
+    # Spacer so page content clears the fixed strip (fixed removes it from flow).
+    st.markdown(
+        '<div style="height:2.5rem;line-height:0;font-size:0"> </div>',
+        unsafe_allow_html=True,
+    )
