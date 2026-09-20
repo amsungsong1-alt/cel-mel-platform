@@ -18,6 +18,20 @@ _STAGES = [
 # container matching problem that caused the earlier blank-page bug.
 _CSS = """
 <style>
+/* ── clear Streamlit ancestor properties that break position:fixed ──
+   transform / will-change / contain all create a new containing block,
+   which makes fixed children position relative to that element instead
+   of the viewport.                                                    */
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+.block-container,
+[data-testid="stMainBlockContainer"],
+[data-testid="stVerticalBlock"] {{
+    transform: none !important;
+    will-change: auto !important;
+    contain: none !important;
+}}
+
 /* ── hide the tiny marker element ─────────────────────────── */
 [data-testid="stMarkdown"]:has(span#_nav_marker) {{
     display: none !important;
@@ -25,7 +39,7 @@ _CSS = """
     margin: 0 !important;
     padding: 0 !important;
 }}
-/* ── fixed nav row — sticky fails when a parent has overflow:hidden ── */
+/* ── fixed nav row ─────────────────────────────────────────── */
 [data-testid="stMarkdown"]:has(span#_nav_marker)
 + [data-testid="stHorizontalBlock"] {{
     position: fixed !important;
