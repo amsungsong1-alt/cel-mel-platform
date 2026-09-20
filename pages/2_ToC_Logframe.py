@@ -10,7 +10,7 @@ import pandas as pd
 
 from database.db import init_db, run_query, run_write
 from utils.shared_widgets import project_selector
-from utils.auth import can, can_write_module, ensure_auth
+from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
 
 st.set_page_config(page_title="ToC & Logframe — CEL MEL", layout="wide")
@@ -18,7 +18,7 @@ init_db()
 render_nav_strip("Input")
 
 # ── Auth gate ─────────────────────────────────────────────────────────────────
-if not ensure_auth():
+if not st.session_state.get("authentication_status"):
     st.error("Please log in from the main page.")
     st.stop()
 
