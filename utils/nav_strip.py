@@ -25,12 +25,15 @@ _CSS = """
     margin: 0 !important;
     padding: 0 !important;
 }}
-/* ── navy background on the columns row ────────────────────── */
+/* ── sticky nav row ────────────────────────────────────────── */
 [data-testid="stMarkdown"]:has(span#_nav_marker)
 + [data-testid="stHorizontalBlock"] {{
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 9999 !important;
     background: {navy} !important;
     padding: 0.32rem 0.8rem !important;
-    border-radius: 8px !important;
+    border-radius: 0 !important;
     gap: 0 !important;
     margin-bottom: 0.75rem !important;
 }}
