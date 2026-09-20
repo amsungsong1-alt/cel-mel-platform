@@ -1,11 +1,11 @@
 """
 MEL Information System Cycle — fixed top navigation strip.
 
-Uses st.page_link() so Streamlit's own React Router handles navigation,
-keeping the WebSocket alive and session_state (auth) intact.
-
-A unique <span id="is-cycle-marker"> anchors the CSS :has() selector so only
-this specific container gets position:fixed — not its parent blocks.
+Architecture (two-layer):
+  VISUAL  — CSS-fixed HTML strip with onclick handlers (no page reload)
+  ROUTING — Hidden st.page_link elements; onclick programmatically clicks them
+             so Streamlit's React Router handles navigation and session_state
+             (authentication) is preserved exactly like sidebar links.
 """
 from __future__ import annotations
 import streamlit as st
@@ -21,143 +21,169 @@ _STAGES = [
     ("📊 Impact",  "pages/8_Impact_Dashboard.py",    "Impact",  "#16A34A"),
 ]
 
-
-def _active_css(current_stage: str) -> str:
-    """Return CSS that highlights the active stage pill."""
-    rules = []
-    for i, (_, _, stage, color) in enumerate(_STAGES, start=1):
-        if stage == current_stage:
-            rules.append(f"""
-/* Active: {stage} */
-div[data-testid="stVerticalBlock"]:has(> div span#is-cycle-marker)
-div[data-testid="stColumn"]:nth-child({i})
-div[data-testid="stPageLink"] a {{
-    background: {color} !important;
-    color: #fff !important;
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.25);
-}}""")
-    return "\n".join(rules)
+_SIDEBAR_CSS = """
+[data-testid="stSidebarNavItems"] li:nth-child(2) a,
+[data-testid="stSidebarNavItems"] li:nth-child(3) a,
+[data-testid="stSidebarNavItems"] li:nth-child(4) a,
+[data-testid="stSidebarNavItems"] li:nth-child(5) a {
+    border-left: 3px solid #2563EB !important;
+    padding-left: 0.55rem !important;
+}
+[data-testid="stSidebarNavItems"] li:nth-child(2)::before {
+    content: "INPUT";
+    display: block; font-size: 0.58rem; font-weight: 800;
+    letter-spacing: .1em; color: #2563EB;
+    padding: .35rem 0 .1rem .9rem; opacity: .85;
+}
+[data-testid="stSidebarNavItems"] li:nth-child(6) a {
+    border-left: 3px solid #D97706 !important; padding-left: 0.55rem !important;
+}
+[data-testid="stSidebarNavItems"] li:nth-child(6)::before {
+    content: "PROCESS";
+    display: block; font-size: 0.58rem; font-weight: 800;
+    letter-spacing: .1em; color: #D97706;
+    padding: .45rem 0 .1rem .9rem; opacity: .85;
+}
+[data-testid="stSidebarNavItems"] li:nth-child(7) a {
+    border-left: 3px solid #0891B2 !important; padding-left: 0.55rem !important;
+}
+[data-testid="stSidebarNavItems"] li:nth-child(7)::before {
+    content: "REVIEW";
+    display: block; font-size: 0.58rem; font-weight: 800;
+    letter-spacing: .1em; color: #0891B2;
+    padding: .45rem 0 .1rem .9rem; opacity: .85;
+}
+[data-testid="stSidebarNavItems"] li:nth-child(8) a {
+    border-left: 3px solid #DC2626 !important; padding-left: 0.55rem !important;
+}
+[data-testid="stSidebarNavItems"] li:nth-child(8)::before {
+    content: "DECIDE";
+    display: block; font-size: 0.58rem; font-weight: 800;
+    letter-spacing: .1em; color: #DC2626;
+    padding: .45rem 0 .1rem .9rem; opacity: .85;
+}
+[data-testid="stSidebarNavItems"] li:nth-child(9) a {
+    border-left: 3px solid #16A34A !important; padding-left: 0.55rem !important;
+}
+[data-testid="stSidebarNavItems"] li:nth-child(9)::before {
+    content: "IMPACT";
+    display: block; font-size: 0.58rem; font-weight: 800;
+    letter-spacing: .1em; color: #16A34A;
+    padding: .45rem 0 .1rem .9rem; opacity: .85;
+}
+"""
 
 
 def render_nav_strip(current_stage: str = "") -> None:
     """Inject IS Cycle strip. Call immediately after set_page_config / init_db."""
 
-    st.markdown(f"""
+    # ── Build visual strip HTML ────────────────────────────────────────────
+    items: list[str] = []
+    for i, (label, _page, stage, color) in enumerate(_STAGES):
+        active = stage == current_stage
+        link_style = (
+            f"background:{color}; color:#fff; "
+            "box-shadow:0 0 0 2px rgba(255,255,255,0.25);"
+        ) if active else "color:rgba(255,255,255,0.68);"
+
+        # onclick: click the i-th hidden st.page_link anchor.
+        # display:none elements are still in the DOM and clickable via JS.
+        onclick = (
+            f"(function(){{"
+            f"var a=document.querySelectorAll("
+            f"'div[data-testid=\"stVerticalBlock\"]:has(span#_pl_nav_marker)"
+            f" div[data-testid=\"stPageLink\"] a');"
+            f"if(a[{i}])a[{i}].click();"
+            f"}})();return false;"
+        )
+        items.append(
+            f'<a class="sc-link" href="#" onclick="{onclick}" style="{link_style}">'
+            f"{label}</a>"
+        )
+        if i < len(_STAGES) - 1:
+            items.append('<span class="sc-arrow">›</span>')
+
+    strip_html = "\n".join(items)
+
+    st.markdown(
+        f"""
 <style>
-/* ═══════════════════════════════════════════════════════════════════
-   IS Cycle fixed top strip
-   Target: the stVerticalBlock that directly wraps our marker span.
-   :has(> div span#...) prevents matching ancestor blocks.
-═══════════════════════════════════════════════════════════════════ */
-div[data-testid="stVerticalBlock"]:has(> div span#is-cycle-marker) {{
-    position: fixed !important;
-    top: 3.1rem !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 99999 !important;
-    background: {_NAVY} !important;
-    padding: 0.15rem 0.5rem 0.1rem 0.5rem !important;
-    box-shadow: 0 3px 14px rgba(0,0,0,0.30) !important;
-    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+/* ── Visual fixed top strip ──────────────────────────────────────── */
+#is-cycle-strip {{
+    position: fixed;
+    top: 3.1rem;
+    left: 0; right: 0;
+    z-index: 99999;
+    background: {_NAVY};
+    padding: 0.32rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.30);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}}
+.sc-link {{
+    display: inline-flex;
+    align-items: center;
+    padding: 0.26rem 1.05rem;
+    border-radius: 999px;
+    font-size: 0.79rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-decoration: none !important;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.13s, color 0.13s;
+}}
+.sc-link:hover {{
+    background: rgba(255,255,255,0.14) !important;
+    color: #fff !important;
+}}
+.sc-arrow {{
+    color: rgba(255,255,255,0.22);
+    font-size: 1.05rem;
+    padding: 0 0.12rem;
+    user-select: none;
+    pointer-events: none;
 }}
 
-/* Push content below the strip */
+/* ── Push main content below strip ──────────────────────────────── */
 [data-testid="stMainBlockContainer"] {{
     padding-top: 3rem !important;
 }}
 
-/* ── Page link base style ── */
-div[data-testid="stVerticalBlock"]:has(> div span#is-cycle-marker)
-div[data-testid="stPageLink"] a {{
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0.26rem 0.5rem !important;
-    border-radius: 999px !important;
-    font-size: 0.78rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.04em !important;
-    color: rgba(255,255,255,0.68) !important;
-    text-decoration: none !important;
-    transition: background 0.13s, color 0.13s !important;
+/* ── Hide the functional page_link container ─────────────────────
+   display:none keeps elements in DOM so JS .click() still works.  */
+div[data-testid="stVerticalBlock"]:has(span#_pl_nav_marker) {{
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
     white-space: nowrap !important;
-    width: 100% !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+}}
+/* But the anchors inside must stay clickable for JS */
+div[data-testid="stVerticalBlock"]:has(span#_pl_nav_marker)
+div[data-testid="stPageLink"] a {{
+    pointer-events: auto !important;
 }}
 
-div[data-testid="stVerticalBlock"]:has(> div span#is-cycle-marker)
-div[data-testid="stPageLink"] a:hover {{
-    background: rgba(255,255,255,0.14) !important;
-    color: #fff !important;
-}}
-
-/* ── Active stage ── */
-{_active_css(current_stage)}
-
-/* ── Sidebar: stage colour left-border bands ── */
-/* Home page is item 1; pages 1-8 are items 2-9 */
-[data-testid="stSidebarNavItems"] li:nth-child(2) a,
-[data-testid="stSidebarNavItems"] li:nth-child(3) a,
-[data-testid="stSidebarNavItems"] li:nth-child(4) a,
-[data-testid="stSidebarNavItems"] li:nth-child(5) a {{
-    border-left: 3px solid #2563EB !important;
-    padding-left: 0.55rem !important;
-}}
-[data-testid="stSidebarNavItems"] li:nth-child(2)::before {{
-    content: "INPUT";
-    display: block; font-size: 0.58rem; font-weight: 800;
-    letter-spacing: .1em; color: #2563EB;
-    padding: .35rem 0 .1rem .9rem; opacity: .85;
-}}
-[data-testid="stSidebarNavItems"] li:nth-child(6) a {{
-    border-left: 3px solid #D97706 !important;
-    padding-left: 0.55rem !important;
-}}
-[data-testid="stSidebarNavItems"] li:nth-child(6)::before {{
-    content: "PROCESS";
-    display: block; font-size: 0.58rem; font-weight: 800;
-    letter-spacing: .1em; color: #D97706;
-    padding: .45rem 0 .1rem .9rem; opacity: .85;
-}}
-[data-testid="stSidebarNavItems"] li:nth-child(7) a {{
-    border-left: 3px solid #0891B2 !important;
-    padding-left: 0.55rem !important;
-}}
-[data-testid="stSidebarNavItems"] li:nth-child(7)::before {{
-    content: "REVIEW";
-    display: block; font-size: 0.58rem; font-weight: 800;
-    letter-spacing: .1em; color: #0891B2;
-    padding: .45rem 0 .1rem .9rem; opacity: .85;
-}}
-[data-testid="stSidebarNavItems"] li:nth-child(8) a {{
-    border-left: 3px solid #DC2626 !important;
-    padding-left: 0.55rem !important;
-}}
-[data-testid="stSidebarNavItems"] li:nth-child(8)::before {{
-    content: "DECIDE";
-    display: block; font-size: 0.58rem; font-weight: 800;
-    letter-spacing: .1em; color: #DC2626;
-    padding: .45rem 0 .1rem .9rem; opacity: .85;
-}}
-[data-testid="stSidebarNavItems"] li:nth-child(9) a {{
-    border-left: 3px solid #16A34A !important;
-    padding-left: 0.55rem !important;
-}}
-[data-testid="stSidebarNavItems"] li:nth-child(9)::before {{
-    content: "IMPACT";
-    display: block; font-size: 0.58rem; font-weight: 800;
-    letter-spacing: .1em; color: #16A34A;
-    padding: .45rem 0 .1rem .9rem; opacity: .85;
-}}
+{_SIDEBAR_CSS}
 </style>
-""", unsafe_allow_html=True)
+<div id="is-cycle-strip">{strip_html}</div>
+""",
+        unsafe_allow_html=True,
+    )
 
-    # The strip container — marker anchors the :has() CSS above
+    # ── Hidden st.page_link elements (real routing) ───────────────────────
     with st.container():
+        # Unique marker so the CSS :has() selector above targets only this block
         st.markdown(
-            '<div><span id="is-cycle-marker" style="display:none"></span></div>',
+            '<span id="_pl_nav_marker" style="display:none;position:absolute"></span>',
             unsafe_allow_html=True,
         )
-        cols = st.columns(len(_STAGES))
-        for col, (label, page, _stage, _color) in zip(cols, _STAGES):
-            with col:
-                st.page_link(page, label=label, use_container_width=True)
+        for label, page, _stage, _color in _STAGES:
+            st.page_link(page, label=label)

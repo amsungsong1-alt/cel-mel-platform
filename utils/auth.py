@@ -119,6 +119,25 @@ def can_write_module(module: str) -> bool:
     return module.upper() in [m.upper() for m in write_modules]
 
 
+def ensure_auth() -> bool:
+    """Return True if authenticated.
+
+    Fast path: checks session_state first.
+    Slow path: if session was reset by navigation, re-validates from the auth
+    cookie so the user doesn't get kicked out just because they clicked a tab.
+    """
+    if st.session_state.get("authentication_status"):
+        return True
+    # Try to re-hydrate from cookie without rendering a login form
+    try:
+        auth, _ = get_authenticator()
+        if hasattr(auth, "_check_cookie"):
+            auth._check_cookie()
+    except Exception:
+        pass
+    return bool(st.session_state.get("authentication_status"))
+
+
 def require(action: str):
     """Halt the page with an error if the user lacks *action*."""
     if not can(action):
