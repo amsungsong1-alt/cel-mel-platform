@@ -1,7 +1,7 @@
-"""Module E — Kobo Data Sync
+"""Module D — Kobo Data Sync
 
 Pulls KoboToolbox form submissions into the local database and maps them
-into raw_data_analysis.actual_q[N] cells in Module D.
+into raw_data_analysis.actual_q[N] cells in Module E.
 
 Token is base64-obfuscated in database/.kobo_token — add that path to
 .gitignore and never commit it to version control. For production use an
@@ -142,10 +142,10 @@ def _do_sync(
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE
 # ═══════════════════════════════════════════════════════════════════════════════
-st.title("Module E — Kobo Data Sync")
+st.title("Module D — Kobo Data Sync")
 st.caption(
     "Pull KoboToolbox form submissions into the local database and map field "
-    "values into Module D (Raw Data Analysis) indicator cells."
+    "values into Module E (Raw Data Analysis) indicator cells."
 )
 
 # ── Load indicator lookup for mapping UI ──────────────────────────────────────
@@ -348,7 +348,7 @@ else:
                          "n": n, "status": status, "err": err},
                     )
                     if status == "success":
-                        st.success(f"Synced {n} new submission(s). Module D updated.")
+                        st.success(f"Synced {n} new submission(s). Module E updated.")
                     else:
                         st.error(f"Sync failed: {err}")
                     st.rerun()

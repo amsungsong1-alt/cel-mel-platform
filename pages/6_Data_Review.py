@@ -399,7 +399,7 @@ else:
             height=80,
         )
         linked_opts = st.multiselect(
-            "Indicators this review touched (from Module D)",
+            "Indicators this review touched (from Module E)",
             options=lf_options,
             placeholder="Select one or more logframe indicators…",
         )

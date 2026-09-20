@@ -135,7 +135,7 @@ reports = run_query(
 )
 
 if not actuals_rows:
-    st.info("No performance data yet — enter actuals in Module D (Raw Data Analysis).")
+    st.info("No performance data yet — enter actuals in Module E (Raw Data Analysis).")
     st.stop()
 
 df = pd.DataFrame(actuals_rows)
@@ -380,7 +380,7 @@ st.markdown(
     f'border-radius:6px;padding:10px 16px;font-size:0.75em;color:#444;">'
     f'<b style="color:{NAVY};">MIS Framework (Laudon & Laudon, 16e)</b> · '
     'This dashboard completes the IS cycle: data entered in Modules C–E (Input) → '
-    'analysed in Module D (Processing) → quality-checked in Module F (Review) → '
+    'analysed in Module E (Processing) → quality-checked in Module F (Review) → '
     'surfaced here as decision-ready impact evidence (Output). '
     'Strategic objective: <b>Improved Decision Making</b> + '
     '<b>Customer &amp; Supplier Intimacy</b> (donor reporting).'

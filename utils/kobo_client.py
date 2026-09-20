@@ -1,4 +1,4 @@
-"""KoboToolbox API client for Module E — Kobo Data Sync.
+"""KoboToolbox API client for Module D — Kobo Data Sync.
 
 Token storage: the API token is base64-obfuscated in database/.kobo_token.
 This deters casual reading but is NOT true encryption. For production

@@ -1,4 +1,4 @@
-"""Module D — Raw Data Analysis
+"""Module E — Raw Data Analysis
 
 Editable master indicator tracking table: one row per logframe indicator,
 covering baseline status, Q1–Q4 actuals, indicator status and action status.
@@ -133,7 +133,7 @@ rda_rows = run_query(
 )
 
 if not rda_rows:
-    st.title("Module D — Raw Data Analysis")
+    st.title("Module E — Raw Data Analysis")
     st.info("No data found — run `python -m database.seed_sawa` to load SAWA data.")
     st.stop()
 
@@ -144,7 +144,7 @@ if "rda_accepted_suggestions" not in st.session_state:
     st.session_state["rda_accepted_suggestions"] = {}
 
 # ── Status summary ────────────────────────────────────────────────────────────
-st.title("Module D — Raw Data Analysis")
+st.title("Module E — Raw Data Analysis")
 
 from collections import Counter
 ind_counts   = Counter(r.get("indicator_status", "") for r in rda_rows)

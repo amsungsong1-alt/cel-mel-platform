@@ -10,7 +10,7 @@ All seven module pages share session state set here:
 MIS Framework (Laudon & Laudon, 16e)
 -------------------------------------
 This platform is a management information system: it collects raw data (Modules
-C & E), processes it into meaningful indicators (Module D), stores and
+C & D), processes it into meaningful indicators (Module E), stores and
 distributes reviewed findings (Module F), and outputs decision-ready reports
 (Module G) — completing the Input → Processing → Output → Feedback cycle.
 
@@ -110,9 +110,9 @@ st.caption(
 
 cols = st.columns([2, 1, 2, 1, 2, 1, 2, 1, 2])
 cycle_steps = [
-    ("📥 INPUT", "Collect", "Modules C & E", "#E3F2FD", "#1565C0"),
+    ("📥 INPUT", "Collect", "Modules C & D", "#E3F2FD", "#1565C0"),
     ("→", "", "", "white", NAVY),
-    ("⚙️ PROCESS", "Analyse", "Module D", "#FFF8E1", "#E65100"),
+    ("⚙️ PROCESS", "Analyse", "Module E", "#FFF8E1", "#E65100"),
     ("→", "", "", "white", NAVY),
     ("🔍 REVIEW", "Quality-check", "Module F", "#F3E5F5", "#6A1B9A"),
     ("→", "", "", "white", NAVY),
@@ -344,15 +344,15 @@ quick_start_map = {
         "icon": "🔧",
         "colour": "#B71C1C",
         "start": "Module A",
-        "tip": "Set up partner targets in Module A, seed logframe in Module B, configure Kobo mappings in Module E.",
+        "tip": "Set up partner targets in Module A, seed logframe in Module B, configure Kobo mappings in Module D.",
         "daily": "Check Module F for overdue reviews · Monitor Module G for pending actions.",
     },
     "Editor": {
         "icon": "✏️",
         "colour": "#1565C0",
-        "start": "Module D",
-        "tip": "Enter quarterly actuals in Module D, then use Module F to log data reviews.",
-        "daily": "Module D → enter actuals → Module F → log review → Module G → raise decision report.",
+        "start": "Module E",
+        "tip": "Enter quarterly actuals in Module E, then use Module F to log data reviews.",
+        "daily": "Module E → enter actuals → Module F → log review → Module G → raise decision report.",
     },
     "Viewer": {
         "icon": "👁",

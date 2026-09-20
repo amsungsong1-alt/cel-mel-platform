@@ -11,12 +11,12 @@ Key behaviours
 • Actions table is an editable sub-table (one-to-many per report).
 • Dashboard tab: all reports by status; overdue actions at the top in red.
 • Export as Word (.docx) via python-docx — three-section layout, CEL branding.
-• Arriving from Module D or F pre-populates indicator, target, definition,
+• Arriving from Module E or F pre-populates indicator, target, definition,
   and actual value so the PM only types investigation notes and actions.
 
 Session state keys consumed
 ---------------------------
-  g_indicator_ids : list[int]  logframe_row_ids forwarded from Module D/F
+  g_indicator_ids : list[int]  logframe_row_ids forwarded from Module E/F
   g_source        : str        label of the source (e.g. "Module F — Performance review")
   g_edit_report_id: int | None  set by Dashboard "Open" button
 """
@@ -296,7 +296,7 @@ def _export_docx(report: dict, actions: list[dict]) -> bytes:
 st.title("Module G — Decision Reports")
 st.caption(
     "Structured investigation and action reports. "
-    "Pre-seeded from Module D (flagged indicators) or Module F (review-log follow-ups) "
+    "Pre-seeded from Module E (flagged indicators) or Module F (review-log follow-ups) "
     "to minimise re-typing."
 )
 
@@ -305,7 +305,7 @@ incoming_ids = list(st.session_state.get("g_indicator_ids") or [])
 incoming_src = st.session_state.get("g_source", "")
 if incoming_ids:
     st.success(
-        f"📋 Pre-seeded from **{incoming_src or 'Module D/F'}** — "
+        f"📋 Pre-seeded from **{incoming_src or 'Module E/F'}** — "
         f"{len(incoming_ids)} indicator(s) loaded. "
         "Open the **📝 Report Editor** tab below to create a report.",
         icon="📋",
