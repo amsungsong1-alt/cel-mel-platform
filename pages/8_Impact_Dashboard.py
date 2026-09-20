@@ -16,6 +16,7 @@ from datetime import date
 from database.db import run_query
 from utils.auth import require
 from utils.shared_widgets import project_selector
+from utils.nav_strip import render_nav_strip
 
 
 def _num(val, default=0):
@@ -34,6 +35,7 @@ st.set_page_config(
 )
 
 require("read")
+render_nav_strip("Impact")
 
 NAVY  = "#0D2B5E"
 GOLD  = "#C8A951"

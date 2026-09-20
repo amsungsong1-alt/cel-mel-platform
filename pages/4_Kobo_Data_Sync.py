@@ -24,6 +24,7 @@ import pandas as pd
 from database.db import init_db, run_query, run_write, insert_returning_id
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
+from utils.nav_strip import render_nav_strip
 from utils.kobo_client import (
     KoboClient,
     save_api_token,
@@ -34,6 +35,7 @@ from utils.kobo_client import (
 
 st.set_page_config(page_title="Kobo Data Sync — CEL MEL", layout="wide")
 init_db()
+render_nav_strip("Input")
 
 if not st.session_state.get("authentication_status"):
     st.error("Please log in from the main page.")

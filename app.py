@@ -21,6 +21,7 @@ It addresses three of Laudon's six strategic business objectives:
 """
 import streamlit as st
 from database.db import init_db, run_query, run_write
+from utils.nav_strip import render_nav_strip
 
 st.set_page_config(
     page_title="CEL MEL Platform",
@@ -30,6 +31,7 @@ st.set_page_config(
 )
 
 init_db()
+render_nav_strip()  # home page — no active stage
 
 # ── Auto-seed on first run (Streamlit Cloud resets SQLite on restart) ─────────
 if not run_query("SELECT 1 FROM projects LIMIT 1", {}):

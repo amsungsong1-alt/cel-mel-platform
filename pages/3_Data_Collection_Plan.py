@@ -16,9 +16,11 @@ import plotly.graph_objects as go
 from database.db import init_db, run_query, run_write
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
+from utils.nav_strip import render_nav_strip
 
 st.set_page_config(page_title="Data Collection Plan — CEL MEL", layout="wide")
 init_db()
+render_nav_strip("Input")
 
 # ── Auth gate ─────────────────────────────────────────────────────────────────
 if not st.session_state.get("authentication_status"):
