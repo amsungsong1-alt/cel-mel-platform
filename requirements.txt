@@ -1,6 +1,5 @@
 streamlit>=1.30
 streamlit-authenticator>=0.3
-extra-streamlit-components
 sqlalchemy>=2.0
 pandas
 openpyxl
