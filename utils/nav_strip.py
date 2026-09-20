@@ -142,8 +142,15 @@ def render_nav_strip(current_stage: str = "") -> None:
             )
         else:
             link_style = "color:rgba(255,255,255,0.68);"
+        # Use pushState + popstate so Streamlit's WebSocket stays alive and
+        # session_state (auth) is preserved — same mechanism as the sidebar nav.
+        onclick = (
+            f"window.parent.history.pushState({{}},'','{href}');"
+            f"window.parent.dispatchEvent(new Event('popstate'));"
+            f"return false;"
+        )
         items.append(
-            f'<a class="sc-link" href="{href}" style="{link_style}">'
+            f'<a class="sc-link" href="{href}" onclick="{onclick}" style="{link_style}">'
             f'{icon}&nbsp;{label}</a>'
         )
         if i < len(_STAGES) - 1:
