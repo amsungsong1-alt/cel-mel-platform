@@ -36,7 +36,7 @@ if "toc_level_filter" not in st.session_state:
 
 st.title("Module B — Theory of Change & Logframe")
 
-tab_toc, tab_lf = st.tabs(["🌳 Theory of Change", "📋 Logframe"])
+tab_toc, tab_lf, tab_map = st.tabs(["🌳 Theory of Change", "📋 Logframe", "📍 ToC × Register"])
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — Theory of Change
@@ -361,3 +361,260 @@ with tab_lf:
             hide_index=True,
             use_container_width=True,
         )
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TAB 3 — ToC × CEL Indicator Register
+# ═══════════════════════════════════════════════════════════════════════════════
+_LC = {
+    "impact":  "#004D40",
+    "outcome": "#4A148C",
+    "io":      "#0D47A1",
+    "output":  "#BF360C",
+    "input":   "#37474F",
+}
+
+
+def _badges(formal: list = None, sourced: list = None, proposed: list = None) -> str:
+    h = ""
+    for i in (formal   or []):
+        h += (f'<span style="background:#F9A825;color:#000;border-radius:3px;'
+              f'padding:1px 6px;font-size:0.69rem;font-weight:700;margin:1px 2px;'
+              f'display:inline-block;">{i}</span>')
+    for i in (sourced  or []):
+        h += (f'<span style="background:#E65100;color:#fff;border-radius:3px;'
+              f'padding:1px 6px;font-size:0.69rem;font-weight:700;margin:1px 2px;'
+              f'display:inline-block;">{i}</span>')
+    for i in (proposed or []):
+        h += (f'<span style="background:#E0E0E0;color:#555;border-radius:3px;'
+              f'padding:1px 6px;font-size:0.69rem;font-style:italic;margin:1px 2px;'
+              f'display:inline-block;">{i}*</span>')
+    return h
+
+
+def _card(color: str, level_lbl: str, name: str, desc: str,
+          formal=None, sourced=None, proposed=None, note: str = "") -> str:
+    bhtml = _badges(formal, sourced, proposed)
+    note_html = (
+        f'<div style="background:#FFF3E0;border-left:3px solid #FF8F00;'
+        f'padding:3px 8px;margin-top:6px;font-size:0.68rem;color:#BF360C;'
+        f'line-height:1.35;">📌 {note}</div>'
+    ) if note else ""
+    return (
+        f'<div style="background:#FAFAFA;border:1px solid #E0E0E0;'
+        f'border-left:4px solid {color};border-radius:5px;padding:9px 11px;margin:2px 0;">'
+        f'<div style="color:{color};font-size:0.62rem;font-weight:800;'
+        f'letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">{level_lbl}</div>'
+        f'<div style="font-size:0.8rem;font-weight:700;color:#111;margin-bottom:3px;">{name}</div>'
+        f'<div style="font-size:0.72rem;color:#555;margin-bottom:5px;line-height:1.4;">{desc}</div>'
+        f'{"<div>" + bhtml + "</div>" if bhtml else ""}'
+        f'{note_html}'
+        f'</div>'
+    )
+
+
+_ARR = '<div style="text-align:center;color:#90A4AE;font-size:1rem;margin:4px 0 2px;">↓ ↓ ↓</div>'
+
+with tab_map:
+    st.caption(
+        "**SAWA Programme · Theory of Change × CEL Indicator Register** — "
+        "v2, corrected against the SAWA Proposal (28 Nov 2025)."
+    )
+
+    # ── IMPACT ───────────────────────────────────────────────────────────────
+    st.markdown(_card(
+        _LC["impact"], "IMPACT",
+        "≥60,000 financially disadvantaged young women & PWDs in dignified D&F work",
+        "Over 60,000 young women and PWDs engaged in Ghana's fisheries & aquaculture sector "
+        "with improved income and long-term economic resilience.",
+        sourced=["D&F WORK", "PRODUCTION", "INCOME", "PWD INCLUSION"],
+        note="Real sourced commitments with explicit targets (≥86% D&F, 50,000 MT/yr, income vs baseline, "
+             "1%→3%→5% PWD ramp). Lack a formal Pl.x ID — a formalisation gap, not a measurement gap.",
+    ), unsafe_allow_html=True)
+
+    st.markdown(_ARR, unsafe_allow_html=True)
+
+    # ── OUTCOMES ─────────────────────────────────────────────────────────────
+    oc1, oc2, oc3 = st.columns(3)
+    with oc1:
+        st.markdown(_card(
+            _LC["outcome"], "Outcome 1 — Employment",
+            "Increased employment opportunities & sustained income",
+            "Young women and PWDs in targeted D&F value chains have increased employment "
+            "opportunities and sustained income.",
+            formal=["Plll.R1", "Pll.R5"],
+            note="INCOME sits under Outcome 2 in the source, not here — moved.",
+        ), unsafe_allow_html=True)
+    with oc2:
+        st.markdown(_card(
+            _LC["outcome"], "Outcome 2 — Enterprise Growth",
+            "Sustained enterprise growth, market access & inclusive employment",
+            "D&F enterprises supported by SAWA demonstrate sustained growth and strengthened "
+            "market access, with inclusive employment of young women and PWDs.",
+            formal=["Pll.R6", "Pll.R7", "Plll.R2", "Plll.R3"],
+            sourced=["PRODUCTIVITY", "ENTERPRISE CREATION", "INCOME"],
+            note="Renamed ENTERPRISE_SURVIVAL → ENTERPRISE CREATION (source label). "
+                 "INCOME moved here from Outcome 1. INPUT & MARKET LINKAGE moved to Outcome 3.",
+        ), unsafe_allow_html=True)
+    with oc3:
+        st.markdown(_card(
+            _LC["outcome"], "Outcome 3 — Resilience",
+            "Climate-resilient D&F livelihoods & enabling policy ecosystem",
+            "D&F livelihoods of young women and PWDs are more climate-resilient, supported "
+            "by an enabling policy and investment ecosystem.",
+            sourced=["MINDSET & AGENCY", "INPUT & MARKET LINKAGE"],
+            note="NOT uncovered — two sourced indicators exist. 'Climate-resilient' wording is new "
+                 "vs the Nov 2025 proposal ('resilience, agency and market position'): definition "
+                 "mismatch, not absence of measurement.",
+        ), unsafe_allow_html=True)
+
+    st.markdown(_ARR, unsafe_allow_html=True)
+
+    # ── INTERMEDIATE OUTCOMES ────────────────────────────────────────────────
+    io1, io2, io3 = st.columns(3)
+    with io1:
+        st.markdown(_card(
+            _LC["io"], "Intermediate Outcome 1 — Skills & Agency",
+            "Skills, confidence, networks & resources to enter & succeed in D&F",
+            "Young women and PWDs have the skills, confidence, networks and initial resources "
+            "to enter and succeed in D&F work.",
+            formal=["Pl.11", "Pl.12a", "Pl.12b"],
+            sourced=["MINDSET & AGENCY"],
+            proposed=["IO1.1"],
+            note="IO1.1 is proposed — not in the current register. This whole tier is a Sept 2026 "
+                 "elaboration absent from the Nov 2025 source.",
+        ), unsafe_allow_html=True)
+    with io2:
+        st.markdown(_card(
+            _LC["io"], "Intermediate Outcome 2 — Anchor Scale & Linkages",
+            "Anchor enterprises scale production & value addition with inclusive hiring",
+            "Anchor partner enterprises scale production and value addition with inclusive "
+            "hiring practices and strengthened market linkages.",
+            proposed=["IO2.1"],
+            note="IO2.1 is proposed — not in the current register. "
+                 "'Inclusive hiring practices' has no indicator at all.",
+        ), unsafe_allow_html=True)
+    with io3:
+        st.markdown(_card(
+            _LC["io"], "Intermediate Outcome 3 — Ecosystem",
+            "Policy, private investment & coordination enable inclusive enterprise growth",
+            "The D&F sector ecosystem — policy, private investment and coordination — "
+            "actively enables inclusive and sustainable enterprise growth.",
+            proposed=["IO3.1"],
+            note="IO3.1 is proposed. STAKEHOLDER & COORDINATION removed from here — "
+                 "source places it at Output 4. 'Private investment catalysed' has no indicator anywhere.",
+        ), unsafe_allow_html=True)
+
+    st.markdown(_ARR, unsafe_allow_html=True)
+
+    # ── OUTPUTS ──────────────────────────────────────────────────────────────
+    op1, op2, op3, op4 = st.columns(4)
+    with op1:
+        st.markdown(_card(
+            _LC["output"], "Output 1 — Capacity",
+            "Youth mobilised; BDS & training; cooperatives & PWD mentoring",
+            "Youth mobilised; BDS and gender-transformative training delivered; "
+            "cooperatives and PWD mentoring established.",
+            formal=["Pl.1", "Pl.3", "Pl.9", "Pl.13", "Pl.17", "Pl.18", "Pl.19", "Pl.20", "Plll.6"],
+        ), unsafe_allow_html=True)
+    with op2:
+        st.markdown(_card(
+            _LC["output"], "Output 2 — Production",
+            "Fishpond & aquaculture investment; PWDs in production; output & revenue targets",
+            "Investment in fishpond and aquaculture facilities; PWDs integrated into "
+            "production roles; fish output and revenue targets met.",
+            formal=["Pll.R6", "Pll.R7"],
+            note="Facility investment is anchor partner co-investment — not a CEL output indicator in the register.",
+        ), unsafe_allow_html=True)
+    with op3:
+        st.markdown(_card(
+            _LC["output"], "Output 3 — Value Addition",
+            "Fish processing & trading enterprises; cold-chain; market linkages formalised",
+            "Fish processing and trading enterprises supported; cold-chain and storage "
+            "established; market linkages formalised.",
+            formal=["Plll.6", "Pl.18", "PlV.5"],
+            note="'Cold-chain and storage established' has no indicator anywhere — "
+                 "OP3 measures cooperatives only, not physical infrastructure.",
+        ), unsafe_allow_html=True)
+    with op4:
+        st.markdown(_card(
+            _LC["output"], "Output 4 — Ecosystem",
+            "Policy & regulatory engagement; private-sector investment; MoUs & cross-learning",
+            "Policy and regulatory engagement conducted; private-sector investment catalysed; "
+            "MoUs and cross-learning events delivered.",
+            formal=["Pl.11", "Pl.12a", "Pl.12b"],
+            sourced=["STAKEHOLDER & COORDINATION"],
+            note="STAKEHOLDER & COORDINATION belongs here (source confirms). "
+                 "'Private-sector investment catalysed' and 'MoUs' specifically still have no indicator.",
+        ), unsafe_allow_html=True)
+
+    st.markdown(_ARR, unsafe_allow_html=True)
+
+    # ── INPUTS ───────────────────────────────────────────────────────────────
+    ip1, ip2, ip3, ip4 = st.columns(4)
+    with ip1:
+        st.markdown(_card(
+            _LC["input"], "Input — People & Systems",
+            "GYSI officers, safeguarding focal persons, zonal coordinators; HAPPY D&F, GALS/EMAP, PWD toolkit",
+            "Full-time GYSI officer in every IP; safeguarding focal persons; zonal coordinators. "
+            "HAPPY D&F instrument, GALS/EMAP curricula, PWD toolkit, safeguarding policy.",
+        ), unsafe_allow_html=True)
+    with ip2:
+        st.markdown(_card(
+            _LC["input"], "Input — Finance",
+            "USD 39.81M total; micro-grants ≤$800; catalytic ≤$8,000; SME facility ≤$16,000",
+            "USD 39.81M total (Pillar II 26.78M · III 7.27M · I 2.41M · IV 0.82M · fee 2.58M). "
+            "Starter packs $1,000–$1,400.",
+        ), unsafe_allow_html=True)
+    with ip3:
+        st.markdown(_card(
+            _LC["input"], "Input — Partners",
+            "Agri-Impact (lead), Fisheries Commission, CEL, TechnoServe, R&B, NewAge, Agro Kings",
+            "Consortium: Agri-Impact (lead), Fisheries Commission, CEL, TechnoServe, R&B, NewAge, Agro Kings. "
+            "Anchors: R&B, AgroKings, Yedent, NewAge, Aglow. Specialists: KNUST, CSIR-FRI, ISP.",
+        ), unsafe_allow_html=True)
+    with ip4:
+        st.markdown(_card(
+            _LC["input"], "Input — Systems & Standards",
+            "MIS/HAMIS, KoboToolbox, AQUAMIS/E-SAWA, Agribiz; Good Aquaculture Practices, SOPs, two-tier certification",
+            "MIS/HAMIS, KoboToolbox, AQUAMIS/E-SAWA, Agribiz, real-time PMU dashboards. "
+            "Good Aquaculture Practices, SOPs, two-tier certification, Green Checklist.",
+        ), unsafe_allow_html=True)
+
+    # ── Legend ───────────────────────────────────────────────────────────────
+    st.markdown(
+        '<div style="margin-top:14px;font-size:0.71rem;color:#666;">'
+        '<span style="background:#F9A825;color:#000;border-radius:3px;padding:1px 6px;'
+        'font-size:0.68rem;font-weight:700;">Pl.x</span>&nbsp;Formal indicator ID (in register)'
+        '&emsp;'
+        '<span style="background:#E65100;color:#fff;border-radius:3px;padding:1px 6px;'
+        'font-size:0.68rem;font-weight:700;">NAME</span>&nbsp;Sourced commitment (no formal ID — formalisation gap)'
+        '&emsp;'
+        '<span style="background:#E0E0E0;color:#555;border-radius:3px;padding:1px 6px;'
+        'font-size:0.68rem;font-style:italic;">IO*</span>&nbsp;Proposed (not in source)'
+        '&emsp;📌 Correction from v1'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Refined Finding ──────────────────────────────────────────────────────
+    with st.expander("🔍 Refined Finding — The Picture Is Better Than First Thought, But One Structural Gap Is Real"):
+        st.markdown("""
+**Checked against the authoritative SAWA proposal source (28 Nov 2025):**
+
+Impact and Outcome 3 are **not uncovered** as the earlier version claimed — both carry real, threshold-bearing measurement commitments. They simply lack a formal Pl.x-style indicator ID: a **formalisation gap, not a measurement gap**.
+
+**The one real structural gap:** The source proposal has no 'Intermediate Outcome' tier — it runs Impact → Outcome (3) → Output (4) → Activities → Inputs. The five-tier version with Intermediate Outcomes is a **later elaboration used in the Sept 2026 partner orientation materials**. IO1.1, IO2.1 and IO3.1 remain genuinely proposed — not in any source — because that whole tier is new.
+
+**Remaining true gaps:**
+- 'Climate-resilient' at Outcome 3 (Nov 2025 proposal framed it as agency/market-position, not climate)
+- 'Inclusive hiring practices' at Intermediate Outcome 2
+- Facility investment as a CEL output metric
+- Cold-chain/storage infrastructure at Output 3
+- 'Private-sector investment catalysed' and 'MoUs' at Output 4
+
+**Two separate actions follow:**
+1. Give D&F WORK, PRODUCTION, INCOME, PWD INCLUSION, MINDSET & AGENCY and INPUT & MARKET LINKAGE formal indicator IDs in the register — documentation task, not new data collection.
+2. Confirm whether the five-tier ToC (Sept 2026) is now the official structure superseding the Nov 2025 four-tier version. If so, IO1.1–IO3.1 need formal adoption and the 'climate-resilient' reframing of Outcome 3 needs its own new indicator.
+
+*Source: SAWA ToC diagram (partner orientation, Sept 2026) mapped against the SAWA Proposal Document (28 Nov 2025) — s3.2 ToC, s3.3 Pillars, s3.9 Programme Outcomes, s4.1 MEL, s8.1 Budget — and the SMART-revised Logframe. v2 corrects three placement errors and one overstated coverage claim from v1.*
+        """)
