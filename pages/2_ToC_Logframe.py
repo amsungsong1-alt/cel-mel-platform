@@ -441,7 +441,7 @@ with tab_map:
             "Increased employment opportunities & sustained income",
             "Young women and PWDs in targeted D&F value chains have increased employment "
             "opportunities and sustained income.",
-            formal=["Plll.R1", "Pll.R5"],
+            formal=["PIII.R1", "PII.R5"],
             note="INCOME sits under Outcome 2 in the source, not here — moved.",
         ), unsafe_allow_html=True)
     with oc2:
@@ -450,7 +450,7 @@ with tab_map:
             "Sustained enterprise growth, market access & inclusive employment",
             "D&F enterprises supported by SAWA demonstrate sustained growth and strengthened "
             "market access, with inclusive employment of young women and PWDs.",
-            formal=["Pll.R6", "Pll.R7", "Plll.R2", "Plll.R3"],
+            formal=["PII.R6", "PII.R7", "PIII.R2", "PIII.R3"],
             sourced=["PRODUCTIVITY", "ENTERPRISE CREATION", "INCOME"],
             note="Renamed ENTERPRISE_SURVIVAL → ENTERPRISE CREATION (source label). "
                  "INCOME moved here from Outcome 1. INPUT & MARKET LINKAGE moved to Outcome 3.",
@@ -477,7 +477,7 @@ with tab_map:
             "Skills, confidence, networks & resources to enter & succeed in D&F",
             "Young women and PWDs have the skills, confidence, networks and initial resources "
             "to enter and succeed in D&F work.",
-            formal=["Pl.11", "Pl.12a", "Pl.12b"],
+            formal=["PI.11", "PI.12"],
             sourced=["MINDSET & AGENCY"],
             proposed=["IO1.1"],
             note="IO1.1 is proposed — not in the current register. This whole tier is a Sept 2026 "
@@ -514,7 +514,7 @@ with tab_map:
             "Youth mobilised; BDS & training; cooperatives & PWD mentoring",
             "Youth mobilised; BDS and gender-transformative training delivered; "
             "cooperatives and PWD mentoring established.",
-            formal=["Pl.1", "Pl.3", "Pl.9", "Pl.13", "Pl.17", "Pl.18", "Pl.19", "Pl.20", "Plll.6"],
+            formal=["PI.1", "PI.3", "PI.9", "PI.10", "PI.11", "PI.12", "PIII.6"],
         ), unsafe_allow_html=True)
     with op2:
         st.markdown(_card(
@@ -522,7 +522,7 @@ with tab_map:
             "Fishpond & aquaculture investment; PWDs in production; output & revenue targets",
             "Investment in fishpond and aquaculture facilities; PWDs integrated into "
             "production roles; fish output and revenue targets met.",
-            formal=["Pll.R6", "Pll.R7"],
+            formal=["PII.R6", "PII.R7"],
             note="Facility investment is anchor partner co-investment — not a CEL output indicator in the register.",
         ), unsafe_allow_html=True)
     with op3:
@@ -531,7 +531,7 @@ with tab_map:
             "Fish processing & trading enterprises; cold-chain; market linkages formalised",
             "Fish processing and trading enterprises supported; cold-chain and storage "
             "established; market linkages formalised.",
-            formal=["Plll.6", "Pl.18", "PlV.5"],
+            formal=["PIII.6", "PIV.1"],
             note="'Cold-chain and storage established' has no indicator anywhere — "
                  "OP3 measures cooperatives only, not physical infrastructure.",
         ), unsafe_allow_html=True)
@@ -541,7 +541,7 @@ with tab_map:
             "Policy & regulatory engagement; private-sector investment; MoUs & cross-learning",
             "Policy and regulatory engagement conducted; private-sector investment catalysed; "
             "MoUs and cross-learning events delivered.",
-            formal=["Pl.11", "Pl.12a", "Pl.12b"],
+            formal=["PI.11", "PI.12"],
             sourced=["STAKEHOLDER & COORDINATION"],
             note="STAKEHOLDER & COORDINATION belongs here (source confirms). "
                  "'Private-sector investment catalysed' and 'MoUs' specifically still have no indicator.",
