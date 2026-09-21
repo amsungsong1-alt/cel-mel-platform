@@ -467,7 +467,7 @@ else:
                     "the linked indicators have been forwarded to Module G."
                 )
                 if st.button("➡️ Open Module G — Decision Report", type="primary"):
-                    st.switch_page("pages/7_Decision_Reports.py")
+                    st.switch_page("pages/7_G_Decision_Reports.py")
 
             st.rerun()
 
@@ -544,4 +544,4 @@ else:
                         f"Module F — {e['data_type']} review "
                         f"({e['conducted_date']})"
                     )
-                    st.switch_page("pages/7_Decision_Reports.py")
+                    st.switch_page("pages/7_G_Decision_Reports.py")

@@ -20,11 +20,11 @@ import streamlit.components.v1 as components
 _NAVY = "#0D2B5E"
 
 _STAGES = [
-    ("📥 Input",    "pages/1_Partner_Alignment.py",  "Input",   "#2563EB"),
-    ("⚙️ Process",  "pages/5_Raw_Data_Analysis.py",  "Process", "#D97706"),
-    ("🔍 Review",   "pages/6_Data_Review.py",         "Review",  "#0891B2"),
-    ("✅ Decide",   "pages/7_Decision_Reports.py",    "Decide",  "#DC2626"),
-    ("📊 Impact",   "pages/8_Impact_Dashboard.py",    "Impact",  "#16A34A"),
+    ("📥 Input",    "pages/1_A_Partner_Alignment.py",  "Input",   "#2563EB"),
+    ("⚙️ Process",  "pages/5_E_Raw_Data_Analysis.py",  "Process", "#D97706"),
+    ("🔍 Review",   "pages/6_F_Data_Review.py",         "Review",  "#0891B2"),
+    ("✅ Decide",   "pages/7_G_Decision_Reports.py",    "Decide",  "#DC2626"),
+    ("📊 Impact",   "pages/8_H_Impact_Dashboard.py",    "Impact",  "#16A34A"),
 ]
 
 # Only used for sidebar colour bands — no sticky/fixed rules needed here.
