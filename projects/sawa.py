@@ -320,148 +320,276 @@ _A2 = "Private sector and anchor partners continue to invest in the D&F value ch
 _A3 = "Skills, resources and networks acquired through SAWA convert to sustained employment and enterprise operation"
 
 LOGFRAME_ROWS = [
-    # ── Impact ────────────────────────────────────────────────────────────────
+    # ── Impact (Programme-wide LoP target) ────────────────────────────────────
     {
-        "indicator_code": "PI.1",
+        "indicator_code": "LoP.1",
         "result_level": "Impact",
-        "indicator_statement": "Number of financially disadvantaged young women and PWDs engaged in dignified and fulfilling work in the D&F sector by end of programme",
+        "indicator_statement": (
+            "Number of financially disadvantaged young women and PWDs engaged in "
+            "dignified and fulfilling work across the aquaculture value chain"
+        ),
         "disaggregation": "By sex; PWD/non-PWD; D&F sub-sector (production/value-addition)",
         "baseline_value": "0",
-        "target_annual": "500 (Y1)",
+        "target_annual": "500 (Y1 pathway target)",
         "target_lop": "60,000",
         "means_of_verification": "Programme monitoring database; Annual outcome surveys; Partner progress reports",
         "frequency": "Annual",
         "responsible": "CEL MEAL",
         "critical_assumption": f"{_A1}; {_A3}",
     },
-    # ── Output — Pillar I (Capacity) ──────────────────────────────────────────
+    # ── Output — Pillar I: Develop Inclusive Young Women-Centred Capacities ──
     {
-        "indicator_code": "PI.5",
+        "indicator_code": "PI.1",
         "result_level": "Output",
-        "indicator_statement": "Number of young women and PWDs mobilised and enrolled in SAWA D&F value chain activities",
-        "disaggregation": "By sex; PWD status; region; D&F entry point",
+        "indicator_statement": (
+            "Number of young women and PWDs mobilised, sensitised and enrolled in "
+            "SAWA D&F value-chain activities"
+        ),
+        "disaggregation": "By sex; PWD status; region; anchor partner; D&F entry point",
         "baseline_value": "0",
-        "target_annual": "500 (Q1: 95; Q2–Q4: 135 each)",
+        "target_annual": "500 (Q1: 95; Q2: 135; Q3: 135; Q4: 135)",
         "target_lop": "—",
-        "means_of_verification": "Enrolment registers; Mobilisation partner reports",
+        "means_of_verification": "Enrolment registers; Mobilisation partner reports; KoboToolbox Tool 2",
         "frequency": "Quarterly",
         "responsible": "Programme Team",
         "critical_assumption": _A3,
     },
     {
-        "indicator_code": "PI.6",
+        "indicator_code": "PI.3",
         "result_level": "Output",
-        "indicator_statement": "Number of individuals completing accredited Business Development Services (BDS) training",
-        "disaggregation": "By sex; PWD status; BDS module completed",
+        "indicator_statement": (
+            "Number of young women and PWDs completing Business Development Services (BDS) training "
+            "(entrepreneurship, new business support)"
+        ),
+        "disaggregation": "By sex; PWD status; BDS module; anchor partner",
         "baseline_value": "0",
-        "target_annual": "500",
+        "target_annual": "500 (Q1: 95; Q2: 135; Q3: 135; Q4: 135)",
         "target_lop": "—",
-        "means_of_verification": "Training attendance registers; Certification records",
+        "means_of_verification": "Training attendance registers; BDS completion records; KoboToolbox Tool 2",
         "frequency": "Quarterly",
         "responsible": "Programme Team",
-        "critical_assumption": _A3,
-    },
-    {
-        "indicator_code": "PI.7",
-        "result_level": "Output",
-        "indicator_statement": "Number of cooperative or producer association frameworks established or strengthened",
-        "disaggregation": "By region; cooperative type; % women members",
-        "baseline_value": "0",
-        "target_annual": "25",
-        "target_lop": "—",
-        "means_of_verification": "Cooperative registration documents; Attendance and governance records",
-        "frequency": "Quarterly",
-        "responsible": "Programme Team",
-        "critical_assumption": _A3,
-    },
-    {
-        "indicator_code": "PI.8",
-        "result_level": "Output",
-        "indicator_statement": "Number of individuals receiving gender-transformative training (participants and community champions)",
-        "disaggregation": "By sex; role (participant/champion); region",
-        "baseline_value": "0",
-        "target_annual": "500",
-        "target_lop": "—",
-        "means_of_verification": "Training attendance registers; Post-training knowledge assessment",
-        "frequency": "Quarterly",
-        "responsible": "CEL MEAL",
         "critical_assumption": _A3,
     },
     {
         "indicator_code": "PI.9",
         "result_level": "Output",
-        "indicator_statement": "Number of individuals receiving safeguarding and PSEA awareness training",
-        "disaggregation": "By sex; PWD status; partner organisation",
+        "indicator_statement": (
+            "Number of GYSI focal persons trained in GALS and EMAP (Training of Trainers model, "
+            "per implementing partner)"
+        ),
+        "disaggregation": "By partner organisation; region; sex",
         "baseline_value": "0",
-        "target_annual": "500",
+        "target_annual": "25 (Q3: 15; Q4: 10)",
         "target_lop": "—",
-        "means_of_verification": "Training records; Safeguarding incident log",
+        "means_of_verification": "Training completion certificates; Focal person registry; Partner reports",
         "frequency": "Quarterly",
-        "responsible": "CEL MEAL",
-        "critical_assumption": "—",
-    },
-    {
-        "indicator_code": "PI.10",
-        "result_level": "Output",
-        "indicator_statement": "Number of PWD mentors identified, trained and matched with PWD programme participants",
-        "disaggregation": "By disability type; sex of mentor; region",
-        "baseline_value": "0",
-        "target_annual": "8",
-        "target_lop": "—",
-        "means_of_verification": "Mentor registry; Match records; Mentor progress reports",
-        "frequency": "Bi-annual",
         "responsible": "Programme Team",
         "critical_assumption": _A3,
     },
     {
         "indicator_code": "PI.11",
         "result_level": "Output",
-        "indicator_statement": "% of programme participants who are women",
-        "disaggregation": "By training type; pillar",
-        "baseline_value": "—",
-        "target_annual": "≥60%",
-        "target_lop": "≥60%",
-        "means_of_verification": "Disaggregated enrolment and participation data",
+        "indicator_statement": (
+            "Number of women engaged in leadership and mentorship forums under the "
+            "Women in Aquaculture Network (WAN)"
+        ),
+        "disaggregation": "By region; forum type; PWD/non-PWD",
+        "baseline_value": "0",
+        "target_annual": "500 (Q3: 300; Q4: 200)",
+        "target_lop": "—",
+        "means_of_verification": "WAN attendance registers; Forum reports; CEL field officer notes",
+        "frequency": "Quarterly",
+        "responsible": "Programme Team",
+        "critical_assumption": _A3,
+    },
+    {
+        "indicator_code": "PI.12",
+        "result_level": "Output",
+        "indicator_statement": (
+            "Number of leadership bootcamps and inter-zonal exchange visits "
+            "organised under the Women in Aquaculture Network (WAN)"
+        ),
+        "disaggregation": "By event type (bootcamp/exchange); region",
+        "baseline_value": "0",
+        "target_annual": "1 (Q3: 1)",
+        "target_lop": "—",
+        "means_of_verification": "Event reports; Attendance lists; CEL field officer notes",
+        "frequency": "Quarterly",
+        "responsible": "Programme Team",
+        "critical_assumption": _A3,
+    },
+    {
+        "indicator_code": "PI.13",
+        "result_level": "Output",
+        "indicator_statement": (
+            "Number of young female PWDs identified as peer mentors and matched "
+            "with PWD programme participants"
+        ),
+        "disaggregation": "By disability type; region; anchor partner",
+        "baseline_value": "0",
+        "target_annual": "8 (Q1: 1; Q2: 2; Q3: 2; Q4: 3)",
+        "target_lop": "—",
+        "means_of_verification": "Mentor registry; Match records; Field verification notes",
+        "frequency": "Quarterly",
+        "responsible": "Programme Team",
+        "critical_assumption": _A3,
+    },
+    {
+        "indicator_code": "PI.17",
+        "result_level": "Output",
+        "indicator_statement": (
+            "Number of women in women-led cooperatives/clusters receiving gender training, "
+            "financial literacy and business mentoring"
+        ),
+        "disaggregation": "By sex; cooperative; region; training module",
+        "baseline_value": "0",
+        "target_annual": "500 (Q2: 150; Q3: 150; Q4: 200)",
+        "target_lop": "—",
+        "means_of_verification": "Training registers; Cooperative membership records; Partner reports",
+        "frequency": "Quarterly",
+        "responsible": "Programme Team",
+        "critical_assumption": _A3,
+    },
+    {
+        "indicator_code": "PI.18",
+        "result_level": "Output",
+        "indicator_statement": (
+            "Number of gender-responsive governance frameworks adopted by "
+            "women-led cooperatives/clusters"
+        ),
+        "disaggregation": "By cooperative/cluster; region; governance framework type",
+        "baseline_value": "0",
+        "target_annual": "25 (Q3: 15; Q4: 10)",
+        "target_lop": "—",
+        "means_of_verification": "Signed governance documents; KoboToolbox Tool 3 Governance Checklist; Field verification",
+        "frequency": "Quarterly",
+        "responsible": "Programme Team",
+        "critical_assumption": _A3,
+    },
+    {
+        "indicator_code": "PI.19",
+        "result_level": "Output",
+        "indicator_statement": (
+            "Number of persons (participants and community champions) receiving "
+            "gender-transformative training"
+        ),
+        "disaggregation": "By sex; role (participant/champion); anchor partner; region",
+        "baseline_value": "0",
+        "target_annual": "500 (Q2: 150; Q3: 150; Q4: 200)",
+        "target_lop": "—",
+        "means_of_verification": "Training attendance registers; Post-training knowledge assessment records",
+        "frequency": "Quarterly",
+        "responsible": "CEL MEAL",
+        "critical_assumption": _A3,
+    },
+    {
+        "indicator_code": "PI.20",
+        "result_level": "Output",
+        "indicator_statement": (
+            "Number of young women trained to identify and respond to safeguarding "
+            "issues (PSEA awareness)"
+        ),
+        "disaggregation": "By sex; PWD status; partner organisation; region",
+        "baseline_value": "0",
+        "target_annual": "500 (Q2: 150; Q3: 150; Q4: 200)",
+        "target_lop": "—",
+        "means_of_verification": "Training records; Safeguarding incident log; CEL safeguarding officer reports",
         "frequency": "Quarterly",
         "responsible": "CEL MEAL",
         "critical_assumption": "—",
     },
     {
-        "indicator_code": "PI.12",
+        "indicator_code": "PI.22",
         "result_level": "Output",
-        "indicator_statement": "Number of training curricula adapted to include PWD-inclusive delivery methods and content",
-        "disaggregation": "By pillar; disability type addressed",
+        "indicator_statement": (
+            "Number of safeguarding awareness campaigns and roadshows undertaken "
+            "in SAWA intervention communities"
+        ),
+        "disaggregation": "By community; region; type (campaign/roadshow)",
         "baseline_value": "0",
-        "target_annual": "4",
+        "target_annual": "3 (Q4: 3)",
         "target_lop": "—",
-        "means_of_verification": "Curriculum review documentation; Accessibility assessment reports",
-        "frequency": "Annual",
-        "responsible": "Programme Team",
+        "means_of_verification": "Campaign reports; Attendance records; Community feedback forms",
+        "frequency": "Quarterly",
+        "responsible": "CEL MEAL",
         "critical_assumption": "—",
     },
-    # ── Outcome — Employment & Enterprise Growth (Pillars II & III) ──────────
-    # Outcome 1 (Employment): PII.R5, PIII.R1
-    # Outcome 2 (Enterprise Growth): PII.R6, PII.R7, PIII.R2, PIII.R3
+    {
+        "indicator_code": "PI.23",
+        "result_level": "Output",
+        "indicator_statement": (
+            "Number of programme sites/partners with institutionalised safeguarding "
+            "and occupational health standards"
+        ),
+        "disaggregation": "By partner organisation; site type (training hub/pond/depot)",
+        "baseline_value": "0",
+        "target_annual": "2 (Q4: 2)",
+        "target_lop": "—",
+        "means_of_verification": "Site certification documentation; Safeguarding policy adoption records",
+        "frequency": "Annual",
+        "responsible": "CEL MEAL",
+        "critical_assumption": "—",
+    },
+    # ── Output — Pillar IV (Ecosystem / Digital Literacy) ────────────────────
+    {
+        "indicator_code": "PIV.5",
+        "result_level": "Output",
+        "indicator_statement": (
+            "Number of young women receiving E-SAWA digital literacy training, "
+            "mentorship and digital entrepreneurship workshops"
+        ),
+        "disaggregation": "By region; anchor partner; workshop type",
+        "baseline_value": "0",
+        "target_annual": "500 (Q2: 150; Q3: 150; Q4: 200)",
+        "target_lop": "—",
+        "means_of_verification": "Training attendance registers; E-SAWA platform enrolment data",
+        "frequency": "Quarterly",
+        "responsible": "Programme Team",
+        "critical_assumption": _A3,
+    },
+    # ── Outcome 1 (Employment) — Pillars II & III ────────────────────────────
     {
         "indicator_code": "PII.R5",
         "result_level": "Outcome",
-        "indicator_statement": "Number of D&F employment positions created for PWDs across all production sites (programme-wide)",
+        "indicator_statement": (
+            "Number of Persons with Disabilities (PWDs) accessing D&F in the Aquaculture "
+            "value chain — programme-wide (Young Women in Work, YiW)"
+        ),
         "disaggregation": "By disability type; sex; production site; anchor partner",
         "baseline_value": "0",
-        "target_annual": "8",
+        "target_annual": "8 (Q1: 1; Q2: 2; Q3: 2; Q4: 3)",
         "target_lop": "—",
-        "means_of_verification": "Employment records; Partner payroll verification; Field spot-checks",
+        "means_of_verification": "Employment records; Partner payroll verification; Field spot-checks; PWD registry",
         "frequency": "Quarterly",
         "responsible": "Partner MEAL",
         "critical_assumption": _A2,
     },
     {
+        "indicator_code": "PIII.R1",
+        "result_level": "Outcome",
+        "indicator_statement": (
+            "Number of young women accessing D&F in Aquaculture Value Addition activities (YiW)"
+        ),
+        "disaggregation": "By sex; value-addition activity type; anchor partner",
+        "baseline_value": "0",
+        "target_annual": "100 (Q2: 40; Q3: 30; Q4: 30)",
+        "target_lop": "—",
+        "means_of_verification": "Employment and enterprise records; Field verification",
+        "frequency": "Quarterly",
+        "responsible": "Partner MEAL",
+        "critical_assumption": _A2,
+    },
+    # ── Outcome 2 (Enterprise Growth) — Pillars II & III ────────────────────
+    {
         "indicator_code": "PII.R6",
         "result_level": "Outcome",
-        "indicator_statement": "Metric tonnes of fish produced by PWDs engaged in D&F production activities",
+        "indicator_statement": (
+            "Quantity (MT) of fish produced by young women PWDs accessing D&F "
+            "in the Aquaculture value chain"
+        ),
         "disaggregation": "By PWD type; sex; production site; fish species",
         "baseline_value": "0 MT",
-        "target_annual": "9.26 MT",
+        "target_annual": "9 MT (Q1: 1; Q2: 2; Q3: 2; Q4: 3)",
         "target_lop": "—",
         "means_of_verification": "Production logs; Catch data records; Third-party verification",
         "frequency": "Quarterly",
@@ -471,10 +599,13 @@ LOGFRAME_ROWS = [
     {
         "indicator_code": "PII.R7",
         "result_level": "Outcome",
-        "indicator_statement": "Revenue (USD) generated by PWDs employed in D&F production activities",
+        "indicator_statement": (
+            "Revenue (USD) generated by young women PWDs accessing D&F "
+            "in the Aquaculture value chain"
+        ),
         "disaggregation": "By sex; disability type; production site",
         "baseline_value": "USD 0",
-        "target_annual": "USD 16,667",
+        "target_annual": "USD 16,667 (Q1: $2,083; Q2: $4,167; Q3: $4,167; Q4: $6,250)",
         "target_lop": "—",
         "means_of_verification": "Sales receipts; Partner financial records; Income survey",
         "frequency": "Quarterly",
@@ -482,25 +613,15 @@ LOGFRAME_ROWS = [
         "critical_assumption": _A1,
     },
     {
-        "indicator_code": "PIII.R1",
-        "result_level": "Outcome",
-        "indicator_statement": "Number of D&F employment positions created in value-addition activities (processing, trading, cold chain)",
-        "disaggregation": "By sex; value-addition activity; anchor partner",
-        "baseline_value": "0",
-        "target_annual": "100",
-        "target_lop": "—",
-        "means_of_verification": "Employment records; Enterprise HR data; Field verification",
-        "frequency": "Quarterly",
-        "responsible": "Partner MEAL",
-        "critical_assumption": _A2,
-    },
-    {
         "indicator_code": "PIII.R2",
         "result_level": "Outcome",
-        "indicator_statement": "Metric tonnes of fish produced or traded through SAWA-supported value-addition channels",
+        "indicator_statement": (
+            "Quantity (MT) of fish produced or fish-related products traded through "
+            "SAWA-supported value-addition channels"
+        ),
         "disaggregation": "By value-addition type (processed/traded); partner; fish species",
         "baseline_value": "0 MT",
-        "target_annual": "115.74 MT",
+        "target_annual": "115.7 MT (Q2: 46.3; Q3: 34.7; Q4: 34.7)",
         "target_lop": "50,000 MT additional/year",
         "means_of_verification": "Trading and processing records; Market assessment data",
         "frequency": "Quarterly",
@@ -510,43 +631,35 @@ LOGFRAME_ROWS = [
     {
         "indicator_code": "PIII.R3",
         "result_level": "Outcome",
-        "indicator_statement": "Revenue (USD) from fish value-added trading activities of SAWA-supported enterprises",
+        "indicator_statement": (
+            "Revenue (USD) generated from trading in Value Added Aquaculture products "
+            "by SAWA-supported enterprises"
+        ),
         "disaggregation": "By enterprise; sex of owner; trading route (domestic/export)",
         "baseline_value": "USD 0",
-        "target_annual": "USD 208,333",
+        "target_annual": "USD 208,333 (Q2: $83,333; Q3: $62,500; Q4: $62,500)",
         "target_lop": "USD 90M additional/year",
         "means_of_verification": "Sales records; Market price monitoring; Financial audits",
         "frequency": "Quarterly",
         "responsible": "Partner MEAL",
         "critical_assumption": _A1,
     },
-    # ── Output — Pillar III (Value Addition) ──────────────────────────────────
+    # ── Output — Pillar III (Value Addition / Cooperative Organisation) ───────
     {
         "indicator_code": "PIII.6",
         "result_level": "Output",
-        "indicator_statement": "Number of formalised market linkages established between SAWA enterprises and buyers, aggregators or export channels",
-        "disaggregation": "By linkage type (domestic/export); buyer sector; partner",
+        "indicator_statement": (
+            "Number of women-led cooperatives/clusters strengthened across the "
+            "aquaculture value chain (established and registered entities)"
+        ),
+        "disaggregation": "By cooperative type; region; anchor partner",
         "baseline_value": "0",
-        "target_annual": "10",
+        "target_annual": "25 (Q3: 15; Q4: 10)",
         "target_lop": "—",
-        "means_of_verification": "Signed agreements; MoU registry; Market linkage tracking log",
-        "frequency": "Bi-annual",
+        "means_of_verification": "Cooperative registration documents; Governance Checklist (Tool 3); Field verification",
+        "frequency": "Quarterly",
         "responsible": "Programme Team",
         "critical_assumption": f"{_A1}; {_A2}",
-    },
-    # ── Output — Pillar IV (Ecosystem) ────────────────────────────────────────
-    {
-        "indicator_code": "PIV.1",
-        "result_level": "Output",
-        "indicator_statement": "Number of policy and regulatory engagements conducted at national and district level to improve D&F sector governance",
-        "disaggregation": "By level (national/district); policy area; outcome (informational/committal)",
-        "baseline_value": "0",
-        "target_annual": "4",
-        "target_lop": "—",
-        "means_of_verification": "Meeting minutes; Policy brief dissemination records; MoU sign-off documents",
-        "frequency": "Bi-annual",
-        "responsible": "CEL MEAL",
-        "critical_assumption": _A2,
     },
 ]
 
@@ -560,20 +673,21 @@ INDICATORS: list[dict] = []
 # Bi-annual instruments start May → cycle hits Nov, May, Nov, May …
 # This produces 8 instruments landing in May 2027, demonstrating the overload.
 # ── Module D: Raw Data Analysis ───────────────────────────────────────────────
-# 20 rows — one per logframe indicator.  indicator_code is the link key;
+# 21 rows — one per logframe indicator.  indicator_code is the link key;
 # seed_sawa.py resolves it to logframe_row_id.
 # baseline_collected = 'N' for all: SAWA has no baselines collected yet.
-# trigger_value = the threshold below which the indicator is 'not on track'.
+# trigger_value = annual Year 1 target (threshold below which not on track).
+# Quarterly actuals populated from workplan breakdown.
 RAW_DATA_ANALYSIS: list[dict] = [
     # ── Impact ────────────────────────────────────────────────────────────────
     {
-        "indicator_code": "PI.1",
+        "indicator_code": "LoP.1",
         "data_type": "Performance",
-        "target_value": "500 (Y1); 60,000 (LoP)",
+        "target_value": "500 pathway (Y1); 60,000 (LoP)",
         "trigger_value": "500",
         "problem_definition": (
-            "Fewer than 500 participants engaged in D&F work by Y1 year-end; "
-            "LoP trajectory off track"
+            "Fewer than 500 participants on a D&F work pathway by Y1 year-end; "
+            "LoP trajectory to 60,000 off track"
         ),
         "baseline_collected": "N", "baseline_value": "",
         "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
@@ -584,13 +698,13 @@ RAW_DATA_ANALYSIS: list[dict] = [
     },
     # ── Output — Pillar I ─────────────────────────────────────────────────────
     {
-        "indicator_code": "PI.5",
+        "indicator_code": "PI.1",
         "data_type": "Process",
-        "target_value": "500 Y1 (Q1: 95; Q2–Q4: 135 each)",
-        "trigger_value": "95",
+        "target_value": "500 (Y1) — Q1: 95; Q2: 135; Q3: 135; Q4: 135",
+        "trigger_value": "500",
         "problem_definition": (
             "Q1 mobilisation below 95; Y1 total of 500 at risk; "
-            "pipeline for subsequent quarters insufficient"
+            "community entry and enrolment pipeline insufficient"
         ),
         "baseline_collected": "N", "baseline_value": "",
         "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
@@ -600,43 +714,13 @@ RAW_DATA_ANALYSIS: list[dict] = [
         "action_description": "",
     },
     {
-        "indicator_code": "PI.6",
+        "indicator_code": "PI.3",
         "data_type": "Process",
-        "target_value": "500 (Y1)",
+        "target_value": "500 (Y1) — Q1: 95; Q2: 135; Q3: 135; Q4: 135",
         "trigger_value": "500",
         "problem_definition": (
-            "Fewer than 500 individuals completing accredited BDS training by year-end"
-        ),
-        "baseline_collected": "N", "baseline_value": "",
-        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
-        "actual_year": "",
-        "indicator_status": "Data not collected yet",
-        "action_status":    "No action needed - data reporting only",
-        "action_description": "",
-    },
-    {
-        "indicator_code": "PI.7",
-        "data_type": "Process",
-        "target_value": "25 (Y1)",
-        "trigger_value": "25",
-        "problem_definition": (
-            "Fewer than 25 cooperative/producer association frameworks established or strengthened"
-        ),
-        "baseline_collected": "N", "baseline_value": "",
-        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
-        "actual_year": "",
-        "indicator_status": "Data not collected yet",
-        "action_status":    "No action needed - data reporting only",
-        "action_description": "",
-    },
-    {
-        "indicator_code": "PI.8",
-        "data_type": "Process",
-        "target_value": "500 (Y1)",
-        "trigger_value": "500",
-        "problem_definition": (
-            "Gender-transformative training coverage below 500; "
-            "gender norm change outcomes at risk"
+            "Fewer than 500 young women and PWDs completing BDS training by year-end; "
+            "entrepreneurship pipeline below workplan"
         ),
         "baseline_collected": "N", "baseline_value": "",
         "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
@@ -648,26 +732,11 @@ RAW_DATA_ANALYSIS: list[dict] = [
     {
         "indicator_code": "PI.9",
         "data_type": "Process",
-        "target_value": "500 (Y1)",
-        "trigger_value": "500",
+        "target_value": "25 (Y1) — Q3: 15; Q4: 10",
+        "trigger_value": "25",
         "problem_definition": (
-            "Safeguarding/PSEA training below 500; duty of care risk materialises"
-        ),
-        "baseline_collected": "N", "baseline_value": "",
-        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
-        "actual_year": "",
-        "indicator_status": "Data not collected yet",
-        "action_status":    "No action needed - data reporting only",
-        "action_description": "",
-    },
-    {
-        "indicator_code": "PI.10",
-        "data_type": "Process",
-        "target_value": "8 (Y1)",
-        "trigger_value": "8",
-        "problem_definition": (
-            "Fewer than 8 PWD mentors identified, trained and matched; "
-            "disability inclusion pathway not operational"
+            "Fewer than 25 GALS/EMAP focal persons trained; gender-transformative "
+            "training cascade at risk across partner organisations"
         ),
         "baseline_collected": "N", "baseline_value": "",
         "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
@@ -678,11 +747,12 @@ RAW_DATA_ANALYSIS: list[dict] = [
     },
     {
         "indicator_code": "PI.11",
-        "data_type": "Performance",
-        "target_value": "≥60% (Y1)",
-        "trigger_value": "60",
+        "data_type": "Process",
+        "target_value": "500 (Y1) — Q3: 300; Q4: 200",
+        "trigger_value": "500",
         "problem_definition": (
-            "Women below 60% of total participants; programme gender-targeting commitment unmet"
+            "Fewer than 500 women engaged in WAN leadership/mentorship forums; "
+            "women's network not at operating scale"
         ),
         "baseline_collected": "N", "baseline_value": "",
         "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
@@ -694,11 +764,11 @@ RAW_DATA_ANALYSIS: list[dict] = [
     {
         "indicator_code": "PI.12",
         "data_type": "Process",
-        "target_value": "4 (Y1)",
-        "trigger_value": "4",
+        "target_value": "1 (Y1) — Q3: 1",
+        "trigger_value": "1",
         "problem_definition": (
-            "Fewer than 4 curricula adapted for PWD-inclusive delivery; "
-            "training accessibility deficit"
+            "No WAN bootcamp or inter-zonal exchange visit organised in Y1; "
+            "cross-learning and leadership development not initiated"
         ),
         "baseline_collected": "N", "baseline_value": "",
         "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
@@ -707,48 +777,144 @@ RAW_DATA_ANALYSIS: list[dict] = [
         "action_status":    "No action needed - data reporting only",
         "action_description": "",
     },
-    # ── Outcome — Employment & Enterprise Growth (Pillars II & III) ──────────
-    # Outcome 1 (Employment): PII.R5, PIII.R1
-    # Outcome 2 (Enterprise Growth): PII.R6, PII.R7, PIII.R2, PIII.R3
+    {
+        "indicator_code": "PI.13",
+        "data_type": "Process",
+        "target_value": "8 (Y1) — Q1: 1; Q2: 2; Q3: 2; Q4: 3",
+        "trigger_value": "8",
+        "problem_definition": (
+            "Fewer than 8 PWD peer mentors identified and matched; "
+            "disability inclusion support not in place for Y1 cohort"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    {
+        "indicator_code": "PI.17",
+        "data_type": "Process",
+        "target_value": "500 (Y1) — Q2: 150; Q3: 150; Q4: 200",
+        "trigger_value": "500",
+        "problem_definition": (
+            "Fewer than 500 cooperative women receiving gender, financial literacy "
+            "and business mentoring; cooperative development package not delivered at scale"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    {
+        "indicator_code": "PI.18",
+        "data_type": "Process",
+        "target_value": "25 (Y1) — Q3: 15; Q4: 10",
+        "trigger_value": "25",
+        "problem_definition": (
+            "Fewer than 25 gender-responsive governance frameworks adopted; "
+            "cooperatives operating without formal governance structures"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    {
+        "indicator_code": "PI.19",
+        "data_type": "Process",
+        "target_value": "500 (Y1) — Q2: 150; Q3: 150; Q4: 200",
+        "trigger_value": "500",
+        "problem_definition": (
+            "Gender-transformative training coverage below 500; "
+            "gender norm change and GALS household outcomes at risk"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    {
+        "indicator_code": "PI.20",
+        "data_type": "Process",
+        "target_value": "500 (Y1) — Q2: 150; Q3: 150; Q4: 200",
+        "trigger_value": "500",
+        "problem_definition": (
+            "Safeguarding/PSEA awareness training below 500; "
+            "programme duty-of-care obligations not met"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    {
+        "indicator_code": "PI.22",
+        "data_type": "Process",
+        "target_value": "3 (Y1) — Q4: 3",
+        "trigger_value": "3",
+        "problem_definition": (
+            "Fewer than 3 safeguarding campaigns/roadshows completed; "
+            "community awareness of safeguarding norms below target"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    {
+        "indicator_code": "PI.23",
+        "data_type": "Process",
+        "target_value": "2 (Y1) — Q4: 2",
+        "trigger_value": "2",
+        "problem_definition": (
+            "Fewer than 2 sites/partners with institutionalised safeguarding standards; "
+            "occupational health compliance not formalised"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    # ── Output — Pillar IV ────────────────────────────────────────────────────
+    {
+        "indicator_code": "PIV.5",
+        "data_type": "Process",
+        "target_value": "500 (Y1) — Q2: 150; Q3: 150; Q4: 200",
+        "trigger_value": "500",
+        "problem_definition": (
+            "Fewer than 500 young women receiving E-SAWA digital literacy and "
+            "mentorship workshops; digital entrepreneurship pathway not at scale"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    # ── Outcome 1 — Employment (Pillars II & III) ─────────────────────────────
     {
         "indicator_code": "PII.R5",
         "data_type": "Performance",
-        "target_value": "8 (Y1)",
+        "target_value": "8 (Y1) — Q1: 1; Q2: 2; Q3: 2; Q4: 3",
         "trigger_value": "8",
         "problem_definition": (
-            "Fewer than 8 D&F employment positions created for PWDs; "
+            "Fewer than 8 PWDs accessing D&F value chain by year-end; "
             "disability-inclusive employment commitment unmet"
-        ),
-        "baseline_collected": "N", "baseline_value": "",
-        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
-        "actual_year": "",
-        "indicator_status": "Data not collected yet",
-        "action_status":    "No action needed - data reporting only",
-        "action_description": "",
-    },
-    {
-        "indicator_code": "PII.R6",
-        "data_type": "Performance",
-        "target_value": "9.26 MT (Y1)",
-        "trigger_value": "9.26",
-        "problem_definition": (
-            "Fish production by PWDs below 9.26 MT; Pillar II production targets off track"
-        ),
-        "baseline_collected": "N", "baseline_value": "",
-        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
-        "actual_year": "",
-        "indicator_status": "Data not collected yet",
-        "action_status":    "No action needed - data reporting only",
-        "action_description": "",
-    },
-    {
-        "indicator_code": "PII.R7",
-        "data_type": "Performance",
-        "target_value": "USD 16,667 (Y1)",
-        "trigger_value": "16667",
-        "problem_definition": (
-            "PWD revenue below USD 16,667; income impact for disability-inclusive employment "
-            "not materialising"
         ),
         "baseline_collected": "N", "baseline_value": "",
         "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
@@ -760,10 +926,43 @@ RAW_DATA_ANALYSIS: list[dict] = [
     {
         "indicator_code": "PIII.R1",
         "data_type": "Performance",
-        "target_value": "100 (Y1)",
+        "target_value": "100 (Y1) — Q2: 40; Q3: 30; Q4: 30",
         "trigger_value": "100",
         "problem_definition": (
-            "Fewer than 100 value-addition jobs created; Pillar III employment target off track"
+            "Fewer than 100 young women in value-addition jobs by year-end; "
+            "Pillar III employment target off track"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    # ── Outcome 2 — Enterprise Growth (Pillars II & III) ─────────────────────
+    {
+        "indicator_code": "PII.R6",
+        "data_type": "Performance",
+        "target_value": "9 MT (Y1) — Q1: 1; Q2: 2; Q3: 2; Q4: 3",
+        "trigger_value": "9",
+        "problem_definition": (
+            "Fish production by PWDs below 9 MT; Pillar II production target off track"
+        ),
+        "baseline_collected": "N", "baseline_value": "",
+        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
+        "actual_year": "",
+        "indicator_status": "Data not collected yet",
+        "action_status":    "No action needed - data reporting only",
+        "action_description": "",
+    },
+    {
+        "indicator_code": "PII.R7",
+        "data_type": "Performance",
+        "target_value": "USD 16,667 (Y1) — Q1: $2,083; Q2: $4,167; Q3: $4,167; Q4: $6,250",
+        "trigger_value": "16667",
+        "problem_definition": (
+            "PWD revenue below USD 16,667; income impact from disability-inclusive "
+            "employment not materialising at workplan rate"
         ),
         "baseline_collected": "N", "baseline_value": "",
         "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
@@ -775,10 +974,10 @@ RAW_DATA_ANALYSIS: list[dict] = [
     {
         "indicator_code": "PIII.R2",
         "data_type": "Performance",
-        "target_value": "115.74 MT (Y1); 50,000 MT/year (LoP)",
-        "trigger_value": "115.74",
+        "target_value": "115.7 MT (Y1) — Q2: 46.3; Q3: 34.7; Q4: 34.7 | 50,000 MT/yr (LoP)",
+        "trigger_value": "115.7",
         "problem_definition": (
-            "Fish volume through value-addition channels below 115.74 MT; "
+            "Fish volume through value-addition channels below 115.7 MT; "
             "processing and trading scale-up delayed"
         ),
         "baseline_collected": "N", "baseline_value": "",
@@ -791,7 +990,7 @@ RAW_DATA_ANALYSIS: list[dict] = [
     {
         "indicator_code": "PIII.R3",
         "data_type": "Performance",
-        "target_value": "USD 208,333 (Y1); USD 90M/year (LoP)",
+        "target_value": "USD 208,333 (Y1) — Q2: $83,333; Q3: $62,500; Q4: $62,500 | USD 90M/yr (LoP)",
         "trigger_value": "208333",
         "problem_definition": (
             "Value-added trading revenue below USD 208,333; "
@@ -804,31 +1003,15 @@ RAW_DATA_ANALYSIS: list[dict] = [
         "action_status":    "No action needed - data reporting only",
         "action_description": "",
     },
-    # ── Output — Pillar III (Value Addition) ─────────────────────────────────
+    # ── Output — Pillar III (Cooperative Organisation) ────────────────────────
     {
         "indicator_code": "PIII.6",
         "data_type": "Process",
-        "target_value": "10 (Y1)",
-        "trigger_value": "10",
+        "target_value": "25 (Y1) — Q3: 15; Q4: 10",
+        "trigger_value": "25",
         "problem_definition": (
-            "Fewer than 10 formalised market linkages; value chain integration behind schedule"
-        ),
-        "baseline_collected": "N", "baseline_value": "",
-        "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
-        "actual_year": "",
-        "indicator_status": "Data not collected yet",
-        "action_status":    "No action needed - data reporting only",
-        "action_description": "",
-    },
-    # ── Output — Pillar IV ────────────────────────────────────────────────────
-    {
-        "indicator_code": "PIV.1",
-        "data_type": "Process",
-        "target_value": "4 (Y1)",
-        "trigger_value": "4",
-        "problem_definition": (
-            "Fewer than 4 policy and regulatory engagements completed; "
-            "ecosystem enablement work behind schedule"
+            "Fewer than 25 women-led cooperatives/clusters strengthened; "
+            "cooperative organisation and governance targets behind workplan"
         ),
         "baseline_collected": "N", "baseline_value": "",
         "actual_q1": "", "actual_q2": "", "actual_q3": "", "actual_q4": "",
@@ -851,7 +1034,7 @@ KOBO_FORM_MAPPINGS: list[dict] = [
         "kobo_form_name":  "Market/Field Visit Questionnaire",
         "kobo_field_name": "num_women_attended",
         "indicator_code":  "PI.1",
-        "transform":       "sum",
+        "transform":       "count",
     },
     {
         "asset_uid":       "aSAWAMktField2026xx",
@@ -887,14 +1070,14 @@ KOBO_FORM_MAPPINGS: list[dict] = [
         "asset_uid":       "aSAWATool2FinLit26xx",
         "kobo_form_name":  "Tool 2 Financial Literacy",
         "kobo_field_name": "score_total",
-        "indicator_code":  "PI.6",
+        "indicator_code":  "PI.17",
         "transform":       "latest",
     },
     {
         "asset_uid":       "aSAWATool2FinLit26xx",
         "kobo_form_name":  "Tool 2 Financial Literacy",
         "kobo_field_name": "participant_completed",
-        "indicator_code":  "PI.5",
+        "indicator_code":  "PI.3",
         "transform":       "count",
     },
     # ── Tool 3 — Governance Checklist ─────────────────────────────────────────
@@ -902,14 +1085,14 @@ KOBO_FORM_MAPPINGS: list[dict] = [
         "asset_uid":       "aSAWATool3GovChk26xx",
         "kobo_form_name":  "Tool 3 Governance Checklist",
         "kobo_field_name": "cooperative_registered",
-        "indicator_code":  "PI.7",
+        "indicator_code":  "PIII.6",
         "transform":       "count",
     },
     {
         "asset_uid":       "aSAWATool3GovChk26xx",
         "kobo_form_name":  "Tool 3 Governance Checklist",
         "kobo_field_name": "governance_score",
-        "indicator_code":  "PI.7",
+        "indicator_code":  "PI.18",
         "transform":       "latest",
     },
     # ── PMU Pre/Post Test ─────────────────────────────────────────────────────
@@ -917,7 +1100,7 @@ KOBO_FORM_MAPPINGS: list[dict] = [
         "asset_uid":       "aSAWAPMUPrePost26xxx",
         "kobo_form_name":  "PMU Pre/Post Test",
         "kobo_field_name": "post_test_score",
-        "indicator_code":  "PI.8",
+        "indicator_code":  "PI.19",
         "transform":       "mean",
     },
 ]
@@ -933,8 +1116,9 @@ REVIEW_PROTOCOLS: list[dict] = [
         "data_type":             "Performance",
         "review_scope":          (
             "All logframe indicators with quarterly data due this period — "
-            "PI.1, PI.5, PI.6, PI.7, PI.8, PI.9, PI.10, PI.11, PI.12, "
-            "PII.R5, PII.R6, PII.R7, PIII.R1, PIII.R2, PIII.R3, PIII.6, PIV.1"
+            "LoP.1; PI.1, PI.3, PI.9, PI.11, PI.12, PI.13, PI.17, PI.18, "
+            "PI.19, PI.20, PI.22, PI.23; PIV.5; "
+            "PII.R5, PII.R6, PII.R7; PIII.R1, PIII.R2, PIII.R3, PIII.6"
         ),
         "existing_info_source":  "raw_data_analysis table, Module D; previous quarterly PIR",
         "actual_info_source":    (
@@ -1009,9 +1193,10 @@ REVIEW_PROTOCOLS: list[dict] = [
         "data_type":             "Process",
         "review_scope":          (
             "Delivery milestones and activity completion rates against the SAWA "
-            "implementation plan — training sessions delivered (PI.5/PI.6), "
-            "Field Market visits completed, governance workshops run (PI.7), "
-            "safeguarding training (PI.9), PWD curricula adapted (PI.12)"
+            "Year 1 Consolidated Workplan — mobilisation (PI.1), BDS training (PI.3), "
+            "GALS focal persons (PI.9), safeguarding training (PI.20), "
+            "governance frameworks (PI.18), cooperatives (PIII.6), "
+            "PWD mentors (PI.13), WAN forums (PI.11)"
         ),
         "existing_info_source":  (
             "Activity tracker in Module A (partner targets Levels 3–4); "
@@ -1212,12 +1397,13 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "stakeholder": "All programme participants",
         "indicator_statement": (
             "Number attending training and BDS sessions per quarter, "
-            "disaggregated by sex and disability status (PI.5, PI.6)"
+            "disaggregated by sex and disability status (PI.1, PI.3)"
         ),
         "data_points": "Name; sex; PWD status; session type; date; anchor partner",
         "rationale": (
-            "Core output tracker for PI.5 (enrolment) and PI.6 (BDS completion); "
-            "quarterly rhythm aligns with CEL Consolidated Workplan milestones"
+            "Core output tracker for PI.1 (mobilisation/enrolment 500 Y1) and "
+            "PI.3 (BDS completion 500 Y1); quarterly rhythm aligns with "
+            "SAWA Y1 Consolidated Workplan milestones"
         ),
         "instrument_status": "Existing",
         "instrument_link": "https://kf.kobotoolbox.org/",

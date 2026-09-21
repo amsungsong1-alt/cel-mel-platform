@@ -37,10 +37,17 @@ render_nav_strip()  # home page — no active stage
 _needs_seed = (
     not run_query("SELECT 1 FROM projects LIMIT 1", {})
     or run_query(
-        "SELECT 1 FROM logframe_rows WHERE indicator_code IN ('PI.2','PI.3','PI.4') LIMIT 1",
+        # stale: old fabricated PI.2/PI.3/PI.4 outcome codes
+        "SELECT 1 FROM logframe_rows WHERE indicator_code IN ('PI.2','PI.4') LIMIT 1",
         {},
     )
     or run_query(
+        # stale: old thematic output codes replaced by workplan-faithful codes
+        "SELECT 1 FROM logframe_rows WHERE indicator_code IN ('PI.5','PI.6','PI.7','PI.8','PI.10','PIV.1') LIMIT 1",
+        {},
+    )
+    or run_query(
+        # stale: old Outcome 3 text not in source proposal
         "SELECT 1 FROM toc_nodes WHERE statement LIKE '%climate-resilient%' LIMIT 1",
         {},
     )
