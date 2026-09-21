@@ -469,7 +469,144 @@ with tab_sync:
                         st.warning("Both Asset UID and Form name are required.")
 
     # ═══════════════════════════════════════════════════════════════════════════════
-    # SECTION 4 — Sync Log
+    # SECTION 4 — Manual Upload (offline fallback)
+    # ═══════════════════════════════════════════════════════════════════════════════
+    st.divider()
+    with st.expander("📤 Upload from file — offline fallback", expanded=False):
+        st.caption(
+            "Use this when direct API sync is disrupted. Download your form data from "
+            "KoboToolbox (**Project → Downloads → XLS or CSV**), then upload below. "
+            "The field mappings configured above are applied automatically."
+        )
+
+        upload_forms = run_query(
+            """SELECT DISTINCT asset_uid, kobo_form_name
+               FROM   kobo_form_mapping
+               WHERE  project_id=:pid AND kobo_field_name != '_placeholder'
+               ORDER  BY kobo_form_name""",
+            {"pid": project_id},
+        )
+
+        if not upload_forms:
+            st.info("No forms registered yet. Configure field mappings in Section 3 above.")
+        else:
+            ul_c1, ul_c2 = st.columns([2, 3])
+            with ul_c1:
+                uf_labels = [f"{f['kobo_form_name']}  ({f['asset_uid']})" for f in upload_forms]
+                uf_label  = st.selectbox("Form this file belongs to", uf_labels, key="upload_form_sel")
+                sel_form  = upload_forms[uf_labels.index(uf_label)]
+            with ul_c2:
+                up_file = st.file_uploader(
+                    "KoboToolbox export (CSV or XLSX)",
+                    type=["csv", "xlsx", "xls"],
+                    key="kobo_manual_upload",
+                )
+
+            if up_file is not None:
+                try:
+                    df_up = (
+                        pd.read_csv(up_file)
+                        if up_file.name.lower().endswith(".csv")
+                        else pd.read_excel(up_file)
+                    )
+                    st.success(
+                        f"**{up_file.name}** loaded — "
+                        f"{len(df_up):,} rows · {len(df_up.columns)} columns"
+                    )
+
+                    with st.expander("🔍 Preview uploaded rows (first 10)"):
+                        st.dataframe(df_up.head(10), use_container_width=True)
+
+                    up_mappings = run_query(
+                        """SELECT kobo_field_name, logframe_row_id, transform
+                           FROM   kobo_form_mapping
+                           WHERE  project_id=:pid AND asset_uid=:uid
+                           AND    logframe_row_id IS NOT NULL""",
+                        {"pid": project_id, "uid": sel_form["asset_uid"]},
+                    )
+
+                    if not up_mappings:
+                        st.warning(
+                            "No field→indicator mappings found for this form. "
+                            "Assign indicators in Section 3 first."
+                        )
+                    else:
+                        preview = []
+                        for m in up_mappings:
+                            field   = m["kobo_field_name"]
+                            present = field in df_up.columns
+                            value   = (
+                                _apply_transform(df_up[field], m.get("transform") or "count")
+                                if present else "— not in file"
+                            )
+                            preview.append({
+                                "In file": "✅" if present else "❌",
+                                "Kobo field": field,
+                                "Transform": m.get("transform") or "count",
+                                "→ Value": value,
+                                "Indicator": id_to_code.get(m["logframe_row_id"] or -1, "?"),
+                            })
+                        st.markdown("**Mapping preview — values that will be written:**")
+                        st.dataframe(pd.DataFrame(preview), hide_index=True, use_container_width=True)
+
+                        q_col = f"actual_q{_current_quarter()}"
+                        st.caption(f"Target column: **{q_col}** (current quarter).")
+
+                        if can_write_module("E"):
+                            if st.button(
+                                "✅ Apply mapping & write to Module E",
+                                type="primary",
+                                key="apply_manual_upload",
+                            ):
+                                now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                                written = 0
+                                for m in up_mappings:
+                                    field = m["kobo_field_name"]
+                                    if field not in df_up.columns:
+                                        continue
+                                    value = _apply_transform(
+                                        df_up[field], m.get("transform") or "count"
+                                    )
+                                    run_write(
+                                        f"""UPDATE raw_data_analysis
+                                            SET    {q_col}=:v,
+                                                   indicator_status=
+                                                       'Data currently being collected/analysed',
+                                                   last_updated=:ts
+                                            WHERE  project_id=:pid
+                                            AND    logframe_row_id=:lf""",
+                                        {
+                                            "v": value, "ts": now_iso,
+                                            "pid": project_id, "lf": m["logframe_row_id"],
+                                        },
+                                    )
+                                    written += 1
+                                insert_returning_id(
+                                    """INSERT INTO kobo_sync_log
+                                       (project_id, asset_uid, synced_at,
+                                        records_pulled, status, error_message)
+                                       VALUES (:pid, :uid, :at, :n, 'success', :msg)""",
+                                    {
+                                        "pid": project_id,
+                                        "uid": sel_form["asset_uid"],
+                                        "at": now_iso,
+                                        "n": len(df_up),
+                                        "msg": f"Manual upload: {up_file.name}",
+                                    },
+                                )
+                                st.success(
+                                    f"Written {written} indicator value(s) from "
+                                    f"{len(df_up):,} uploaded rows. Module E updated."
+                                )
+                                st.rerun()
+                        else:
+                            st.info("Editor or Admin role required to write data.")
+
+                except Exception as exc:
+                    st.error(f"Could not read file: {exc}")
+
+    # ═══════════════════════════════════════════════════════════════════════════════
+    # SECTION 5 — Sync Log
     # ═══════════════════════════════════════════════════════════════════════════════
     st.subheader("📜 Sync Log")
 
