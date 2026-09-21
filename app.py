@@ -33,11 +33,15 @@ st.set_page_config(
 init_db()
 render_nav_strip()  # home page — no active stage
 
-# ── Auto-seed on first run or when indicator IDs are stale ────────────────────
+# ── Auto-seed on first run or when seed data is stale ─────────────────────────
 _needs_seed = (
     not run_query("SELECT 1 FROM projects LIMIT 1", {})
     or run_query(
         "SELECT 1 FROM logframe_rows WHERE indicator_code IN ('PI.2','PI.3','PI.4') LIMIT 1",
+        {},
+    )
+    or run_query(
+        "SELECT 1 FROM toc_nodes WHERE statement LIKE '%climate-resilient%' LIMIT 1",
         {},
     )
 )

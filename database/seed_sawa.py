@@ -84,13 +84,17 @@ def seed():
     for node in TOC_NODES:
         parent_db_id = key_to_db_id.get(node["parent_key"]) if node["parent_key"] else None
         db_id = insert_returning_id(
-            """INSERT INTO toc_nodes (project_id, level, statement, parent_id)
-               VALUES (:project_id, :level, :statement, :parent_id)""",
+            """INSERT INTO toc_nodes
+               (project_id, level, statement, parent_id, source_verified, source_note)
+               VALUES (:project_id, :level, :statement, :parent_id,
+                       :source_verified, :source_note)""",
             {
-                "project_id": project_id,
-                "level":      node["level"],
-                "statement":  node["statement"],
-                "parent_id":  parent_db_id,
+                "project_id":      project_id,
+                "level":           node["level"],
+                "statement":       node["statement"],
+                "parent_id":       parent_db_id,
+                "source_verified": node.get("source_verified", True),
+                "source_note":     node.get("source_note"),
             },
         )
         key_to_db_id[node["key"]] = db_id

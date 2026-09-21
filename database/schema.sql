@@ -57,11 +57,13 @@ CREATE TABLE IF NOT EXISTS partner_targets (
 
 -- Module B: Theory of Change node tree.
 CREATE TABLE IF NOT EXISTS toc_nodes (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
-    level      TEXT    NOT NULL CHECK(level IN ('Impact','Outcome','Intermediate Outcome','Output','Activity','Input')),
-    statement  TEXT    NOT NULL,
-    parent_id  INTEGER REFERENCES toc_nodes(id)
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id       INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    level            TEXT    NOT NULL CHECK(level IN ('Impact','Outcome','Intermediate Outcome','Output','Activity','Input')),
+    statement        TEXT    NOT NULL,
+    parent_id        INTEGER REFERENCES toc_nodes(id),
+    source_verified  BOOLEAN DEFAULT 1,
+    source_note      TEXT
 );
 
 -- Module B: Logframe rows — one row per indicator per result level.

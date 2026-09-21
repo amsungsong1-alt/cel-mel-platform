@@ -33,6 +33,15 @@ def init_db():
     schema = SCHEMA_PATH.read_text()
     conn = get_connection()
     conn.executescript(schema)
+    # Migrate existing databases that predate the source_verified/source_note columns.
+    for stmt in (
+        "ALTER TABLE toc_nodes ADD COLUMN source_verified BOOLEAN DEFAULT 1",
+        "ALTER TABLE toc_nodes ADD COLUMN source_note TEXT",
+    ):
+        try:
+            conn.execute(stmt)
+        except Exception:
+            pass  # column already exists
     conn.commit()
     conn.close()
 

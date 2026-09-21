@@ -65,110 +65,251 @@ PILLAR_BUDGETS = {
 
 # ── Module B: Theory of Change nodes ─────────────────────────────────────────
 # Use `key` / `parent_key` strings; seed_sawa.py resolves these to DB IDs.
+# ── Module B: Theory of Change nodes — SAWA Proposal (28 Nov 2025) faithful ──
+# source_verified=True  → content sourced verbatim or paraphrased from proposal
+# source_verified=False → CEL operational addition absent from the proposal
 TOC_NODES = [
     # ── Impact ────────────────────────────────────────────────────────────────
     {
-        "key": "IMP", "parent_key": None, "level": "Impact",
+        "key": "impact", "parent_key": None, "level": "Impact",
+        "source_verified": True,
+        "source_note": (
+            "Impact statement verbatim from SAWA Proposal ToC s3.2. The four "
+            "measurement commitments are sourced with explicit targets but "
+            "carry no formal Pl.x-style indicator ID."
+        ),
         "statement": (
-            "Over 60,000 financially disadvantaged young women and PWDs "
-            "engaged in dignified and fulfilling work in Ghana's fisheries "
-            "and aquaculture (D&F) sector, with improved income and "
-            "long-term economic resilience."
+            "Over 60,000 financially disadvantaged young women and persons with "
+            "disabilities are engaged in dignified and fulfilling work across "
+            "the aquaculture value chain, resulting in economic empowerment, "
+            "resilience and poverty reduction at both individual and community "
+            "levels.\n\n"
+            "D&F WORK ≥ 86% · PRODUCTION 50,000 MT/yr · "
+            "INCOME increase vs baseline · PWD INCLUSION staged ramp "
+            "1%→3%→5%"
         ),
     },
     # ── Outcomes ──────────────────────────────────────────────────────────────
     {
-        "key": "OC1", "parent_key": "IMP", "level": "Outcome",
+        "key": "outcome1", "parent_key": "impact", "level": "Outcome",
+        "source_verified": True,
+        "source_note": "Proposal heading, s3.9 Outcome 1.",
         "statement": (
-            "Young women and PWDs in targeted D&F value chains have "
-            "increased employment opportunities and sustained income."
+            "Transition into self and wage employment.\n\n"
+            "Plll.R1 (≥100 D&F jobs, value addition) · "
+            "Pll.R5 (8 D&F jobs, PWDs)"
         ),
     },
     {
-        "key": "OC2", "parent_key": "IMP", "level": "Outcome",
+        "key": "outcome2", "parent_key": "impact", "level": "Outcome",
+        "source_verified": True,
+        "source_note": "Proposal heading, s3.9 Outcome 2.",
         "statement": (
-            "D&F enterprises supported by SAWA demonstrate sustained "
-            "growth and strengthened market access, with inclusive "
-            "employment of young women and PWDs."
+            "Improved practices drive sustainable enterprise growth.\n\n"
+            "Pll.R6/Pll.R7 · Plll.R2/Plll.R3 · PRODUCTIVITY "
+            "(≥30% yield improvement) · ENTERPRISE CREATION "
+            "(≥70% survival at 12mo) · INCOME"
         ),
     },
     {
-        "key": "OC3", "parent_key": "IMP", "level": "Outcome",
+        "key": "outcome3", "parent_key": "impact", "level": "Outcome",
+        "source_verified": True,
+        "source_note": (
+            "CORRECTED from a previous 'climate-resilient' version that does "
+            "not appear in the source proposal and is not tested by either "
+            "indicator below it. This is the proposal's actual Outcome 3 "
+            "heading, s3.9."
+        ),
         "statement": (
-            "D&F livelihoods of young women and PWDs are more "
-            "climate-resilient, supported by an enabling policy "
-            "and investment ecosystem."
+            "Resilience, agency and market position.\n\n"
+            "MINDSET & AGENCY (validated self-efficacy scale) · "
+            "INPUT & MARKET LINKAGE (≥60% of cohort within 6 months)"
         ),
     },
     # ── Intermediate Outcomes ─────────────────────────────────────────────────
+    # NOT in the source proposal — absent from SAWA Proposal (28 Nov 2025).
+    # Kept as CEL operational additions to give IO1.1/IO2.1/IO3.1 a tree home.
     {
-        "key": "IO1", "parent_key": "OC1", "level": "Intermediate Outcome",
+        "key": "io1", "parent_key": "outcome1", "level": "Intermediate Outcome",
+        "source_verified": False,
+        "source_note": (
+            "This entire tier is absent from the SAWA Proposal (28 Nov 2025), "
+            "which runs Impact → Outcome → Output directly. Included "
+            "here as a CEL operational addition. IO1.1 is proposed, not approved."
+        ),
         "statement": (
-            "Young women and PWDs have the skills, confidence, "
-            "networks and initial resources to enter and succeed "
-            "in D&F work."
+            "Young women and PWDs have the skills, confidence, networks and "
+            "initial resources to enter and succeed in D&F work.\n\n"
+            "IO1.1 (proposed) · MINDSET_AND_AGENCY · Pl.11 · Pl.12a · Pl.12b"
         ),
     },
     {
-        "key": "IO2", "parent_key": "OC2", "level": "Intermediate Outcome",
+        "key": "io2", "parent_key": "outcome2", "level": "Intermediate Outcome",
+        "source_verified": False,
+        "source_note": (
+            "Not in the source proposal. IO2.1 is proposed, not approved. "
+            "'Inclusive hiring practices' has no indicator anywhere."
+        ),
         "statement": (
-            "Anchor partner enterprises scale production and value "
-            "addition with inclusive hiring practices and strengthened "
-            "market linkages."
+            "Anchor partner enterprises scale production and value addition "
+            "with inclusive hiring practices and strengthened market linkages.\n\n"
+            "IO2.1 (proposed)"
         ),
     },
     {
-        "key": "IO3", "parent_key": "OC3", "level": "Intermediate Outcome",
+        "key": "io3", "parent_key": "outcome3", "level": "Intermediate Outcome",
+        "source_verified": False,
+        "source_note": (
+            "Not in the source proposal. IO3.1 is proposed, not approved. "
+            "'Private investment catalysed' has no indicator anywhere."
+        ),
         "statement": (
-            "The D&F sector ecosystem — policy, private investment "
-            "and coordination — actively enables inclusive and "
-            "sustainable enterprise growth."
+            "The D&F sector ecosystem — policy, private investment and "
+            "coordination — actively enables inclusive and sustainable "
+            "enterprise growth.\n\nIO3.1 (proposed)"
         ),
     },
-    # ── Outputs ───────────────────────────────────────────────────────────────
+    # ── Outputs — proposal's actual Output 01-04 headings (s3.9) ─────────────
     {
-        "key": "OP1", "parent_key": "IO1", "level": "Output",
+        "key": "op1", "parent_key": "io1", "level": "Output",
+        "source_verified": True,
+        "source_note": "Proposal's actual Output 01, s3.9.",
         "statement": (
-            "OP1 — Capacity: Youth mobilised; BDS and gender-transformative "
-            "training delivered; cooperatives and PWD mentoring established."
-        ),
-    },
-    {
-        "key": "OP2", "parent_key": "IO2", "level": "Output",
-        "statement": (
-            "OP2 — Production: Investment in fishpond and aquaculture "
-            "facilities; PWDs integrated into production roles; "
-            "fish output and revenue targets met."
-        ),
-    },
-    {
-        "key": "OP3", "parent_key": "IO2", "level": "Output",
-        "statement": (
-            "OP3 — Value Addition: Fish processing and trading "
-            "enterprises supported; cold-chain and storage established; "
-            "market linkages formalised."
+            "OUTPUT 01 · Inclusive, safeguarded participation.\n\n"
+            "Pl.9 (25 GYSI focal persons, GALS+EMAP ToT) · "
+            "Pl.13 (8 PWD peer mentors) · Pl.19 (≥500 gender-transformative "
+            "training) · Pl.20 (≥500 safeguarding-trained) · "
+            "Pl.22 (3 campaigns) · Pl.23 (2 sites certified) · SAFEGUARDING"
         ),
     },
     {
-        "key": "OP4", "parent_key": "IO3", "level": "Output",
+        "key": "op2", "parent_key": "io2", "level": "Output",
+        "source_verified": True,
+        "source_note": (
+            "CORRECTED. Previously labelled 'Production: investment in fishpond "
+            "and aquaculture facilities' — that investment is anchor-partner "
+            "co-investment (see Inputs), not a CEL output. This is the "
+            "proposal's actual Output 02, s3.9."
+        ),
         "statement": (
-            "OP4 — Ecosystem: Policy and regulatory engagement "
-            "conducted; private-sector investment catalysed; "
-            "MoUs and cross-learning events delivered."
+            "OUTPUT 02 · Enrolled and skilled cohort.\n\n"
+            "Pl.1 (≥500 enrolled, ≥5% PWDs) · Pl.3 (≥500 BDS-trained) · "
+            "PlV.5 (≥500 E-SAWA digital literacy) · PARTICIPATION "
+            "(100% disaggregated by month 9)"
         ),
     },
-    # ── Inputs ────────────────────────────────────────────────────────────────
     {
-        "key": "IN1", "parent_key": "OP1", "level": "Input",
-        "statement": "CEL programme funding — USD 39.81M (Pillars I–IV + delivery fee)",
+        "key": "op3", "parent_key": "io2", "level": "Output",
+        "source_verified": True,
+        "source_note": (
+            "CORRECTED. Previously labelled 'Value Addition: fish processing... "
+            "cold-chain and storage established' — no indicator measures "
+            "cold-chain/storage. This is the proposal's actual Output 03, s3.9: "
+            "cooperative organisation, not physical infrastructure."
+        ),
+        "statement": (
+            "OUTPUT 03 · Organized women-led enterprises.\n\n"
+            "Pl.17 (≥500 cooperative development package) · "
+            "Pl.18 (25 governance frameworks adopted) · "
+            "Plll.6 (25 cooperatives established) — "
+            "Pl.18 and Plll.6 track the same 25 entities, report against one register."
+        ),
     },
     {
-        "key": "IN2", "parent_key": "OP2", "level": "Input",
-        "statement": "Anchor partner co-investment: facilities, land, supply-chain access",
+        "key": "op4", "parent_key": "io3", "level": "Output",
+        "source_verified": True,
+        "source_note": (
+            "CORRECTED. Previously labelled 'Policy and regulatory engagement... "
+            "private-sector investment catalysed; MoUs' — neither has an "
+            "indicator. This is the proposal's actual Output 04, s3.9. "
+            "'Investment catalysed' and 'MoUs' remain genuinely unmeasured "
+            "claims even in this corrected version."
+        ),
+        "statement": (
+            "OUTPUT 04 · Functional networks and ecosystem.\n\n"
+            "Pl.11 (≥500 WAN members, ≥2 forums) · "
+            "Pl.12a (1 national bootcamp) · Pl.12b (1 inter-zonal exchange) · "
+            "STAKEHOLDER & COORDINATION (zero double-counting registry check)"
+        ),
+    },
+    # ── Activities — by pillar (source: proposal s3.3) ────────────────────────
+    {
+        "key": "act1", "parent_key": "op1", "level": "Activity",
+        "source_verified": True, "source_note": None,
+        "statement": (
+            "Pillar 1 — Capacity building and inclusion: community entry and "
+            "mobilization; enrolment and needs assessment; GALS/EMAP cycles with "
+            "households; safeguarding training, awareness campaigns, site "
+            "certification, accessibility audits, PWD mentor recruitment."
+        ),
     },
     {
-        "key": "IN3", "parent_key": "OP4", "level": "Input",
-        "statement": "Government policy alignment, regulatory frameworks and public infrastructure",
+        "key": "act2", "parent_key": "op2", "level": "Activity",
+        "source_verified": True, "source_note": None,
+        "statement": (
+            "Pillar 2 — Production and productivity: starter packs and land "
+            "access; community hatcheries and feed depots; hands-on training in "
+            "fish handling, water quality, feed formulation, biosecurity."
+        ),
+    },
+    {
+        "key": "act3", "parent_key": "op3", "level": "Activity",
+        "source_verified": True, "source_note": None,
+        "statement": (
+            "Pillar 3 — Value addition and markets: processing technology "
+            "transfer with CSIR-FRI; two-tier certification with GSA/FDA; "
+            "E-SAWA marketplace; micro/catalytic grants; cooperative formation."
+        ),
+    },
+    {
+        "key": "act4", "parent_key": "op4", "level": "Activity",
+        "source_verified": True, "source_note": None,
+        "statement": (
+            "Pillar 4 — Ecosystem strengthening: establish WAN nationally and "
+            "at community level; leadership bootcamps and exchange visits; "
+            "institutional strengthening via the ISP; policy briefs and donor "
+            "coordination."
+        ),
+    },
+    # ── Inputs — proposal's fourfold breakdown ────────────────────────────────
+    {
+        "key": "input_finance", "parent_key": "act2", "level": "Input",
+        "source_verified": True, "source_note": None,
+        "statement": (
+            "Finance: USD 39.81M total (Pillar II 26.78M · III 7.27M · "
+            "I 2.41M · IV 0.82M · delivery fee 2.58M). Micro-grants ≤$800, "
+            "catalytic ≤$8,000, SME facility ≤$16,000. Starter packs "
+            "$1,000–$1,400."
+        ),
+    },
+    {
+        "key": "input_partners", "parent_key": "act3", "level": "Input",
+        "source_verified": True, "source_note": None,
+        "statement": (
+            "Partners: Consortium — Agri-Impact (lead), Fisheries Commission, "
+            "CEL, TechnoServe, R&B Farms, NewAge Agric, Agro Kings. Anchors — "
+            "R&B, AgroKings, Yedent, NewAge, Aglow. Specialists — KNUST, "
+            "CSIR/CSIR-FRI, Institutional Strengthening Partner."
+        ),
+    },
+    {
+        "key": "input_people", "parent_key": "act1", "level": "Input",
+        "source_verified": True, "source_note": None,
+        "statement": (
+            "People & systems: full-time GYSI officer in every implementing "
+            "partner; safeguarding focal persons; zonal coordinators; field "
+            "enumerators; MIS/HAMIS registry."
+        ),
+    },
+    {
+        "key": "input_instruments", "parent_key": "act4", "level": "Input",
+        "source_verified": True, "source_note": None,
+        "statement": (
+            "Instruments & standards: HAPPY D&F instrument applied verbatim; "
+            "validated agency/self-efficacy scales; GALS and EMAP curricula; "
+            "PWD toolkit; Good Aquaculture Practices; two-tier certification "
+            "pathway."
+        ),
     },
 ]
 
