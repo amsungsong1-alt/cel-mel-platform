@@ -81,7 +81,10 @@ def _apply_transform(series: pd.Series, transform: str) -> str:
 
 
 def _current_quarter() -> int:
-    return (datetime.now().month - 1) // 3 + 1
+    """SAWA's fiscal year: Q1=Jul-Sep, Q2=Oct-Dec, Q3=Jan-Mar, Q4=Apr-Jun
+    (NOT the calendar year — do not simplify to (month-1)//3+1)."""
+    fiscal_month = (datetime.now().month - 7) % 12
+    return fiscal_month // 3 + 1
 
 
 _Q_RE = re.compile(r"q([1-4])", re.IGNORECASE)
@@ -135,10 +138,10 @@ _SAMPLE_ENUMERATORS = ["Abena K.", "Kofi M.", "Akosua D.", "Yaw A.", "Efua N."]
 _SAMPLE_SITES = ["Accra-Tema Hub", "Kumasi Hub", "Takoradi Hub", "Tamale Hub", "Cape Coast Hub"]
 _SAMPLE_ANCHORS = ["R&B Farms", "AgroKings", "Yedent/Naple Betta", "Aglow Farms", "NewAge Agric"]
 _SAMPLE_QUARTERS = [
-    ("Q1 Jan–Mar 2026", "2026-01-01", "2026-03-31"),
-    ("Q2 Apr–Jun 2026", "2026-04-01", "2026-06-30"),
-    ("Q3 Jul–Sep 2026", "2026-07-01", "2026-09-30"),
-    ("Q4 Oct–Dec 2026", "2026-10-01", "2026-12-31"),
+    ("Q1 Jul–Sep 2026", "2026-07-01", "2026-09-30"),
+    ("Q2 Oct–Dec 2026", "2026-10-01", "2026-12-31"),
+    ("Q3 Jan–Mar 2027", "2027-01-01", "2027-03-31"),
+    ("Q4 Apr–Jun 2027", "2027-04-01", "2027-06-30"),
 ]
 
 def _rnd_date(s: str, e: str) -> str:
