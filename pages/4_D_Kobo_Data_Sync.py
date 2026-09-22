@@ -15,8 +15,10 @@ GitHub Actions nightly workflow. See the Schedule section at the bottom
 of this page.
 """
 from __future__ import annotations
+import io
 import os
-from datetime import date as _date, datetime, timezone
+import random
+from datetime import date as _date, datetime, timedelta, timezone
 from collections import defaultdict
 
 import streamlit as st
@@ -79,6 +81,216 @@ def _apply_transform(series: pd.Series, transform: str) -> str:
 
 def _current_quarter() -> int:
     return (datetime.now().month - 1) // 3 + 1
+
+
+# ── Sample data generator (testing only) ─────────────────────────────────────
+
+_SAMPLE_ENUMERATORS = ["Abena K.", "Kofi M.", "Akosua D.", "Yaw A.", "Efua N."]
+_SAMPLE_SITES = ["Accra-Tema Hub", "Kumasi Hub", "Takoradi Hub", "Tamale Hub", "Cape Coast Hub"]
+_SAMPLE_ANCHORS = ["R&B Farms", "AgroKings", "Yedent/Naple Betta", "Aglow Farms", "NewAge Agric"]
+_SAMPLE_QUARTERS = [
+    ("Q1 Jan–Mar 2026", "2026-01-01", "2026-03-31"),
+    ("Q2 Apr–Jun 2026", "2026-04-01", "2026-06-30"),
+    ("Q3 Jul–Sep 2026", "2026-07-01", "2026-09-30"),
+    ("Q4 Oct–Dec 2026", "2026-10-01", "2026-12-31"),
+]
+
+def _rnd_date(s: str, e: str) -> str:
+    sd, ed = _date.fromisoformat(s), _date.fromisoformat(e)
+    return str(sd + timedelta(days=random.randint(0, (ed - sd).days)))
+
+def _common(n: int, s: str, e: str) -> dict:
+    rng = random.Random(42)
+    return {
+        "_id":            list(range(1001, 1001 + n)),
+        "date_submitted": [_rnd_date(s, e) for _ in range(n)],
+        "enumerator":     [rng.choice(_SAMPLE_ENUMERATORS) for _ in range(n)],
+        "site":           [rng.choice(_SAMPLE_SITES) for _ in range(n)],
+    }
+
+def _cnt(n: int, target: int) -> list:
+    rng = random.Random(42)
+    v = ["Yes"] * target + [None] * (n - target)
+    rng.shuffle(v)
+    return v
+
+def _sum_i(total: int, n: int) -> list:
+    if total == 0:
+        return [None] * n
+    base, rem = divmod(total, n)
+    v = [base + (1 if i < rem else 0) for i in range(n)]
+    random.Random(42).shuffle(v)
+    return v
+
+def _sum_f(total: float, n: int) -> list:
+    if total == 0:
+        return [None] * n
+    per = round(total / n, 3)
+    v = [per] * (n - 1)
+    v.append(round(total - sum(v), 3))
+    random.Random(42).shuffle(v)
+    return v
+
+def _mean_scores(target: float, n: int = 20) -> list:
+    rng = random.Random(42)
+    sc = [int(target) + rng.randint(-8, 8) for _ in range(n - 1)]
+    last = max(40, min(100, round(target * n - sum(sc))))
+    sc.append(last)
+    diff = round(sum(sc) / n - target)
+    return [max(40, min(100, s - diff)) for s in sc]
+
+def _build_sample_excel(form_idx: int) -> bytes:
+    """Return XLSX bytes for the given form (1-indexed). 4 sheets = 4 quarters."""
+    rng = random.Random(42)
+
+    def _sheet(data: dict) -> pd.DataFrame:
+        return pd.DataFrame(data)
+
+    sheets: list[tuple[str, pd.DataFrame]] = []
+
+    if form_idx == 1:
+        params = [(95,1),(135,2),(135,2),(135,3)]
+        for (q,s,e), (enr,pwd) in zip(_SAMPLE_QUARTERS, params):
+            n = enr
+            d = _common(n, s, e)
+            d["participant_name"] = [f"Participant-{i:04d}" for i in range(1, n+1)]
+            d["gender"] = ["Female"] * n
+            d["anchor_partner"] = [rng.choice(_SAMPLE_ANCHORS) for _ in range(n)]
+            d["participant_enrolled"] = _cnt(n, enr)
+            d["pwd_enrolled"] = _cnt(n, pwd)
+            sheets.append((q, _sheet(d)))
+
+    elif form_idx == 2:
+        params = [
+            (95, 0, 0,   0,   0,   0),
+            (135,0, 150, 150, 150, 150),
+            (135,15,150, 150, 150, 150),
+            (135,10,200, 200, 200, 200),
+        ]
+        for (q,s,e), (bds,gals,coop,gen,safe,digi) in zip(_SAMPLE_QUARTERS, params):
+            n = bds
+            d = _common(n, s, e)
+            d["training_type"] = ["BDS"] * n
+            d["bds_session_completed"] = _cnt(n, bds)
+            d["gals_focal_person_trained"] = _cnt(n, gals)
+            d["coop_training_attended"] = _sum_i(coop, n)
+            d["gender_transformative_attended"] = _sum_i(gen, n)
+            d["safeguarding_trained"] = _sum_i(safe, n)
+            d["digital_literacy_attended"] = _sum_i(digi, n)
+            sheets.append((q, _sheet(d)))
+
+    elif form_idx == 3:
+        params = [(0,0),(0,0),(300,1),(200,0)]
+        cols = ["_id","date_submitted","enumerator","site","event_name",
+                "women_attended_forum","bootcamp_or_exchange_held"]
+        for (q,s,e), (wsum,boot) in zip(_SAMPLE_QUARTERS, params):
+            if wsum == 0 and boot == 0:
+                sheets.append((q, pd.DataFrame(columns=cols)))
+                continue
+            n = max(boot, 3)
+            d = _common(n, s, e)
+            d["event_name"] = [f"WAN Forum {i}" for i in range(1, n+1)]
+            d["women_attended_forum"] = _sum_i(wsum, n)
+            d["bootcamp_or_exchange_held"] = _cnt(n, boot)
+            sheets.append((q, _sheet(d)))
+
+    elif form_idx == 4:
+        for (q,s,e), cnt in zip(_SAMPLE_QUARTERS, [1,2,2,3]):
+            n = max(cnt, 1)
+            d = _common(n, s, e)
+            d["mentor_name"] = [f"PWD-Mentor-{i:03d}" for i in range(1, n+1)]
+            d["disability_type"] = [rng.choice(["Physical","Visual","Hearing"]) for _ in range(n)]
+            d["pwd_mentor_identified"] = _cnt(n, cnt)
+            sheets.append((q, _sheet(d)))
+
+    elif form_idx == 5:
+        params = [(0,0),(0,0),(15,15),(10,10)]
+        cols = ["_id","date_submitted","enumerator","site",
+                "cooperative_name","cooperative_registered","governance_framework_adopted"]
+        for (q,s,e), (co,gov) in zip(_SAMPLE_QUARTERS, params):
+            if co == 0 and gov == 0:
+                sheets.append((q, pd.DataFrame(columns=cols)))
+                continue
+            n = max(co, gov)
+            d = _common(n, s, e)
+            d["cooperative_name"] = [f"Women's Coop {i:02d}" for i in range(1, n+1)]
+            d["anchor_partner"] = [rng.choice(_SAMPLE_ANCHORS) for _ in range(n)]
+            d["cooperative_registered"] = _cnt(n, co)
+            d["governance_framework_adopted"] = _cnt(n, gov)
+            sheets.append((q, _sheet(d)))
+
+    elif form_idx == 6:
+        params = [(0,0),(0,0),(0,0),(3,2)]
+        cols = ["_id","date_submitted","enumerator","site",
+                "safeguarding_officer","campaign_roadshow_held","site_certified"]
+        for (q,s,e), (cam,site) in zip(_SAMPLE_QUARTERS, params):
+            if cam == 0 and site == 0:
+                sheets.append((q, pd.DataFrame(columns=cols)))
+                continue
+            n = max(cam, site)
+            d = _common(n, s, e)
+            d["safeguarding_officer"] = [f"Officer-{i:02d}" for i in range(1, n+1)]
+            d["campaign_roadshow_held"] = _cnt(n, cam)
+            d["site_certified"] = _cnt(n, site)
+            sheets.append((q, _sheet(d)))
+
+    elif form_idx == 7:
+        params = [(1.0,2083),(2.0,4167),(2.0,4167),(3.0,6250)]
+        for (q,s,e), (fish,rev) in zip(_SAMPLE_QUARTERS, params):
+            n = 2
+            d = _common(n, s, e)
+            d["pwd_farmer_id"] = [f"PWD-F-{i:03d}" for i in range(1, n+1)]
+            d["fish_species"] = [rng.choice(["Tilapia","Catfish"]) for _ in range(n)]
+            d["fish_volume_mt_pwd"] = _sum_f(fish, n)
+            d["revenue_usd_pwd"] = _sum_i(rev, n)
+            sheets.append((q, _sheet(d)))
+
+    elif form_idx == 8:
+        params = [(0,0.0,0),(40,46.3,83333),(30,34.7,62500),(30,34.7,62500)]
+        cols = ["_id","date_submitted","enumerator","site",
+                "enterprise_name","value_addition_jobs","fish_volume_mt_va","revenue_usd_va"]
+        for (q,s,e), (jobs,fish,rev) in zip(_SAMPLE_QUARTERS, params):
+            if jobs == 0:
+                sheets.append((q, pd.DataFrame(columns=cols)))
+                continue
+            n = 5
+            d = _common(n, s, e)
+            d["enterprise_name"] = [f"VA-Enterprise-{i:02d}" for i in range(1, n+1)]
+            d["enterprise_type"] = [rng.choice(["Processing","Trading","Both"]) for _ in range(n)]
+            d["value_addition_jobs"] = _sum_i(jobs, n)
+            d["fish_volume_mt_va"] = _sum_f(fish, n)
+            d["revenue_usd_va"] = _sum_i(rev, n)
+            sheets.append((q, _sheet(d)))
+
+    elif form_idx == 9:
+        for (q,s,e), mean_sc in zip(_SAMPLE_QUARTERS, [70,72,78,82]):
+            n = 20
+            d = _common(n, s, e)
+            d["participant_id"] = [f"PMU-{i:03d}" for i in range(1, n+1)]
+            d["training_type"] = ["Gender Transformative"] * n
+            sc = _mean_scores(mean_sc, n)
+            d["pre_test_score"] = [max(30, s - rng.randint(10,20)) for s in sc]
+            d["post_test_score"] = sc
+            sheets.append((q, _sheet(d)))
+
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as w:
+        for sheet_name, df in sheets:
+            df.to_excel(w, sheet_name=sheet_name, index=False)
+    return buf.getvalue()
+
+
+_SAMPLE_FORMS = [
+    (1, "F1_Enrolment_Register_Y1.xlsx",   "Mobilisation & Enrolment Register",       "PI.1 · PII.R5"),
+    (2, "F2_Training_Attendance_Y1.xlsx",   "Training Attendance Register",             "PI.3 · PI.9 · PI.17 · PI.19 · PI.20 · PIV.5"),
+    (3, "F3_WAN_Events_Y1.xlsx",            "WAN Leadership Events Log",                "PI.11 · PI.12"),
+    (4, "F4_PWD_Mentor_Registry_Y1.xlsx",   "PWD Mentor Registry",                      "PI.13"),
+    (5, "F5_Cooperative_Registry_Y1.xlsx",  "Tool 3 Cooperative & Governance Registry", "PIII.6 · PI.18"),
+    (6, "F6_Safeguarding_Monitor_Y1.xlsx",  "Safeguarding Monitoring Form",             "PI.22 · PI.23"),
+    (7, "F7_PWD_Production_Y1.xlsx",        "PWD Production & Revenue Tracker",         "PII.R6 · PII.R7"),
+    (8, "F8_Value_Addition_Y1.xlsx",        "Value-Addition Enterprise Tracker",        "PIII.R1 · PIII.R2 · PIII.R3"),
+    (9, "F9_PMU_Knowledge_Test_Y1.xlsx",    "PMU Pre/Post Knowledge Test",              "PI.19 (mean score)"),
+]
 
 
 def _do_sync(
@@ -560,6 +772,32 @@ with tab_upload:
         "KoboToolbox (**Project → Downloads → XLS or CSV**), then upload below. "
         "Field mappings configured in the Sync & Mapping tab are applied automatically."
     )
+
+    with st.expander("🧪 Download sample test data (Y1 — all 4 quarters)", expanded=False):
+        st.caption(
+            "Each file contains **4 sheets** (Q1–Q4) pre-filled with workplan-faithful "
+            "target values. To test a specific quarter: open the file in Excel, copy the "
+            "relevant sheet to a new workbook, save it, then upload below."
+        )
+        cols = st.columns(3)
+        for i, (idx, fname, form_name, indicators) in enumerate(_SAMPLE_FORMS):
+            with cols[i % 3]:
+                st.download_button(
+                    label=f"⬇ {fname}",
+                    data=_build_sample_excel(idx),
+                    file_name=fname,
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    help=f"Form: {form_name}\nIndicators: {indicators}",
+                    key=f"dl_sample_{idx}",
+                    use_container_width=True,
+                )
+                st.caption(f"*{indicators}*")
+        st.info(
+            "**Tip — uploading a quarter:** The app always writes to the *current* "
+            "quarter slot. To test a past quarter, temporarily set your PC clock or "
+            "use the quarter selector in Module E after uploading.",
+            icon="ℹ️",
+        )
 
     upload_forms = run_query(
         """SELECT DISTINCT asset_uid, kobo_form_name
