@@ -24,6 +24,13 @@ Credential resolution order
        password = "$2b$12$<bcrypt hash>"
        role     = "Viewer"
 
+       [credentials.usernames.ceo]
+       name         = "CEO"
+       email        = "ceo@sawa-programme.org"
+       password     = "$2b$12$<bcrypt hash>"
+       role         = "Viewer"
+       view_modules = ["I"]
+
        [cookie]
        name        = "cel_mel_auth"
        key         = "<random secret string>"
@@ -65,6 +72,7 @@ def _config_from_secrets() -> dict:
             "password":      udata["password"],
             "role":          udata.get("role", "Viewer"),
             "write_modules": udata.get("write_modules"),
+            "view_modules":  udata.get("view_modules"),
         }
     return {
         "credentials": {"usernames": usernames},
@@ -112,6 +120,22 @@ def can(action: str) -> bool:
     """Return True if the current user's role includes *action*."""
     role = st.session_state.get("role", "Viewer")
     return action in ROLE_PERMISSIONS.get(role, [])
+
+
+def can_view_module(module: str) -> bool:
+    """Return True if the current user can view *module* beyond default read access.
+
+    Used for modules restricted to Admin by default (e.g. Module I) that a
+    specific Viewer account (e.g. CEO, Executive Director) has been granted
+    a scoped exception for via view_modules in credentials.yaml/secrets.
+    Admins always pass.
+    """
+    if can("admin"):
+        return True
+    view_modules = st.session_state.get("view_modules")
+    if not view_modules:
+        return False
+    return module.upper() in [m.upper() for m in view_modules]
 
 
 def can_write_module(module: str) -> bool:

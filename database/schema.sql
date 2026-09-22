@@ -284,6 +284,38 @@ CREATE TABLE IF NOT EXISTS evidence (
 CREATE INDEX IF NOT EXISTS idx_evidence_project ON evidence(project_id);
 CREATE INDEX IF NOT EXISTS idx_evidence_lf_row  ON evidence(logframe_row_id);
 
+-- Module I: Strategic Plan 2025-2030 — links a programme's logframe
+-- indicator (or its budget_total) into one of the six CEL strategic
+-- outcomes, so the dashboard can auto-aggregate across SAWA and any
+-- future programme without code changes. outcome_code values are defined
+-- in utils/strategic_outcomes.py.
+CREATE TABLE IF NOT EXISTS strategic_outcome_links (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    outcome_code    TEXT    NOT NULL,
+    project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE CASCADE,
+    source          TEXT    NOT NULL CHECK(source IN ('indicator_actual_year', 'project_budget_total')),
+    note            TEXT
+);
+
+-- Manually entered figures for outcome/project combinations with no
+-- automatic indicator link (e.g. finance mobilised outside the logframe,
+-- or enterprise pilots tracked by a separate research team).
+-- project_id NULL = an org-wide figure not tied to one programme.
+CREATE TABLE IF NOT EXISTS strategic_outcome_manual (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    outcome_code TEXT    NOT NULL,
+    project_id   INTEGER REFERENCES projects(project_id) ON DELETE CASCADE,
+    value        REAL    NOT NULL,
+    note         TEXT,
+    updated_by   TEXT,
+    updated_at   TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_sol_outcome       ON strategic_outcome_links(outcome_code);
+CREATE INDEX IF NOT EXISTS idx_sol_project       ON strategic_outcome_links(project_id);
+CREATE INDEX IF NOT EXISTS idx_som_outcome       ON strategic_outcome_manual(outcome_code);
+
 CREATE INDEX IF NOT EXISTS idx_rp_project         ON review_protocols(project_id);
 CREATE INDEX IF NOT EXISTS idx_rp_data_type       ON review_protocols(data_type);
 CREATE INDEX IF NOT EXISTS idx_rl_protocol        ON review_log(protocol_id);

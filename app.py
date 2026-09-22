@@ -98,6 +98,7 @@ creds = config.get("credentials", {}).get("usernames", {})
 user_record = creds.get(username, {})
 st.session_state["role"] = user_record.get("role", "Viewer")
 st.session_state["write_modules"] = user_record.get("write_modules", None)
+st.session_state["view_modules"] = user_record.get("view_modules", None)
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -189,6 +190,10 @@ MODULES = [
      "Improved Decision Making",
      "Programme Director, Donors, Senior Advisor",
      "Auto-generated evidence reports with action tracking"),
+    ("Senior Management", "#1565C0", "I", "Strategic Plan 2025-2030",
+     "Competitive Advantage",
+     "CEL Admin, CEO, Executive Director",
+     "Org-wide progress toward the 6 CEL 2030 targets, aggregated across all programmes"),
     ("Middle Management", "#6A1B9A", "B", "ToC & Logframe",
      "Competitive Advantage",
      "MEAL Officer, Programme Manager",
