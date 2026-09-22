@@ -289,6 +289,12 @@ CREATE INDEX IF NOT EXISTS idx_evidence_lf_row  ON evidence(logframe_row_id);
 -- outcomes, so the dashboard can auto-aggregate across SAWA and any
 -- future programme without code changes. outcome_code values are defined
 -- in utils/strategic_outcomes.py.
+--
+-- Caution on 'project_budget_total': only use it for the FINANCE outcome
+-- if the programme's budget is money CEL itself mobilised. A jointly
+-- funded programme's total budget (e.g. SAWA, split across several
+-- implementing partners) is not attributable to CEL alone — use a manual
+-- entry (strategic_outcome_manual) instead in that case.
 CREATE TABLE IF NOT EXISTS strategic_outcome_links (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     outcome_code    TEXT    NOT NULL,

@@ -272,9 +272,15 @@ def seed():
     print(f"Data collection plan: {len(DATA_COLLECTION_PLAN)} instruments inserted.")
 
     # ── Strategic outcome links (Module I) ────────────────────────────────────
-    # Wires SAWA's logframe indicators (and programme budget) into CEL's six
-    # 2025-2030 strategic outcomes. See utils/strategic_outcomes.py for the
-    # target definitions and database/schema.sql for the table shape.
+    # Wires SAWA's logframe indicators into CEL's six 2025-2030 strategic
+    # outcomes. See utils/strategic_outcomes.py for the target definitions
+    # and database/schema.sql for the table shape.
+    #
+    # FINANCE is deliberately NOT auto-linked to SAWA's project_budget_total:
+    # that figure funds all five implementing partners jointly and is not
+    # money CEL itself mobilised, so treating it as a CEL fundraising proxy
+    # would misattribute it. FINANCE relies on manual entries (see the
+    # Module I page) until there's a real CEL-level fundraising data source.
     run_write("DELETE FROM strategic_outcome_links WHERE project_id = :pid", {"pid": project_id})
     STRATEGIC_OUTCOME_LINKS = [
         {"outcome_code": "JOBS", "indicator_code": "LoP.1", "source": "indicator_actual_year",
@@ -285,8 +291,6 @@ def seed():
          "note": "Revenue (USD) from trading value-added aquaculture products (LoP target $90M/yr)."},
         {"outcome_code": "SMES", "indicator_code": "PIII.6", "source": "indicator_actual_year",
          "note": "Proxy only — counts cooperatives/clusters strengthened, not individual SME headcount."},
-        {"outcome_code": "FINANCE", "indicator_code": None, "source": "project_budget_total",
-         "note": "SAWA programme budget as a proxy for funds mobilised toward this programme."},
     ]
     for link in STRATEGIC_OUTCOME_LINKS:
         lf_id = lf_lookup.get(link["indicator_code"]) if link["indicator_code"] else None
