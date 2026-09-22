@@ -18,6 +18,7 @@ from __future__ import annotations
 import io
 import os
 import random
+import re
 from datetime import date as _date, datetime, timedelta, timezone
 from collections import defaultdict
 
@@ -81,6 +82,15 @@ def _apply_transform(series: pd.Series, transform: str) -> str:
 
 def _current_quarter() -> int:
     return (datetime.now().month - 1) // 3 + 1
+
+
+_Q_RE = re.compile(r"q([1-4])", re.IGNORECASE)
+
+
+def _detect_quarter(text: str, default: int | None) -> int | None:
+    """Look for 'Q1'..'Q4' (case-insensitive) in a filename or sheet name."""
+    m = _Q_RE.search(text or "")
+    return int(m.group(1)) if m else default
 
 
 # ── Sample data generator (testing only) ─────────────────────────────────────
@@ -776,8 +786,8 @@ with tab_upload:
     with st.expander("🧪 Download sample test data (Y1 — all 4 quarters)", expanded=False):
         st.caption(
             "Each file contains **4 sheets** (Q1–Q4) pre-filled with workplan-faithful "
-            "target values. To test a specific quarter: open the file in Excel, copy the "
-            "relevant sheet to a new workbook, save it, then upload below."
+            "target values. Upload the file as-is below — each sheet is written to its "
+            "own quarter automatically (adjust if the auto-detected quarter is wrong)."
         )
         cols = st.columns(3)
         for i, (idx, fname, form_name, indicators) in enumerate(_SAMPLE_FORMS):
@@ -792,12 +802,6 @@ with tab_upload:
                     use_container_width=True,
                 )
                 st.caption(f"*{indicators}*")
-        st.info(
-            "**Tip — uploading a quarter:** The app always writes to the *current* "
-            "quarter slot. To test a past quarter, temporarily set your PC clock or "
-            "use the quarter selector in Module E after uploading.",
-            icon="ℹ️",
-        )
 
     upload_forms = run_query(
         """SELECT DISTINCT asset_uid, kobo_form_name
@@ -813,29 +817,62 @@ with tab_upload:
         ul_c1, ul_c2 = st.columns([2, 3])
         with ul_c1:
             uf_labels = [f"{f['kobo_form_name']}  ({f['asset_uid']})" for f in upload_forms]
-            uf_label  = st.selectbox("Form this file belongs to", uf_labels, key="upload_form_sel")
+            uf_label  = st.selectbox("Form these files belong to", uf_labels, key="upload_form_sel")
             sel_form  = upload_forms[uf_labels.index(uf_label)]
         with ul_c2:
-            up_file = st.file_uploader(
-                "KoboToolbox export (CSV or XLSX)",
+            up_files = st.file_uploader(
+                "KoboToolbox export(s) (CSV or XLSX) — add one file per quarter with the "
+                "**+**, or upload a single multi-sheet workbook with one sheet per quarter",
                 type=["csv", "xlsx", "xls"],
+                accept_multiple_files=True,
                 key="kobo_manual_upload",
             )
 
-        if up_file is not None:
-            try:
-                df_up = (
-                    pd.read_csv(up_file)
-                    if up_file.name.lower().endswith(".csv")
-                    else pd.read_excel(up_file)
-                )
+        if up_files:
+            # A CSV or single-sheet workbook is one quarter; a multi-sheet workbook
+            # (e.g. the sample Y1 downloads) contributes one quarter per sheet.
+            # Quarter is guessed from the sheet name, then the filename, then falls
+            # back to the current quarter — always adjustable below before writing.
+            quarter_jobs: list[dict] = []
+            for f in up_files:
+                try:
+                    if f.name.lower().endswith(".csv"):
+                        df = pd.read_csv(f)
+                        q = _detect_quarter(f.name, _current_quarter())
+                        quarter_jobs.append({"label": f.name, "quarter": q, "df": df})
+                    else:
+                        sheets = pd.read_excel(f, sheet_name=None)
+                        if len(sheets) == 1:
+                            (sheet_name, df), = sheets.items()
+                            q = _detect_quarter(f.name, None) or _detect_quarter(sheet_name, _current_quarter())
+                            quarter_jobs.append({"label": f.name, "quarter": q, "df": df})
+                        else:
+                            for sheet_name, df in sheets.items():
+                                fallback = _detect_quarter(f.name, _current_quarter())
+                                q = _detect_quarter(sheet_name, fallback)
+                                quarter_jobs.append({"label": f"{f.name} · {sheet_name}", "quarter": q, "df": df})
+                except Exception as exc:
+                    st.error(f"Could not read **{f.name}**: {exc}")
+
+            if quarter_jobs:
                 st.success(
-                    f"**{up_file.name}** loaded — "
-                    f"{len(df_up):,} rows · {len(df_up.columns)} columns"
+                    f"{len(quarter_jobs)} quarter file(s)/sheet(s) loaded from "
+                    f"{len(up_files)} upload(s) — {sum(len(j['df']) for j in quarter_jobs):,} rows total."
                 )
 
-                with st.expander("🔍 Preview uploaded rows (first 10)"):
-                    st.dataframe(df_up.head(10), use_container_width=True)
+                st.markdown("**Confirm the target quarter for each file** (auto-detected — adjust if wrong):")
+                for i, job in enumerate(quarter_jobs):
+                    jc1, jc2, jc3 = st.columns([3, 1, 1])
+                    with jc1:
+                        st.caption(f"📄 {job['label']} — {len(job['df']):,} rows")
+                    with jc2:
+                        job["quarter"] = st.selectbox(
+                            "Quarter", [1, 2, 3, 4], index=job["quarter"] - 1,
+                            key=f"q_job_{i}", label_visibility="collapsed",
+                        )
+                    with jc3:
+                        with st.popover("Preview"):
+                            st.dataframe(job["df"].head(10), use_container_width=True)
 
                 up_mappings = run_query(
                     """SELECT kobo_field_name, logframe_row_id, transform
@@ -852,25 +889,24 @@ with tab_upload:
                     )
                 else:
                     preview = []
-                    for m in up_mappings:
-                        field   = m["kobo_field_name"]
-                        present = field in df_up.columns
-                        value   = (
-                            _apply_transform(df_up[field], m.get("transform") or "count")
-                            if present else "— not in file"
-                        )
-                        preview.append({
-                            "In file": "✅" if present else "❌",
-                            "Kobo field": field,
-                            "Transform": m.get("transform") or "count",
-                            "→ Value": value,
-                            "Indicator": id_to_code.get(m["logframe_row_id"] or -1, "?"),
-                        })
-                    st.markdown("**Mapping preview — values that will be written:**")
+                    for job in quarter_jobs:
+                        for m in up_mappings:
+                            field   = m["kobo_field_name"]
+                            present = field in job["df"].columns
+                            value   = (
+                                _apply_transform(job["df"][field], m.get("transform") or "count")
+                                if present else "— not in file"
+                            )
+                            preview.append({
+                                "Quarter": f"Q{job['quarter']}",
+                                "File": job["label"],
+                                "In file": "✅" if present else "❌",
+                                "Kobo field": field,
+                                "→ Value": value,
+                                "Indicator": id_to_code.get(m["logframe_row_id"] or -1, "?"),
+                            })
+                    st.markdown("**Mapping preview — values that will be written per quarter:**")
                     st.dataframe(pd.DataFrame(preview), hide_index=True, use_container_width=True)
-
-                    q_col = f"actual_q{_current_quarter()}"
-                    st.caption(f"Target column: **{q_col}** (current quarter).")
 
                     if can_write_module("D"):
                         if st.button(
@@ -880,27 +916,29 @@ with tab_upload:
                         ):
                             now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
                             written = 0
-                            for m in up_mappings:
-                                field = m["kobo_field_name"]
-                                if field not in df_up.columns:
-                                    continue
-                                value = _apply_transform(
-                                    df_up[field], m.get("transform") or "count"
-                                )
-                                run_write(
-                                    f"""UPDATE raw_data_analysis
-                                        SET    {q_col}=:v,
-                                               indicator_status=
-                                                   'Data currently being collected/analysed',
-                                               last_updated=:ts
-                                        WHERE  project_id=:pid
-                                        AND    logframe_row_id=:lf""",
-                                    {
-                                        "v": value, "ts": now_iso,
-                                        "pid": project_id, "lf": m["logframe_row_id"],
-                                    },
-                                )
-                                written += 1
+                            for job in quarter_jobs:
+                                q_col = f"actual_q{job['quarter']}"
+                                for m in up_mappings:
+                                    field = m["kobo_field_name"]
+                                    if field not in job["df"].columns:
+                                        continue
+                                    value = _apply_transform(
+                                        job["df"][field], m.get("transform") or "count"
+                                    )
+                                    run_write(
+                                        f"""UPDATE raw_data_analysis
+                                            SET    {q_col}=:v,
+                                                   indicator_status=
+                                                       'Data currently being collected/analysed',
+                                                   last_updated=:ts
+                                            WHERE  project_id=:pid
+                                            AND    logframe_row_id=:lf""",
+                                        {
+                                            "v": value, "ts": now_iso,
+                                            "pid": project_id, "lf": m["logframe_row_id"],
+                                        },
+                                    )
+                                    written += 1
                             insert_returning_id(
                                 """INSERT INTO kobo_sync_log
                                    (project_id, asset_uid, synced_at,
@@ -910,20 +948,17 @@ with tab_upload:
                                     "pid": project_id,
                                     "uid": sel_form["asset_uid"],
                                     "at": now_iso,
-                                    "n": len(df_up),
-                                    "msg": f"Manual upload: {up_file.name}",
+                                    "n": sum(len(j["df"]) for j in quarter_jobs),
+                                    "msg": f"Manual upload: {', '.join(f.name for f in up_files)}",
                                 },
                             )
                             st.success(
-                                f"Written {written} indicator value(s) from "
-                                f"{len(df_up):,} uploaded rows. Module E updated."
+                                f"Written {written} indicator value(s) across "
+                                f"{len(quarter_jobs)} quarter file(s)/sheet(s). Module E updated."
                             )
                             st.rerun()
                     else:
                         st.info("Editor or Admin role required to write data.")
-
-            except Exception as exc:
-                st.error(f"Could not read file: {exc}")
 
 
 # =============================================================================
