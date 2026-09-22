@@ -1,10 +1,14 @@
-"""SQLite connection helper.
+"""Database connection helper — SQLite locally, Postgres in production.
 
-To migrate to Postgres: change DATABASE_URL only — nothing else needs to move.
-  SQLite:   sqlite:///./database/cel_mel.db
-  Postgres: postgresql://user:pass@host:5432/cel_mel
+Local dev uses the SQLite file below by default. For a persistent deployment
+(e.g. Streamlit Cloud, where the filesystem resets on every redeploy), set
+DATABASE_URL in that app's Secrets to a Postgres connection string:
+  postgresql://user:pass@host:5432/dbname
+Nothing else needs to change — run_query/run_write/insert_returning_id all
+work identically against either engine.
 """
 from pathlib import Path
+import os
 import sqlite3
 import streamlit as st
 from sqlalchemy import create_engine, text
@@ -12,24 +16,51 @@ from sqlalchemy import create_engine, text
 _HERE = Path(__file__).parent
 DB_PATH = _HERE / "cel_mel.db"
 SCHEMA_PATH = _HERE / "schema.sql"
+SCHEMA_PATH_POSTGRES = _HERE / "schema_postgres.sql"
 
-DATABASE_URL = f"sqlite:///{DB_PATH}"
+
+def _database_url() -> str:
+    try:
+        secret_url = st.secrets.get("DATABASE_URL")
+    except Exception:
+        secret_url = None
+    return secret_url or os.environ.get("DATABASE_URL") or f"sqlite:///{DB_PATH}"
+
+
+DATABASE_URL = _database_url()
+IS_POSTGRES = DATABASE_URL.startswith("postgresql")
 
 
 @st.cache_resource
 def get_engine():
     """Return a cached SQLAlchemy engine (one per Streamlit process)."""
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+    connect_args = {} if IS_POSTGRES else {"check_same_thread": False}
+    engine = create_engine(DATABASE_URL, connect_args=connect_args)
     return engine
 
 
 def get_connection():
-    """Return a raw sqlite3 connection for scripts that don't need SQLAlchemy."""
+    """Return a raw sqlite3 connection for scripts that don't need SQLAlchemy.
+    SQLite only — under Postgres, use get_engine()/run_write() instead."""
     return sqlite3.connect(DB_PATH)
 
 
 def init_db():
-    """Create all tables from schema.sql if they do not yet exist."""
+    """Create all tables if they do not yet exist."""
+    if IS_POSTGRES:
+        # Strip '--' line comments before splitting on ';' — a semicolon
+        # inside a comment (e.g. "-- one row; not two") would otherwise
+        # produce a bogus empty/partial statement.
+        lines = (ln.split("--", 1)[0] for ln in SCHEMA_PATH_POSTGRES.read_text().splitlines())
+        schema = "\n".join(lines)
+        engine = get_engine()
+        with engine.begin() as conn:
+            for stmt in schema.split(";"):
+                stmt = stmt.strip()
+                if stmt:
+                    conn.execute(text(stmt))
+        return
+
     schema = SCHEMA_PATH.read_text()
     conn = get_connection()
     conn.executescript(schema)
@@ -63,8 +94,17 @@ def run_write(sql: str, params: dict | None = None):
 
 
 def insert_returning_id(sql: str, params: dict | None = None) -> int:
-    """Execute an INSERT and return the new row's lastrowid."""
+    """Execute an INSERT and return the new row's primary key.
+
+    SQLite: reads the cursor's lastrowid directly.
+    Postgres has no such cursor attribute, since IDENTITY columns are
+    sequence-backed rather than rowid-backed — lastval() returns the most
+    recent value drawn from any sequence on this same connection/transaction,
+    which is exactly what the just-executed INSERT produced.
+    """
     engine = get_engine()
     with engine.begin() as conn:
         result = conn.execute(text(sql), params or {})
+        if IS_POSTGRES:
+            return conn.execute(text("SELECT lastval()")).scalar()
         return result.lastrowid

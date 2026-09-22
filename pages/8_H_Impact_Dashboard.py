@@ -85,11 +85,11 @@ actuals_rows = run_query(
     """
     SELECT lr.indicator_code, lr.indicator_statement, lr.result_level,
            lr.target_lop, lr.target_annual,
-           COALESCE(rda.actual_year, 0)  AS actual_year,
-           COALESCE(rda.actual_q1, 0)    AS q1,
-           COALESCE(rda.actual_q2, 0)    AS q2,
-           COALESCE(rda.actual_q3, 0)    AS q3,
-           COALESCE(rda.actual_q4, 0)    AS q4,
+           COALESCE(rda.actual_year, '0')  AS actual_year,
+           COALESCE(rda.actual_q1, '0')    AS q1,
+           COALESCE(rda.actual_q2, '0')    AS q2,
+           COALESCE(rda.actual_q3, '0')    AS q3,
+           COALESCE(rda.actual_q4, '0')    AS q4,
            rda.target_value              AS rda_target,
            rda.indicator_status,
            rda.data_type

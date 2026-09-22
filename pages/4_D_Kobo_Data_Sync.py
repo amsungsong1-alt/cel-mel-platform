@@ -25,7 +25,7 @@ from collections import defaultdict
 import streamlit as st
 import pandas as pd
 
-from database.db import init_db, run_query, run_write, insert_returning_id, DB_PATH
+from database.db import init_db, run_query, run_write, insert_returning_id, DB_PATH, IS_POSTGRES
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
@@ -1071,37 +1071,50 @@ with tab_storage:
     st.markdown("---")
     st.markdown("#### Database Info")
 
-    db_size_kb = round(os.path.getsize(DB_PATH) / 1024, 1) if os.path.exists(DB_PATH) else 0
     total_rows = run_query(
         "SELECT COUNT(*) AS n FROM raw_data_analysis WHERE project_id=:pid",
         {"pid": project_id},
     )
     rda_n = total_rows[0]["n"] if total_rows else 0
 
-    di1, di2, di3 = st.columns(3)
-    di1.metric("Engine", "SQLite 3")
-    di2.metric("DB size", f"{db_size_kb} KB")
-    di3.metric("RDA rows", rda_n)
+    if IS_POSTGRES:
+        di1, di2 = st.columns(2)
+        di1.metric("Engine", "Postgres (Supabase)")
+        di2.metric("RDA rows", rda_n)
+    else:
+        db_size_kb = round(os.path.getsize(DB_PATH) / 1024, 1) if os.path.exists(DB_PATH) else 0
+        di1, di2, di3 = st.columns(3)
+        di1.metric("Engine", "SQLite 3")
+        di2.metric("DB size", f"{db_size_kb} KB")
+        di3.metric("RDA rows", rda_n)
 
     # ── Export / Backup ───────────────────────────────────────────────────────
     st.markdown("---")
     st.markdown("#### Export / Backup")
-    st.caption(
-        "Downloads the entire `cel_mel.db` file — includes logframe, raw data, "
-        "sync logs, review protocols and decision reports."
-    )
-    if os.path.exists(DB_PATH):
-        with open(DB_PATH, "rb") as _f:
-            _db_bytes = _f.read()
-        fname = f"cel_mel_backup_{_date.today().isoformat()}.db"
-        st.download_button(
-            "📥 Export / Backup now",
-            data=_db_bytes,
-            file_name=fname,
-            mime="application/octet-stream",
-            type="primary",
-            use_container_width=True,
+    if IS_POSTGRES:
+        st.info(
+            "Data lives in Supabase Postgres, not a local file — use the Supabase "
+            "dashboard (Database → Backups) or `pg_dump` against the connection "
+            "string in this app's secrets for a full backup.",
+            icon="ℹ️",
         )
     else:
-        st.warning("Database file not found.")
+        st.caption(
+            "Downloads the entire `cel_mel.db` file — includes logframe, raw data, "
+            "sync logs, review protocols and decision reports."
+        )
+        if os.path.exists(DB_PATH):
+            with open(DB_PATH, "rb") as _f:
+                _db_bytes = _f.read()
+            fname = f"cel_mel_backup_{_date.today().isoformat()}.db"
+            st.download_button(
+                "📥 Export / Backup now",
+                data=_db_bytes,
+                file_name=fname,
+                mime="application/octet-stream",
+                type="primary",
+                use_container_width=True,
+            )
+        else:
+            st.warning("Database file not found.")
 
