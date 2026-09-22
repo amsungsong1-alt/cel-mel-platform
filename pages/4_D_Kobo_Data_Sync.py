@@ -93,6 +93,42 @@ def _detect_quarter(text: str, default: int | None) -> int | None:
     return int(m.group(1)) if m else default
 
 
+def _num_or_none(val) -> float | None:
+    if val is None or str(val).strip() in ("", "—"):
+        return None
+    try:
+        return float(str(val).replace(",", "").replace("$", "").replace("%", "").replace("≥", "").replace("+", "").strip())
+    except (ValueError, TypeError):
+        return None
+
+
+def _recompute_actual_year(project_id: int, logframe_row_id: int) -> None:
+    """Sum actual_q1..q4 into actual_year so Module H (which reads actual_year
+    only) reflects quarterly data written here, whether from live Kobo sync
+    or the manual upload tab. Leaves actual_year untouched if no quarter has
+    a parseable numeric value yet (e.g. annual-frequency indicators entered
+    directly in Module E)."""
+    row = run_query(
+        """SELECT actual_q1, actual_q2, actual_q3, actual_q4
+           FROM   raw_data_analysis
+           WHERE  project_id=:pid AND logframe_row_id=:lf""",
+        {"pid": project_id, "lf": logframe_row_id},
+    )
+    if not row:
+        return
+    quarters = [_num_or_none(row[0][f"actual_q{n}"]) for n in (1, 2, 3, 4)]
+    parsed = [q for q in quarters if q is not None]
+    if not parsed:
+        return
+    total = sum(parsed)
+    year_str = str(int(total)) if total == int(total) else f"{total:.4g}"
+    run_write(
+        """UPDATE raw_data_analysis SET actual_year=:y
+           WHERE  project_id=:pid AND logframe_row_id=:lf""",
+        {"y": year_str, "pid": project_id, "lf": logframe_row_id},
+    )
+
+
 # ── Sample data generator (testing only) ─────────────────────────────────────
 
 _SAMPLE_ENUMERATORS = ["Abena K.", "Kofi M.", "Akosua D.", "Yaw A.", "Efua N."]
@@ -355,6 +391,7 @@ def _do_sync(
                     WHERE  project_id=:pid AND logframe_row_id=:lf""",
                 {"v": value, "ts": now_iso, "pid": project_id, "lf": lf_id},
             )
+            _recompute_actual_year(project_id, lf_id)
 
         return len(df), "success", ""
 
@@ -938,6 +975,7 @@ with tab_upload:
                                             "pid": project_id, "lf": m["logframe_row_id"],
                                         },
                                     )
+                                    _recompute_actual_year(project_id, m["logframe_row_id"])
                                     written += 1
                             insert_returning_id(
                                 """INSERT INTO kobo_sync_log
