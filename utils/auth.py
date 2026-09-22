@@ -11,6 +11,13 @@ Credential resolution order
        password = "$2b$12$<bcrypt hash>"
        role     = "Admin"
 
+       [credentials.usernames.editor]
+       name          = "Assistant MEAL Officer"
+       email         = "editor@sawa-programme.org"
+       password      = "$2b$12$<bcrypt hash>"
+       role          = "Editor"
+       write_modules = ["E", "F", "G"]
+
        [credentials.usernames.viewer]
        name     = "Donor Viewer"
        email    = "viewer@sawa-programme.org"
@@ -22,8 +29,9 @@ Credential resolution order
        key         = "<random secret string>"
        expiry_days = 7
 
-2. database/credentials.yaml (local / fallback) — committed with demo
-   passwords (admin=admin123 · editor=editor123 · viewer=viewer123).
+2. database/credentials.yaml (local / fallback) — gitignored, not
+   committed. Copy database/credentials.yaml.example and fill in
+   bcrypt-hashed passwords.
 
 Roles
 -----
@@ -52,10 +60,11 @@ def _config_from_secrets() -> dict:
     usernames = {}
     for uname, udata in raw["credentials"]["usernames"].items():
         usernames[uname] = {
-            "name":     udata["name"],
-            "email":    udata.get("email", ""),
-            "password": udata["password"],
-            "role":     udata.get("role", "Viewer"),
+            "name":          udata["name"],
+            "email":         udata.get("email", ""),
+            "password":      udata["password"],
+            "role":          udata.get("role", "Viewer"),
+            "write_modules": udata.get("write_modules"),
         }
     return {
         "credentials": {"usernames": usernames},
