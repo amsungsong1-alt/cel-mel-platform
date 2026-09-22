@@ -607,7 +607,7 @@ with tab_sync:
                 for m in form_mappings
             ])
 
-            if can_write_module("E"):
+            if can_write_module("D"):
                 edited_map = st.data_editor(
                     df_map,
                     column_config={
@@ -657,7 +657,7 @@ with tab_sync:
             st.divider()
 
     # ── Add new form (manual entry) ───────────────────────────────────────────────
-    if can_write_module("E"):
+    if can_write_module("D"):
         with st.expander("➕ Register a new form manually"):
             nc1, nc2, nc3 = st.columns(3)
             with nc1:
@@ -872,7 +872,7 @@ with tab_upload:
                     q_col = f"actual_q{_current_quarter()}"
                     st.caption(f"Target column: **{q_col}** (current quarter).")
 
-                    if can_write_module("E"):
+                    if can_write_module("D"):
                         if st.button(
                             "✅ Apply mapping & write to Module E",
                             type="primary",

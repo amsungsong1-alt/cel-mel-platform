@@ -193,7 +193,7 @@ MODULES = [
      "Competitive Advantage",
      "MEAL Officer, Programme Manager",
      "Theory of Change node tree and indicator logframe"),
-    ("Middle Management", "#6A1B9A", "D", "Raw Data Analysis",
+    ("Middle Management", "#6A1B9A", "E", "Raw Data Analysis",
      "Operational Excellence",
      "MEAL Officer",
      "Upload and analyse indicator data per quarter"),
@@ -205,7 +205,7 @@ MODULES = [
      "Operational Excellence",
      "Data Officers, Field Staff",
      "Planned vs. actual data collection schedule"),
-    ("Operational Management", "#2E7D32", "E", "Kobo Data Sync",
+    ("Operational Management", "#2E7D32", "D", "Kobo Data Sync",
      "Operational Excellence",
      "Data Officers",
      "Pull live data automatically from KoboToolbox forms"),
@@ -407,13 +407,13 @@ with st.expander("📚 MIS Framework Context (Laudon & Laudon, 16e)", expanded=F
 |-----------|-----------------|
 | **Management** | MEAL Officer designs review protocols (F); Programme Director approves decision reports (G) |
 | **Organisation** | SAWA programme structure defines partner tiers (A) and result levels in the logframe (B) |
-| **Technology** | KoboToolbox mobile data collection synced via API (E); SQLite database; Streamlit dashboards |
+| **Technology** | KoboToolbox mobile data collection synced via API (D); SQLite database; Streamlit dashboards |
 """)
 
     with col_b:
         st.markdown("**Six Strategic Business Objectives addressed**")
         objectives = [
-            ("Operational Excellence", "Automated Kobo sync (E) and structured data analysis (D) reduce manual re-entry and error.", "✅"),
+            ("Operational Excellence", "Automated Kobo sync (D) and structured data analysis (E) reduce manual re-entry and error.", "✅"),
             ("New Products / Business Models", "The ToC (B) documents SAWA's theory for creating new market opportunities in Ghanaian fisheries.", "✅"),
             ("Customer & Supplier Intimacy", "Partner Alignment (A) tracks commitment and delivery across all implementing partners.", "✅"),
             ("Improved Decision Making", "Data Review (F) quality-assures evidence; Decision Reports (G) surface actions to decision-makers.", "✅"),
@@ -429,7 +429,7 @@ with st.expander("📚 MIS Framework Context (Laudon & Laudon, 16e)", expanded=F
 ```
      ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
      │   INPUT       │ →  │  PROCESSING  │ →  │   OUTPUT     │ →  │   FEEDBACK   │
-     │ Kobo Sync (E) │    │ Analysis (D) │    │ Reports (G)  │    │ Review (F)   │
+     │ Kobo Sync (D) │    │ Analysis (E) │    │ Reports (G)  │    │ Review (F)   │
      │ DCP (C)       │    │ Review (F)   │    │ Alignment (A)│    │ → Improve    │
      └──────────────┘    └──────────────┘    └──────────────┘    │   collection │
               ↑                                                    └──────────────┘

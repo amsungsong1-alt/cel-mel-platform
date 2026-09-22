@@ -317,7 +317,7 @@ col_config = {
     "Action Description":st.column_config.TextColumn("Action Description", width="large"),
 }
 
-if can_write_module("D"):
+if can_write_module("E"):
     st.caption(
         "✏️ **Admin/Editor** — edit highlighted fields then **Save changes**. "
         "Action Description is **required** whenever Action Status is not "
@@ -464,7 +464,7 @@ if suggestions:
                 f'</div>',
                 unsafe_allow_html=True,
             )
-            if not already and can_write_module("D"):
+            if not already and can_write_module("E"):
                 if st.button(
                     f"Accept for {sg['code']}",
                     key=f"sg_{sg['id']}",
@@ -582,7 +582,7 @@ else:
                         help=f"Download {fname}",
                     )
             with c_del:
-                if can_write_module("D") and st.button(
+                if can_write_module("E") and st.button(
                     "🗑", key=f"ev_del_{ev['id']}",
                     help="Delete this evidence record",
                 ):
@@ -597,7 +597,7 @@ else:
         )
 
     # ── Upload / add evidence form ────────────────────────────────────────────
-    if can_write_module("D"):
+    if can_write_module("E"):
         with st.expander("➕ Add evidence for this indicator", expanded=False):
             up_c1, up_c2, up_c3 = st.columns([3, 1, 1])
             with up_c1:
