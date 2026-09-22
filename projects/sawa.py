@@ -1023,82 +1023,175 @@ RAW_DATA_ANALYSIS: list[dict] = [
 ]
 
 # ── Module E: Kobo Form Mappings ──────────────────────────────────────────────
-# 5 SAWA forms, 10 field-to-indicator rows.
-# asset_uids are PLACEHOLDER values matching the forms described in the SAWA
-# instrument set — replace with real UIDs from your KoboToolbox account.
+# 9 SAWA forms covering all 21 logframe indicators.
+# asset_uids prefixed "aSAWA…PLACEHOLDER" — replace with real KoboToolbox
+# asset UIDs once forms are created/published in your account.
+# Forms 1-5 map to existing/adapted instruments; Forms 6-9 are new.
 # indicator_code is resolved to logframe_row_id by seed_sawa.py.
 KOBO_FORM_MAPPINGS: list[dict] = [
-    # ── Market / Field Visit Questionnaire ────────────────────────────────────
+    # ── Form 1 — Mobilisation & Enrolment Register ────────────────────────────
+    # Covers PI.1 (youth enrolled) and PII.R5 (PWD accessing D&F).
     {
-        "asset_uid":       "aSAWAMktField2026xx",
-        "kobo_form_name":  "Market/Field Visit Questionnaire",
-        "kobo_field_name": "num_women_attended",
+        "asset_uid":       "aSAWAEnrolReg2026xxx",
+        "kobo_form_name":  "Mobilisation & Enrolment Register",
+        "kobo_field_name": "participant_enrolled",
         "indicator_code":  "PI.1",
         "transform":       "count",
     },
     {
-        "asset_uid":       "aSAWAMktField2026xx",
-        "kobo_form_name":  "Market/Field Visit Questionnaire",
-        "kobo_field_name": "num_pwd_attended",
+        "asset_uid":       "aSAWAEnrolReg2026xxx",
+        "kobo_form_name":  "Mobilisation & Enrolment Register",
+        "kobo_field_name": "pwd_enrolled",
         "indicator_code":  "PII.R5",
-        "transform":       "sum",
-    },
-    # ── SAWA Field Visit Markets ───────────────────────────────────────────────
-    {
-        "asset_uid":       "aSAWAFldMarkets2026x",
-        "kobo_form_name":  "SAWA Field Visit Markets",
-        "kobo_field_name": "new_linkage_established",
-        "indicator_code":  "PIII.6",
         "transform":       "count",
     },
+    # ── Form 2 — Training Attendance Register ─────────────────────────────────
+    # Covers PI.3, PI.9, PI.17, PI.19, PI.20, PIV.5.
+    # Each submission = one training session; field values = headcount for that type.
     {
-        "asset_uid":       "aSAWAFldMarkets2026x",
-        "kobo_form_name":  "SAWA Field Visit Markets",
-        "kobo_field_name": "fish_volume_mt",
-        "indicator_code":  "PIII.R2",
-        "transform":       "sum",
-    },
-    {
-        "asset_uid":       "aSAWAFldMarkets2026x",
-        "kobo_form_name":  "SAWA Field Visit Markets",
-        "kobo_field_name": "revenue_usd",
-        "indicator_code":  "PIII.R3",
-        "transform":       "sum",
-    },
-    # ── Tool 2 — Financial Literacy ───────────────────────────────────────────
-    {
-        "asset_uid":       "aSAWATool2FinLit26xx",
-        "kobo_form_name":  "Tool 2 Financial Literacy",
-        "kobo_field_name": "score_total",
-        "indicator_code":  "PI.17",
-        "transform":       "latest",
-    },
-    {
-        "asset_uid":       "aSAWATool2FinLit26xx",
-        "kobo_form_name":  "Tool 2 Financial Literacy",
-        "kobo_field_name": "participant_completed",
+        "asset_uid":       "aSAWATrainAttnd2026x",
+        "kobo_form_name":  "Training Attendance Register",
+        "kobo_field_name": "bds_session_completed",
         "indicator_code":  "PI.3",
         "transform":       "count",
     },
-    # ── Tool 3 — Governance Checklist ─────────────────────────────────────────
+    {
+        "asset_uid":       "aSAWATrainAttnd2026x",
+        "kobo_form_name":  "Training Attendance Register",
+        "kobo_field_name": "gals_focal_person_trained",
+        "indicator_code":  "PI.9",
+        "transform":       "count",
+    },
+    {
+        "asset_uid":       "aSAWATrainAttnd2026x",
+        "kobo_form_name":  "Training Attendance Register",
+        "kobo_field_name": "coop_training_attended",
+        "indicator_code":  "PI.17",
+        "transform":       "sum",
+    },
+    {
+        "asset_uid":       "aSAWATrainAttnd2026x",
+        "kobo_form_name":  "Training Attendance Register",
+        "kobo_field_name": "gender_transformative_attended",
+        "indicator_code":  "PI.19",
+        "transform":       "sum",
+    },
+    {
+        "asset_uid":       "aSAWATrainAttnd2026x",
+        "kobo_form_name":  "Training Attendance Register",
+        "kobo_field_name": "safeguarding_trained",
+        "indicator_code":  "PI.20",
+        "transform":       "sum",
+    },
+    {
+        "asset_uid":       "aSAWATrainAttnd2026x",
+        "kobo_form_name":  "Training Attendance Register",
+        "kobo_field_name": "digital_literacy_attended",
+        "indicator_code":  "PIV.5",
+        "transform":       "sum",
+    },
+    # ── Form 3 — WAN Leadership Events Log ───────────────────────────────────
+    # Covers PI.11 (women at WAN forums) and PI.12 (bootcamps/exchanges held).
+    {
+        "asset_uid":       "aSAWAWANEvents2026xx",
+        "kobo_form_name":  "WAN Leadership Events Log",
+        "kobo_field_name": "women_attended_forum",
+        "indicator_code":  "PI.11",
+        "transform":       "sum",
+    },
+    {
+        "asset_uid":       "aSAWAWANEvents2026xx",
+        "kobo_form_name":  "WAN Leadership Events Log",
+        "kobo_field_name": "bootcamp_or_exchange_held",
+        "indicator_code":  "PI.12",
+        "transform":       "count",
+    },
+    # ── Form 4 — PWD Mentor Registry ─────────────────────────────────────────
+    # Covers PI.13 (PWD peer mentors identified and matched).
+    {
+        "asset_uid":       "aSAWAPWDMentor2026xx",
+        "kobo_form_name":  "PWD Mentor Registry",
+        "kobo_field_name": "pwd_mentor_identified",
+        "indicator_code":  "PI.13",
+        "transform":       "count",
+    },
+    # ── Form 5 — Cooperative & Governance Registry (Tool 3) ──────────────────
+    # Covers PIII.6 (cooperatives strengthened) and PI.18 (governance frameworks).
     {
         "asset_uid":       "aSAWATool3GovChk26xx",
-        "kobo_form_name":  "Tool 3 Governance Checklist",
+        "kobo_form_name":  "Tool 3 Cooperative & Governance Registry",
         "kobo_field_name": "cooperative_registered",
         "indicator_code":  "PIII.6",
         "transform":       "count",
     },
     {
         "asset_uid":       "aSAWATool3GovChk26xx",
-        "kobo_form_name":  "Tool 3 Governance Checklist",
-        "kobo_field_name": "governance_score",
+        "kobo_form_name":  "Tool 3 Cooperative & Governance Registry",
+        "kobo_field_name": "governance_framework_adopted",
         "indicator_code":  "PI.18",
-        "transform":       "latest",
+        "transform":       "count",
     },
-    # ── PMU Pre/Post Test ─────────────────────────────────────────────────────
+    # ── Form 6 — Safeguarding Monitoring Form ────────────────────────────────
+    # Covers PI.22 (campaigns held) and PI.23 (sites certified).
+    {
+        "asset_uid":       "aSAWASafeguard2026xx",
+        "kobo_form_name":  "Safeguarding Monitoring Form",
+        "kobo_field_name": "campaign_roadshow_held",
+        "indicator_code":  "PI.22",
+        "transform":       "count",
+    },
+    {
+        "asset_uid":       "aSAWASafeguard2026xx",
+        "kobo_form_name":  "Safeguarding Monitoring Form",
+        "kobo_field_name": "site_certified",
+        "indicator_code":  "PI.23",
+        "transform":       "count",
+    },
+    # ── Form 7 — PWD Production & Revenue Tracker ────────────────────────────
+    # Covers PII.R6 (MT fish by PWDs) and PII.R7 (revenue by PWDs).
+    {
+        "asset_uid":       "aSAWAPWDProdRev2026x",
+        "kobo_form_name":  "PWD Production & Revenue Tracker",
+        "kobo_field_name": "fish_volume_mt_pwd",
+        "indicator_code":  "PII.R6",
+        "transform":       "sum",
+    },
+    {
+        "asset_uid":       "aSAWAPWDProdRev2026x",
+        "kobo_form_name":  "PWD Production & Revenue Tracker",
+        "kobo_field_name": "revenue_usd_pwd",
+        "indicator_code":  "PII.R7",
+        "transform":       "sum",
+    },
+    # ── Form 8 — Value-Addition Enterprise Tracker ───────────────────────────
+    # Covers PIII.R1 (value-addition jobs), PIII.R2 (MT value-added),
+    # PIII.R3 (revenue value-added).
+    {
+        "asset_uid":       "aSAWAValueAdd2026xxx",
+        "kobo_form_name":  "Value-Addition Enterprise Tracker",
+        "kobo_field_name": "value_addition_jobs",
+        "indicator_code":  "PIII.R1",
+        "transform":       "sum",
+    },
+    {
+        "asset_uid":       "aSAWAValueAdd2026xxx",
+        "kobo_form_name":  "Value-Addition Enterprise Tracker",
+        "kobo_field_name": "fish_volume_mt_va",
+        "indicator_code":  "PIII.R2",
+        "transform":       "sum",
+    },
+    {
+        "asset_uid":       "aSAWAValueAdd2026xxx",
+        "kobo_form_name":  "Value-Addition Enterprise Tracker",
+        "kobo_field_name": "revenue_usd_va",
+        "indicator_code":  "PIII.R3",
+        "transform":       "sum",
+    },
+    # ── Form 9 — PMU Pre/Post Knowledge Test ─────────────────────────────────
+    # Covers PI.19 quality check (mean post-test score for gender training).
     {
         "asset_uid":       "aSAWAPMUPrePost26xxx",
-        "kobo_form_name":  "PMU Pre/Post Test",
+        "kobo_form_name":  "PMU Pre/Post Knowledge Test",
         "kobo_field_name": "post_test_score",
         "indicator_code":  "PI.19",
         "transform":       "mean",
@@ -1122,8 +1215,13 @@ REVIEW_PROTOCOLS: list[dict] = [
         ),
         "existing_info_source":  "raw_data_analysis table, Module D; previous quarterly PIR",
         "actual_info_source":    (
-            "Kobo sync (Module E) — Field Visit Markets form and Tool 2/3 completion counts; "
-            "anchor partner progress reports; field visit verification notes"
+            "Kobo sync (Module E) — Mobilisation & Enrolment Register (PI.1/PII.R5); "
+            "Training Attendance Register (PI.3/PI.9/PI.17/PI.19/PI.20/PIV.5); "
+            "WAN Events Log (PI.11/PI.12); PWD Mentor Registry (PI.13); "
+            "Cooperative & Governance Registry (PIII.6/PI.18); "
+            "Safeguarding Monitoring Form (PI.22/PI.23); "
+            "PWD Production & Revenue Tracker (PII.R6/PII.R7); "
+            "Value-Addition Enterprise Tracker (PIII.R1/PIII.R2/PIII.R3)"
         ),
         "issue_definition":      (
             "Any indicator where actual < trigger_value for two consecutive quarters; "
