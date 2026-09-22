@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 import streamlit as st
 import pandas as pd
 
-from database.db import init_db, run_query, run_write
+from database.db import init_db, run_query, run_write, insert_returning_id
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
@@ -488,3 +488,195 @@ with st.expander("📊 Data completeness summary"):
         for label, v in comp_data.items()
     ])
     st.dataframe(comp_df, hide_index=True, use_container_width=True)
+
+
+# =============================================================================
+# Evidence & Means of Verification
+# =============================================================================
+st.divider()
+st.subheader("📎 Evidence & Means of Verification")
+st.caption(
+    "Attach scanned registers, photos, certificates or paste a SharePoint / Google Drive "
+    "link against each indicator and reporting quarter. "
+    "Agri-Impact uploads; Mastercard Foundation Viewer role sees all evidence read-only."
+)
+
+# ── Indicator selector ────────────────────────────────────────────────────────
+ev_ind_options: dict[str, int] = {}
+for r in rda_rows:
+    lf_id = r.get("logframe_row_id")
+    if lf_id:
+        code = r.get("indicator_code") or "?"
+        stmt = (r.get("indicator_statement") or "")[:65]
+        ev_ind_options[f"{code} — {stmt}"] = lf_id
+
+if not ev_ind_options:
+    st.info("No indicators with logframe links found.")
+else:
+    ev_sel_c1, ev_sel_c2 = st.columns([4, 1])
+    with ev_sel_c1:
+        ev_ind_label = st.selectbox(
+            "Indicator",
+            list(ev_ind_options.keys()),
+            key="ev_ind_sel",
+            label_visibility="collapsed",
+        )
+    with ev_sel_c2:
+        ev_qtr_filter = st.selectbox(
+            "Quarter",
+            ["All quarters", "Q1", "Q2", "Q3", "Q4", "Annual"],
+            key="ev_qtr_filter",
+            label_visibility="collapsed",
+        )
+
+    sel_lf_id = ev_ind_options[ev_ind_label]
+
+    # ── Fetch existing evidence (metadata + data for inline download) ─────────
+    ev_rows = run_query(
+        """SELECT id, quarter, year, label, link_url, file_name, file_mime,
+                  file_data, uploaded_by, uploaded_at
+           FROM   evidence
+           WHERE  project_id=:pid AND logframe_row_id=:lf
+           ORDER  BY uploaded_at DESC""",
+        {"pid": project_id, "lf": sel_lf_id},
+    )
+
+    if ev_qtr_filter != "All quarters":
+        ev_rows = [e for e in ev_rows if e.get("quarter") == ev_qtr_filter]
+
+    # ── Evidence list ─────────────────────────────────────────────────────────
+    if ev_rows:
+        for ev in ev_rows:
+            ev_bg = "#F8FAFB"
+            ev_border = "#CFD8DC"
+            q_label = f"{ev.get('quarter','')} {ev.get('year','')}"
+            up_at   = (ev.get("uploaded_at") or "")[:10]
+            up_by   = ev.get("uploaded_by") or "unknown"
+
+            c_info, c_link, c_dl, c_del = st.columns([5, 2, 1, 1])
+            with c_info:
+                st.markdown(
+                    f'<div style="background:{ev_bg};border-left:3px solid {ev_border};'
+                    f'border-radius:4px;padding:6px 10px;">'
+                    f'<b style="font-size:0.85em;">{q_label}</b> &nbsp; '
+                    f'<span style="font-size:0.88em;">{ev.get("label","")}</span><br>'
+                    f'<span style="font-size:0.74em;color:#777;">Uploaded by {up_by} · {up_at}</span>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+            with c_link:
+                url = ev.get("link_url") or ""
+                if url:
+                    st.markdown(f"[🔗 Open link]({url})", unsafe_allow_html=False)
+            with c_dl:
+                fdata = ev.get("file_data")
+                fname = ev.get("file_name") or "evidence"
+                fmime = ev.get("file_mime") or "application/octet-stream"
+                if fdata:
+                    st.download_button(
+                        "⬇",
+                        data=bytes(fdata),
+                        file_name=fname,
+                        mime=fmime,
+                        key=f"ev_dl_{ev['id']}",
+                        help=f"Download {fname}",
+                    )
+            with c_del:
+                if can_write_module("D") and st.button(
+                    "🗑", key=f"ev_del_{ev['id']}",
+                    help="Delete this evidence record",
+                ):
+                    run_write("DELETE FROM evidence WHERE id=:id", {"id": ev["id"]})
+                    st.rerun()
+    else:
+        st.info(
+            "No evidence uploaded for this indicator"
+            + (f" in {ev_qtr_filter}" if ev_qtr_filter != "All quarters" else "")
+            + " yet.",
+            icon="📂",
+        )
+
+    # ── Upload / add evidence form ────────────────────────────────────────────
+    if can_write_module("D"):
+        with st.expander("➕ Add evidence for this indicator", expanded=False):
+            up_c1, up_c2, up_c3 = st.columns([3, 1, 1])
+            with up_c1:
+                up_label = st.text_input(
+                    "Description *",
+                    placeholder="e.g. Training attendance sheet — R&B Farms Q2",
+                    key="ev_up_label",
+                )
+            with up_c2:
+                up_quarter = st.selectbox(
+                    "Quarter *", ["Q1", "Q2", "Q3", "Q4", "Annual"],
+                    key="ev_up_qtr",
+                )
+            with up_c3:
+                up_year = st.number_input(
+                    "Year *", value=2026, min_value=2020, max_value=2040,
+                    step=1, key="ev_up_year",
+                )
+
+            up_url = st.text_input(
+                "SharePoint / Google Drive link (optional)",
+                placeholder="https://mastercardfdn.sharepoint.com/…",
+                key="ev_up_url",
+            )
+
+            up_file = st.file_uploader(
+                "Scanned document (PDF, JPEG, PNG, DOCX — max 10 MB)",
+                type=["pdf", "jpg", "jpeg", "png", "docx"],
+                key="ev_up_file",
+            )
+
+            if up_file is not None:
+                size_mb = len(up_file.getvalue()) / 1_048_576
+                if size_mb > 10:
+                    st.error(f"File is {size_mb:.1f} MB — please keep uploads under 10 MB.")
+                    up_file = None
+                else:
+                    st.caption(f"Ready to upload: **{up_file.name}** ({size_mb:.2f} MB)")
+
+            if st.button("📎 Save evidence", type="primary", key="ev_save_btn"):
+                if not up_label.strip():
+                    st.error("Description is required.")
+                elif not up_url.strip() and up_file is None:
+                    st.error("Provide at least a link URL or a file upload.")
+                else:
+                    editor = st.session_state.get(
+                        "name", st.session_state.get("username", "unknown")
+                    )
+                    now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                    file_bytes = up_file.getvalue() if up_file else None
+                    file_name  = up_file.name       if up_file else None
+                    file_mime  = up_file.type       if up_file else None
+
+                    insert_returning_id(
+                        """INSERT INTO evidence
+                           (project_id, logframe_row_id, quarter, year, label,
+                            link_url, file_name, file_mime, file_data,
+                            uploaded_by, uploaded_at)
+                           VALUES (:pid, :lf, :qtr, :yr, :label,
+                                   :url, :fname, :fmime, :fdata,
+                                   :by, :at)""",
+                        {
+                            "pid":   project_id,
+                            "lf":    sel_lf_id,
+                            "qtr":   up_quarter,
+                            "yr":    int(up_year),
+                            "label": up_label.strip(),
+                            "url":   up_url.strip() or None,
+                            "fname": file_name,
+                            "fmime": file_mime,
+                            "fdata": file_bytes,
+                            "by":    editor,
+                            "at":    now_iso,
+                        },
+                    )
+                    st.success(
+                        f"Evidence saved: **{up_label.strip()}** "
+                        f"({up_quarter} {int(up_year)})"
+                    )
+                    st.rerun()
+    else:
+        st.caption("*Editor or Admin role required to add evidence.*")

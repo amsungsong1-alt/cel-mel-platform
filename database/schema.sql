@@ -264,6 +264,26 @@ CREATE TABLE IF NOT EXISTS decision_actions (
                     ))
 );
 
+-- Module E: Evidence attachments — one row per document or link per indicator.
+-- file_data is nullable; link_url is nullable; at least one must be provided.
+CREATE TABLE IF NOT EXISTS evidence (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE CASCADE,
+    quarter         TEXT    CHECK(quarter IN ('Q1','Q2','Q3','Q4','Annual')),
+    year            INTEGER,
+    label           TEXT    NOT NULL,
+    link_url        TEXT,
+    file_name       TEXT,
+    file_mime       TEXT,
+    file_data       BLOB,
+    uploaded_by     TEXT,
+    uploaded_at     TEXT    -- ISO-8601 datetime
+);
+
+CREATE INDEX IF NOT EXISTS idx_evidence_project ON evidence(project_id);
+CREATE INDEX IF NOT EXISTS idx_evidence_lf_row  ON evidence(logframe_row_id);
+
 CREATE INDEX IF NOT EXISTS idx_rp_project         ON review_protocols(project_id);
 CREATE INDEX IF NOT EXISTS idx_rp_data_type       ON review_protocols(data_type);
 CREATE INDEX IF NOT EXISTS idx_rl_protocol        ON review_log(protocol_id);
