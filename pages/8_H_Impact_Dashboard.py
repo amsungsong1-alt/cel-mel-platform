@@ -7,6 +7,8 @@ Reads live data from Modules C–G and assembles a shareable impact summary:
   • Partner commitment vs delivery (Level 1 & 2 funnel)
   • Key findings from Decision Reports (Module G)
 """
+import re
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -18,13 +20,24 @@ from utils.auth import require
 from utils.shared_widgets import project_selector
 from utils.nav_strip import render_nav_strip
 
+_NUM_RE = re.compile(r"-?\d+\.?\d*")
+
 
 def _num(val, default=0):
-    """Safely convert a DB value (string, int, float, None) to float."""
+    """Extract the leading number from a DB value (string, int, float, None).
+
+    Target fields often carry descriptive text alongside the number (e.g.
+    "500 (Y1) — Q1: 95; Q2: 135; Q3: 135; Q4: 135"), so this pulls out the
+    first numeric token rather than requiring the whole string to be clean.
+    """
     if val is None or val == "" or val == "—":
         return default
+    cleaned = str(val).replace(",", "").replace("$", "").replace("%", "").replace("≥", "").replace("+", "")
+    match = _NUM_RE.search(cleaned)
+    if not match:
+        return default
     try:
-        return float(str(val).replace(",", "").replace("%", "").replace("≥", "").replace("+", "").strip())
+        return float(match.group())
     except (ValueError, TypeError):
         return default
 
