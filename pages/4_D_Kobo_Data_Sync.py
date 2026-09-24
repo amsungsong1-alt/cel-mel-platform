@@ -30,6 +30,7 @@ from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
 from utils.fiscal_calendar import current_quarter, current_fiscal_year
+from utils.raw_data_years import get_or_create_year_row
 from utils.kobo_client import (
     KoboClient,
     save_api_token,
@@ -112,56 +113,6 @@ def _num_or_none(val) -> float | None:
         return float(str(val).replace(",", "").replace("$", "").replace("%", "").replace("≥", "").replace("+", "").strip())
     except (ValueError, TypeError):
         return None
-
-
-def _get_or_create_year_row(project_id: int, logframe_row_id: int, year: int) -> int:
-    """Return raw_data_analysis.id for (project, logframe_row, reporting_year),
-    creating it if needed — one row per year, so a second year's actuals
-    never overwrite the first year's in the same actual_q1..q4 cells.
-
-    An untagged legacy row (reporting_year IS NULL, from before this column
-    existed) is adopted as this year rather than duplicated. A genuinely new
-    year carries over data_type/target/trigger from the most recent prior
-    row for this indicator, leaving actuals blank for the new year.
-    """
-    existing = run_query(
-        """SELECT id FROM raw_data_analysis
-           WHERE  project_id=:pid AND logframe_row_id=:lf AND reporting_year=:yr""",
-        {"pid": project_id, "lf": logframe_row_id, "yr": year},
-    )
-    if existing:
-        return existing[0]["id"]
-
-    legacy = run_query(
-        """SELECT id FROM raw_data_analysis
-           WHERE  project_id=:pid AND logframe_row_id=:lf AND reporting_year IS NULL""",
-        {"pid": project_id, "lf": logframe_row_id},
-    )
-    if legacy:
-        run_write(
-            "UPDATE raw_data_analysis SET reporting_year=:yr WHERE id=:id",
-            {"yr": year, "id": legacy[0]["id"]},
-        )
-        return legacy[0]["id"]
-
-    prior = run_query(
-        """SELECT data_type, target_value, trigger_value FROM raw_data_analysis
-           WHERE  project_id=:pid AND logframe_row_id=:lf
-           ORDER  BY (reporting_year IS NULL) ASC, reporting_year DESC LIMIT 1""",
-        {"pid": project_id, "lf": logframe_row_id},
-    )
-    base = prior[0] if prior else {}
-    return insert_returning_id(
-        """INSERT INTO raw_data_analysis
-           (project_id, logframe_row_id, reporting_year, data_type, target_value,
-            trigger_value, indicator_status)
-           VALUES (:pid, :lf, :yr, :dt, :tv, :trg, 'Data not collected yet')""",
-        {
-            "pid": project_id, "lf": logframe_row_id, "yr": year,
-            "dt": base.get("data_type"), "tv": base.get("target_value"),
-            "trg": base.get("trigger_value"),
-        },
-    )
 
 
 def _recompute_actual_year(row_id: int) -> None:
@@ -444,7 +395,7 @@ def _do_sync(
             else:
                 value = "0"
 
-            row_id = _get_or_create_year_row(project_id, lf_id, year)
+            row_id = get_or_create_year_row(project_id, lf_id, year)
             run_write(
                 f"""UPDATE raw_data_analysis
                     SET    {q_col}=:v,
@@ -1042,7 +993,7 @@ with tab_upload:
                                     value = _apply_transform(
                                         job["df"][field], m.get("transform") or "count"
                                     )
-                                    row_id = _get_or_create_year_row(
+                                    row_id = get_or_create_year_row(
                                         project_id, m["logframe_row_id"], job["year"]
                                     )
                                     run_write(

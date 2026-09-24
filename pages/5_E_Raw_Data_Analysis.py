@@ -69,14 +69,39 @@ _year_rows = run_query(
     {"pid": project_id},
 )
 available_years = sorted({r["reporting_year"] for r in _year_rows if r["reporting_year"]}) or [this_fy]
-default_year = this_fy if this_fy in available_years else available_years[-1]
-selected_year = st.selectbox(
-    "Fiscal year",
-    available_years,
-    index=available_years.index(default_year),
-    format_func=lambda y: f"FY{y} (Jul {y}–Jun {y + 1})" + ("  •  current" if y == this_fy else ""),
-    key="rda_selected_year",
-)
+# A just-created year (via the rollover button below) takes priority over the
+# usual "current fiscal year" default for one rerun — set as a plain
+# session_state value, never written directly into the selectbox's own
+# widget-bound key (Streamlit disallows mutating that after the widget runs).
+if "rda_pending_year" in st.session_state:
+    default_year = st.session_state.pop("rda_pending_year")
+    if default_year not in available_years:
+        default_year = this_fy if this_fy in available_years else available_years[-1]
+    # The selectbox's own persisted value would otherwise win over `index=`
+    # below — clear it so the widget re-initialises with the new default.
+    st.session_state.pop("rda_selected_year", None)
+else:
+    default_year = this_fy if this_fy in available_years else available_years[-1]
+
+yr_c1, yr_c2 = st.columns([3, 1])
+with yr_c1:
+    selected_year = st.selectbox(
+        "Fiscal year",
+        available_years,
+        index=available_years.index(default_year),
+        format_func=lambda y: f"FY{y} (Jul {y}–Jun {y + 1})" + ("  •  current" if y == this_fy else ""),
+        key="rda_selected_year",
+    )
+with yr_c2:
+    next_year = max(available_years) + 1
+    if can("admin"):
+        st.write("")  # vertical alignment with the selectbox
+        if st.button(f"➕ Start FY{next_year}", use_container_width=True):
+            from utils.raw_data_years import start_fiscal_year
+            n = start_fiscal_year(project_id, next_year)
+            st.success(f"Created {n} FY{next_year} row(s) — targets carried over, actuals blank.")
+            st.session_state["rda_pending_year"] = next_year
+            st.rerun()
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 DATA_TYPES = [
