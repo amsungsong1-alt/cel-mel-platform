@@ -29,6 +29,7 @@ from database.db import init_db, run_query, run_write, insert_returning_id, DB_P
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
+from utils.fiscal_calendar import current_quarter, current_fiscal_year
 from utils.kobo_client import (
     KoboClient,
     save_api_token,
@@ -80,20 +81,28 @@ def _apply_transform(series: pd.Series, transform: str) -> str:
     return str(int(series.dropna().shape[0]))
 
 
-def _current_quarter() -> int:
-    """SAWA's fiscal year: Q1=Jul-Sep, Q2=Oct-Dec, Q3=Jan-Mar, Q4=Apr-Jun
-    (NOT the calendar year — do not simplify to (month-1)//3+1)."""
-    fiscal_month = (datetime.now().month - 7) % 12
-    return fiscal_month // 3 + 1
-
-
 _Q_RE = re.compile(r"q([1-4])", re.IGNORECASE)
+_YEAR_RE = re.compile(r"20\d{2}")
 
 
 def _detect_quarter(text: str, default: int | None) -> int | None:
     """Look for 'Q1'..'Q4' (case-insensitive) in a filename or sheet name."""
     m = _Q_RE.search(text or "")
     return int(m.group(1)) if m else default
+
+
+def _detect_fiscal_year(text: str, quarter: int, default: int) -> int:
+    """Look for a 20xx calendar year in a filename/sheet name and convert it
+    to the fiscal year it belongs to. Q1/Q2 (Jul-Dec) keep that calendar
+    year; Q3/Q4 (Jan-Jun) fall in the calendar year AFTER the fiscal year
+    started, so subtract 1 (e.g. 'Q3 Jan-Mar 2027' -> fiscal year 2026,
+    matching Q1/Q2 of the same programme year). Falls back to `default`
+    (normally the current fiscal year) if no year is found in the text."""
+    m = _YEAR_RE.search(text or "")
+    if not m:
+        return default
+    calendar_year = int(m.group())
+    return calendar_year - 1 if quarter in (3, 4) else calendar_year
 
 
 def _num_or_none(val) -> float | None:
@@ -105,17 +114,65 @@ def _num_or_none(val) -> float | None:
         return None
 
 
-def _recompute_actual_year(project_id: int, logframe_row_id: int) -> None:
+def _get_or_create_year_row(project_id: int, logframe_row_id: int, year: int) -> int:
+    """Return raw_data_analysis.id for (project, logframe_row, reporting_year),
+    creating it if needed — one row per year, so a second year's actuals
+    never overwrite the first year's in the same actual_q1..q4 cells.
+
+    An untagged legacy row (reporting_year IS NULL, from before this column
+    existed) is adopted as this year rather than duplicated. A genuinely new
+    year carries over data_type/target/trigger from the most recent prior
+    row for this indicator, leaving actuals blank for the new year.
+    """
+    existing = run_query(
+        """SELECT id FROM raw_data_analysis
+           WHERE  project_id=:pid AND logframe_row_id=:lf AND reporting_year=:yr""",
+        {"pid": project_id, "lf": logframe_row_id, "yr": year},
+    )
+    if existing:
+        return existing[0]["id"]
+
+    legacy = run_query(
+        """SELECT id FROM raw_data_analysis
+           WHERE  project_id=:pid AND logframe_row_id=:lf AND reporting_year IS NULL""",
+        {"pid": project_id, "lf": logframe_row_id},
+    )
+    if legacy:
+        run_write(
+            "UPDATE raw_data_analysis SET reporting_year=:yr WHERE id=:id",
+            {"yr": year, "id": legacy[0]["id"]},
+        )
+        return legacy[0]["id"]
+
+    prior = run_query(
+        """SELECT data_type, target_value, trigger_value FROM raw_data_analysis
+           WHERE  project_id=:pid AND logframe_row_id=:lf
+           ORDER  BY (reporting_year IS NULL) ASC, reporting_year DESC LIMIT 1""",
+        {"pid": project_id, "lf": logframe_row_id},
+    )
+    base = prior[0] if prior else {}
+    return insert_returning_id(
+        """INSERT INTO raw_data_analysis
+           (project_id, logframe_row_id, reporting_year, data_type, target_value,
+            trigger_value, indicator_status)
+           VALUES (:pid, :lf, :yr, :dt, :tv, :trg, 'Data not collected yet')""",
+        {
+            "pid": project_id, "lf": logframe_row_id, "yr": year,
+            "dt": base.get("data_type"), "tv": base.get("target_value"),
+            "trg": base.get("trigger_value"),
+        },
+    )
+
+
+def _recompute_actual_year(row_id: int) -> None:
     """Sum actual_q1..q4 into actual_year so Module H (which reads actual_year
     only) reflects quarterly data written here, whether from live Kobo sync
     or the manual upload tab. Leaves actual_year untouched if no quarter has
     a parseable numeric value yet (e.g. annual-frequency indicators entered
     directly in Module E)."""
     row = run_query(
-        """SELECT actual_q1, actual_q2, actual_q3, actual_q4
-           FROM   raw_data_analysis
-           WHERE  project_id=:pid AND logframe_row_id=:lf""",
-        {"pid": project_id, "lf": logframe_row_id},
+        "SELECT actual_q1, actual_q2, actual_q3, actual_q4 FROM raw_data_analysis WHERE id=:id",
+        {"id": row_id},
     )
     if not row:
         return
@@ -126,9 +183,8 @@ def _recompute_actual_year(project_id: int, logframe_row_id: int) -> None:
     total = sum(parsed)
     year_str = str(int(total)) if total == int(total) else f"{total:.4g}"
     run_write(
-        """UPDATE raw_data_analysis SET actual_year=:y
-           WHERE  project_id=:pid AND logframe_row_id=:lf""",
-        {"y": year_str, "pid": project_id, "lf": logframe_row_id},
+        "UPDATE raw_data_analysis SET actual_year=:y WHERE id=:id",
+        {"y": year_str, "id": row_id},
     )
 
 
@@ -373,7 +429,8 @@ def _do_sync(
             {"pid": project_id, "uid": asset_uid},
         )
 
-        q_col   = f"actual_q{_current_quarter()}"
+        q_col   = f"actual_q{current_quarter()}"
+        year    = current_fiscal_year()
         now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
         by      = f"Kobo sync ({st.session_state.get('name', st.session_state.get('username', 'unknown'))})"
 
@@ -387,16 +444,17 @@ def _do_sync(
             else:
                 value = "0"
 
+            row_id = _get_or_create_year_row(project_id, lf_id, year)
             run_write(
                 f"""UPDATE raw_data_analysis
                     SET    {q_col}=:v,
                            indicator_status='Data currently being collected/analysed',
                            last_updated=:ts,
                            updated_by=:by
-                    WHERE  project_id=:pid AND logframe_row_id=:lf""",
-                {"v": value, "ts": now_iso, "by": by, "pid": project_id, "lf": lf_id},
+                    WHERE  id=:id""",
+                {"v": value, "ts": now_iso, "by": by, "id": row_id},
             )
-            _recompute_actual_year(project_id, lf_id)
+            _recompute_actual_year(row_id)
 
         return len(df), "success", ""
 
@@ -873,26 +931,33 @@ with tab_upload:
         if up_files:
             # A CSV or single-sheet workbook is one quarter; a multi-sheet workbook
             # (e.g. the sample Y1 downloads) contributes one quarter per sheet.
-            # Quarter is guessed from the sheet name, then the filename, then falls
-            # back to the current quarter — always adjustable below before writing.
+            # Quarter/year are guessed from the sheet name, then the filename, then
+            # fall back to the current fiscal quarter/year — always adjustable
+            # below before writing, so this can also backfill a past year.
+            this_fy = current_fiscal_year()
             quarter_jobs: list[dict] = []
             for f in up_files:
                 try:
                     if f.name.lower().endswith(".csv"):
                         df = pd.read_csv(f)
-                        q = _detect_quarter(f.name, _current_quarter())
-                        quarter_jobs.append({"label": f.name, "quarter": q, "df": df})
+                        q = _detect_quarter(f.name, current_quarter())
+                        yr = _detect_fiscal_year(f.name, q, this_fy)
+                        quarter_jobs.append({"label": f.name, "quarter": q, "year": yr, "df": df})
                     else:
                         sheets = pd.read_excel(f, sheet_name=None)
                         if len(sheets) == 1:
                             (sheet_name, df), = sheets.items()
-                            q = _detect_quarter(f.name, None) or _detect_quarter(sheet_name, _current_quarter())
-                            quarter_jobs.append({"label": f.name, "quarter": q, "df": df})
+                            q = _detect_quarter(f.name, None) or _detect_quarter(sheet_name, current_quarter())
+                            yr = _detect_fiscal_year(sheet_name, q, _detect_fiscal_year(f.name, q, this_fy))
+                            quarter_jobs.append({"label": f.name, "quarter": q, "year": yr, "df": df})
                         else:
                             for sheet_name, df in sheets.items():
-                                fallback = _detect_quarter(f.name, _current_quarter())
+                                fallback = _detect_quarter(f.name, current_quarter())
                                 q = _detect_quarter(sheet_name, fallback)
-                                quarter_jobs.append({"label": f"{f.name} · {sheet_name}", "quarter": q, "df": df})
+                                yr = _detect_fiscal_year(sheet_name, q, _detect_fiscal_year(f.name, q, this_fy))
+                                quarter_jobs.append({
+                                    "label": f"{f.name} · {sheet_name}", "quarter": q, "year": yr, "df": df,
+                                })
                 except Exception as exc:
                     st.error(f"Could not read **{f.name}**: {exc}")
 
@@ -902,9 +967,13 @@ with tab_upload:
                     f"{len(up_files)} upload(s) — {sum(len(j['df']) for j in quarter_jobs):,} rows total."
                 )
 
-                st.markdown("**Confirm the target quarter for each file** (auto-detected — adjust if wrong):")
+                st.markdown(
+                    "**Confirm the target quarter and fiscal year for each file** "
+                    "(auto-detected — adjust if wrong; fiscal year = the calendar year "
+                    "the programme's Jul-Jun year started in):"
+                )
                 for i, job in enumerate(quarter_jobs):
-                    jc1, jc2, jc3 = st.columns([3, 1, 1])
+                    jc1, jc2, jc3, jc4 = st.columns([3, 1, 1, 1])
                     with jc1:
                         st.caption(f"📄 {job['label']} — {len(job['df']):,} rows")
                     with jc2:
@@ -913,6 +982,11 @@ with tab_upload:
                             key=f"q_job_{i}", label_visibility="collapsed",
                         )
                     with jc3:
+                        job["year"] = st.number_input(
+                            "FY", min_value=2020, max_value=2100, value=job["year"], step=1,
+                            key=f"y_job_{i}", label_visibility="collapsed",
+                        )
+                    with jc4:
                         with st.popover("Preview"):
                             st.dataframe(job["df"].head(10), use_container_width=True)
 
@@ -940,7 +1014,7 @@ with tab_upload:
                                 if present else "— not in file"
                             )
                             preview.append({
-                                "Quarter": f"Q{job['quarter']}",
+                                "Quarter": f"Q{job['quarter']} FY{job['year']}",
                                 "File": job["label"],
                                 "In file": "✅" if present else "❌",
                                 "Kobo field": field,
@@ -968,6 +1042,9 @@ with tab_upload:
                                     value = _apply_transform(
                                         job["df"][field], m.get("transform") or "count"
                                     )
+                                    row_id = _get_or_create_year_row(
+                                        project_id, m["logframe_row_id"], job["year"]
+                                    )
                                     run_write(
                                         f"""UPDATE raw_data_analysis
                                             SET    {q_col}=:v,
@@ -975,14 +1052,10 @@ with tab_upload:
                                                        'Data currently being collected/analysed',
                                                    last_updated=:ts,
                                                    updated_by=:by
-                                            WHERE  project_id=:pid
-                                            AND    logframe_row_id=:lf""",
-                                        {
-                                            "v": value, "ts": now_iso, "by": by,
-                                            "pid": project_id, "lf": m["logframe_row_id"],
-                                        },
+                                            WHERE  id=:id""",
+                                        {"v": value, "ts": now_iso, "by": by, "id": row_id},
                                     )
-                                    _recompute_actual_year(project_id, m["logframe_row_id"])
+                                    _recompute_actual_year(row_id)
                                     written += 1
                             insert_returning_id(
                                 """INSERT INTO kobo_sync_log

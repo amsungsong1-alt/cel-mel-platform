@@ -19,6 +19,7 @@ from database.db import run_query
 from utils.auth import require
 from utils.shared_widgets import project_selector
 from utils.nav_strip import render_nav_strip
+from utils.fiscal_calendar import current_fiscal_year
 
 _NUM_RE = re.compile(r"-?\d+\.?\d*")
 
@@ -87,6 +88,24 @@ project_id = project_selector()
 if not project_id:
     st.stop()
 
+# raw_data_analysis has one row per (project, logframe_row, reporting_year);
+# without pinning a year, an indicator tracked across multiple years would
+# join into multiple rows here and duplicate on the dashboard.
+this_fy = current_fiscal_year()
+_year_rows = run_query(
+    "SELECT DISTINCT reporting_year FROM raw_data_analysis WHERE project_id=:pid",
+    {"pid": project_id},
+)
+available_years = sorted({r["reporting_year"] for r in _year_rows if r["reporting_year"]}) or [this_fy]
+default_year = this_fy if this_fy in available_years else available_years[-1]
+selected_year = st.selectbox(
+    "Fiscal year",
+    available_years,
+    index=available_years.index(default_year),
+    format_func=lambda y: f"FY{y} (Jul {y}–Jun {y + 1})" + ("  •  current" if y == this_fy else ""),
+    key="h_selected_year",
+)
+
 snapshot_date = date.today().strftime("%d %B %Y")
 st.caption(
     f"Snapshot: **{snapshot_date}** · Data sourced automatically from "
@@ -108,7 +127,7 @@ actuals_rows = run_query(
            rda.data_type
     FROM raw_data_analysis rda
     JOIN logframe_rows lr ON lr.id = rda.logframe_row_id
-    WHERE rda.project_id = :pid
+    WHERE rda.project_id = :pid AND rda.reporting_year = :yr
     ORDER BY
         CASE lr.result_level
             WHEN 'Impact'   THEN 1
@@ -118,7 +137,7 @@ actuals_rows = run_query(
         END,
         lr.indicator_code
     """,
-    {"pid": project_id},
+    {"pid": project_id, "yr": selected_year},
 )
 
 partner_targets = run_query(
@@ -148,7 +167,10 @@ reports = run_query(
 )
 
 if not actuals_rows:
-    st.info("No performance data yet — enter actuals in Module E (Raw Data Analysis).")
+    st.info(
+        f"No performance data yet for FY{selected_year} — enter actuals in "
+        "Module E (Raw Data Analysis), or pick a different fiscal year above."
+    )
     st.stop()
 
 df = pd.DataFrame(actuals_rows)

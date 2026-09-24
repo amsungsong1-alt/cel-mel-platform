@@ -14,6 +14,7 @@ The filter preset button "Show Flagged" filters to 'Follow-up or investigate'
 rows in one click, the most common real-world use of this page.
 """
 from __future__ import annotations
+import re
 from datetime import datetime, timezone
 
 import streamlit as st
@@ -23,6 +24,26 @@ from database.db import init_db, run_query, run_write, insert_returning_id
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
+from utils.fiscal_calendar import current_fiscal_year
+
+_NUM_RE = re.compile(r"-?\d+\.?\d*")
+
+
+def _num(val):
+    """Extract the leading number from a target string (e.g. '500 (Y1) —
+    Q1: 95; ...' -> 500.0), same convention as Module H. Returns None if
+    no number is found, so callers can skip the comparison rather than
+    treating an unparseable value as 0."""
+    if val is None or val == "" or val == "—":
+        return None
+    cleaned = str(val).replace(",", "").replace("$", "").replace("%", "").replace("≥", "").replace("+", "")
+    m = _NUM_RE.search(cleaned)
+    if not m:
+        return None
+    try:
+        return float(m.group())
+    except (ValueError, TypeError):
+        return None
 
 st.set_page_config(page_title="Raw Data Analysis — CEL MEL", layout="wide")
 init_db()
@@ -38,6 +59,24 @@ with st.sidebar:
         st.stop()
     st.divider()
     st.caption(f"Role: **{st.session_state.get('role', 'Viewer')}**")
+
+# ── Fiscal year selector ────────────────────────────────────────────────────────
+# raw_data_analysis has one row per (project, logframe_row, reporting_year) —
+# a second year's actuals get their own row rather than overwriting the first.
+this_fy = current_fiscal_year()
+_year_rows = run_query(
+    "SELECT DISTINCT reporting_year FROM raw_data_analysis WHERE project_id=:pid",
+    {"pid": project_id},
+)
+available_years = sorted({r["reporting_year"] for r in _year_rows if r["reporting_year"]}) or [this_fy]
+default_year = this_fy if this_fy in available_years else available_years[-1]
+selected_year = st.selectbox(
+    "Fiscal year",
+    available_years,
+    index=available_years.index(default_year),
+    format_func=lambda y: f"FY{y} (Jul {y}–Jun {y + 1})" + ("  •  current" if y == this_fy else ""),
+    key="rda_selected_year",
+)
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 DATA_TYPES = [
@@ -119,7 +158,7 @@ def _suggest_status(actual: str, trigger: str) -> str | None:
 # ── Load data ─────────────────────────────────────────────────────────────────
 rda_rows = run_query(
     """SELECT r.id, r.logframe_row_id,
-              lf.indicator_code, lf.result_level, lf.indicator_statement,
+              lf.indicator_code, lf.result_level, lf.indicator_statement, lf.target_annual,
               r.data_type, r.target_value, r.trigger_value, r.problem_definition,
               r.baseline_collected, r.baseline_value,
               r.actual_q1, r.actual_q2, r.actual_q3, r.actual_q4, r.actual_year,
@@ -127,14 +166,17 @@ rda_rows = run_query(
               r.last_updated, r.updated_by
        FROM   raw_data_analysis r
        LEFT JOIN logframe_rows lf ON r.logframe_row_id = lf.id
-       WHERE  r.project_id = :pid
+       WHERE  r.project_id = :pid AND r.reporting_year = :yr
        ORDER  BY r.id""",
-    {"pid": project_id},
+    {"pid": project_id, "yr": selected_year},
 )
 
 if not rda_rows:
     st.title("Module E — Raw Data Analysis")
-    st.info("No data found — run `python -m database.seed_sawa` to load SAWA data.")
+    st.info(
+        f"No data found for FY{selected_year} — run `python -m database.seed_sawa` to load "
+        "SAWA data, or pick a different fiscal year above."
+    )
     st.stop()
 
 # ── Session state for filters and suggestions ─────────────────────────────────
@@ -250,6 +292,10 @@ filtered = [
 st.caption(f"Showing **{len(filtered)}** of **{len(rda_rows)}** indicators.")
 
 # ── Build display DataFrame ───────────────────────────────────────────────────
+Q1_LABEL, Q2_LABEL, Q3_LABEL, Q4_LABEL, YEAR_LABEL = (
+    f"Q1 {selected_year}", f"Q2 {selected_year}", f"Q3 {selected_year}",
+    f"Q4 {selected_year}", f"Year {selected_year}",
+)
 _DISPLAY_COLS = {
     "Code":               "indicator_code",
     "Level":              "result_level",
@@ -260,18 +306,18 @@ _DISPLAY_COLS = {
     "Problem Definition": "problem_definition",
     "Baseline?":          "baseline_collected",
     "Baseline Value":     "baseline_value",
-    "Q1 2026":            "actual_q1",
-    "Q2 2026":            "actual_q2",
-    "Q3 2026":            "actual_q3",
-    "Q4 2026":            "actual_q4",
-    "Year 2026":          "actual_year",
+    Q1_LABEL:             "actual_q1",
+    Q2_LABEL:             "actual_q2",
+    Q3_LABEL:             "actual_q3",
+    Q4_LABEL:             "actual_q4",
+    YEAR_LABEL:           "actual_year",
     "Indicator Status":   "indicator_status",
     "Action Status":      "action_status",
     "Action Description": "action_description",
 }
 _EDITABLE = [
     "Type", "Trigger", "Problem Definition", "Baseline?", "Baseline Value",
-    "Q1 2026", "Q2 2026", "Q3 2026", "Q4 2026", "Year 2026",
+    Q1_LABEL, Q2_LABEL, Q3_LABEL, Q4_LABEL, YEAR_LABEL,
     "Indicator Status", "Action Status", "Action Description",
 ]
 
@@ -305,11 +351,11 @@ col_config = {
     "Problem Definition":st.column_config.TextColumn("Problem Definition", width="large"),
     "Baseline?":         st.column_config.SelectboxColumn("Baseline?", options=BASELINE_OPTS, width="small"),
     "Baseline Value":    st.column_config.TextColumn("Baseline Value", width="small"),
-    "Q1 2026":           st.column_config.TextColumn("Q1 2026", width="small"),
-    "Q2 2026":           st.column_config.TextColumn("Q2 2026", width="small"),
-    "Q3 2026":           st.column_config.TextColumn("Q3 2026", width="small"),
-    "Q4 2026":           st.column_config.TextColumn("Q4 2026", width="small"),
-    "Year 2026":         st.column_config.TextColumn("Year 2026", width="small"),
+    Q1_LABEL:            st.column_config.TextColumn(Q1_LABEL, width="small"),
+    Q2_LABEL:            st.column_config.TextColumn(Q2_LABEL, width="small"),
+    Q3_LABEL:            st.column_config.TextColumn(Q3_LABEL, width="small"),
+    Q4_LABEL:            st.column_config.TextColumn(Q4_LABEL, width="small"),
+    YEAR_LABEL:          st.column_config.TextColumn(YEAR_LABEL, width="small"),
     "Indicator Status":  st.column_config.SelectboxColumn(
                              "Indicator Status", options=IND_STATUS_OPTS, width="medium"),
     "Action Status":     st.column_config.SelectboxColumn(
@@ -350,7 +396,7 @@ if can_write_module("E"):
             # A non-empty actual with no digit at all is almost always a typo —
             # it would silently parse to 0 in every downstream dashboard
             # (Module H, Module I) with no indication anything went wrong.
-            for q_col in ("Q1 2026", "Q2 2026", "Q3 2026", "Q4 2026", "Year 2026"):
+            for q_col in (Q1_LABEL, Q2_LABEL, Q3_LABEL, Q4_LABEL, YEAR_LABEL):
                 q_val = str(edit_row.get(q_col) or "").strip()
                 if q_val and not any(ch.isdigit() for ch in q_val):
                     errors.append(
@@ -483,10 +529,13 @@ if suggestions:
 
 # ── Data completeness expander ────────────────────────────────────────────────
 with st.expander("📊 Data completeness summary"):
-    st.caption("Shows which Q1–Q4 cells have data entered (across all indicators, unfiltered).")
+    st.caption(
+        f"Shows which FY{selected_year} Q1–Q4 cells have data entered "
+        "(across all indicators, unfiltered)."
+    )
     total = len(rda_rows)
-    q_cols = [("Q1 2026", "actual_q1"), ("Q2 2026", "actual_q2"),
-              ("Q3 2026", "actual_q3"), ("Q4 2026", "actual_q4"), ("Year 2026", "actual_year")]
+    q_cols = [(Q1_LABEL, "actual_q1"), (Q2_LABEL, "actual_q2"),
+              (Q3_LABEL, "actual_q3"), (Q4_LABEL, "actual_q4"), (YEAR_LABEL, "actual_year")]
     comp_data = {
         label: sum(1 for r in rda_rows if r.get(db) and str(r[db]).strip())
         for label, db in q_cols
@@ -496,6 +545,36 @@ with st.expander("📊 Data completeness summary"):
         for label, v in comp_data.items()
     ])
     st.dataframe(comp_df, hide_index=True, use_container_width=True)
+
+# ── Target consistency check ──────────────────────────────────────────────────
+# target_value (this table) and target_annual (the logframe, Module B) are two
+# independently-editable fields meant to represent the same target — nothing
+# previously caught them drifting apart.
+_mismatches = []
+for r in rda_rows:
+    rda_t = _num(r.get("target_value"))
+    lf_t  = _num(r.get("target_annual"))
+    if rda_t is not None and lf_t is not None and abs(rda_t - lf_t) > max(0.01, 0.005 * lf_t):
+        _mismatches.append({
+            "Code": r.get("indicator_code") or "?",
+            "Module E target_value": r.get("target_value"),
+            "Module B target_annual": r.get("target_annual"),
+        })
+
+with st.expander(
+    f"🎯 Target consistency check"
+    + (f" — ⚠️ {len(_mismatches)} mismatch(es)" if _mismatches else " — all match"),
+    expanded=bool(_mismatches),
+):
+    st.caption(
+        "Compares the leading number in this table's Target against the logframe's "
+        "(Module B) target_annual for the same indicator — they're entered "
+        "independently and can drift apart without anyone noticing."
+    )
+    if _mismatches:
+        st.dataframe(pd.DataFrame(_mismatches), hide_index=True, use_container_width=True)
+    else:
+        st.success("No mismatches — every indicator's target agrees with the logframe.")
 
 
 # =============================================================================
@@ -621,7 +700,7 @@ else:
                 )
             with up_c3:
                 up_year = st.number_input(
-                    "Year *", value=2026, min_value=2020, max_value=2040,
+                    "Year *", value=selected_year, min_value=2020, max_value=2040,
                     step=1, key="ev_up_year",
                 )
 

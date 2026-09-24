@@ -8,6 +8,7 @@ Tab 3 — Collection Calendar: 12-month heatmap with overload detection — the
 """
 from __future__ import annotations
 from collections import defaultdict
+from datetime import date as _date
 
 import streamlit as st
 import pandas as pd
@@ -42,7 +43,8 @@ plan_rows = run_query(
     """SELECT id, stakeholder, indicator_statement, data_points, rationale,
               instrument_status, instrument_link, journey_step,
               integration_mechanism, frequency,
-              collection_month, collection_year, responsible_party
+              collection_month, collection_year, responsible_party,
+              last_collected_date
        FROM   data_collection_plan
        WHERE  project_id = :pid
        ORDER  BY id""",
@@ -127,6 +129,53 @@ def _expand_events(rows: list[dict], years_ahead: int = 2) -> list[dict]:
     return events
 
 
+# ── Timeliness: is this instrument's collection overdue? ──────────────────────
+def _next_due(row: dict) -> _date | None:
+    """The most recent scheduled collection event that is already due
+    (<= today). None if the instrument's very first scheduled event is
+    still in the future."""
+    start_m  = row.get("collection_month") or 1
+    start_y  = row.get("collection_year")  or 2026
+    freq     = row.get("frequency") or "Annual"
+    interval = FREQ_INTERVALS.get(freq)
+    today = _date.today()
+    try:
+        due = _date(start_y, start_m, 1)
+    except ValueError:
+        return None
+    if due > today:
+        return None
+    if interval is None:
+        return due  # "Once" — a single fixed due date
+    while True:
+        m, y = due.month + interval, due.year
+        while m > 12:
+            m -= 12
+            y += 1
+        try:
+            nxt = _date(y, m, 1)
+        except ValueError:
+            break
+        if nxt > today:
+            break
+        due = nxt
+    return due
+
+
+def _is_collection_overdue(row: dict) -> bool:
+    due = _next_due(row)
+    if due is None:
+        return False
+    last = row.get("last_collected_date")
+    if not last:
+        return True
+    try:
+        last_date = _date.fromisoformat(str(last)[:10])
+    except ValueError:
+        return True
+    return last_date < due
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -162,6 +211,21 @@ with tab_plan:
             "journey stage and cannot produce baseline values at enrolment:  \n" + labels
         )
 
+    # ── Overdue collection notice (timeliness) ────────────────────────────────
+    overdue_rows = [r for r in plan_rows if _is_collection_overdue(r)]
+    if overdue_rows:
+        labels = "  \n".join(
+            f"- **{r['stakeholder']}** — due {_next_due(r).isoformat()}, "
+            + (f"last collected {r['last_collected_date']}" if r.get("last_collected_date")
+               else "never recorded as collected")
+            for r in overdue_rows
+        )
+        st.error(
+            f"⛔ **{len(overdue_rows)} instrument(s) overdue for collection** — scheduled "
+            "per Frequency/Month/Year but no Last Collected date on or after the due date:  \n"
+            + labels
+        )
+
     # ── Build display DataFrame ───────────────────────────────────────────────
     _DISPLAY_COLS = {
         "Stakeholder":           "stakeholder",
@@ -176,14 +240,29 @@ with tab_plan:
         "Month":                 "collection_month",
         "Year":                  "collection_year",
         "Responsible":           "responsible_party",
+        "Last Collected":        "last_collected_date",
     }
     _EDITABLE = [
         "Status", "Instrument Link", "Journey Step",
         "Integration Mechanism", "Frequency", "Month", "Year", "Responsible",
+        "Last Collected",
     ]
 
+    def _parse_date(val):
+        if not val:
+            return None
+        try:
+            return _date.fromisoformat(str(val)[:10])
+        except ValueError:
+            return None
+
     df = pd.DataFrame([
-        {"_id": r["id"]} | {disp: r[db] for disp, db in _DISPLAY_COLS.items()}
+        {"_id": r["id"]}
+        | {disp: r[db] for disp, db in _DISPLAY_COLS.items() if disp != "Last Collected"}
+        | {
+            "Last Collected":    _parse_date(r.get("last_collected_date")),
+            "Collection Status": "⛔ Overdue" if _is_collection_overdue(r) else "✅ On track",
+        }
         for r in plan_rows
     ])
 
@@ -207,6 +286,8 @@ with tab_plan:
                                       "Year", min_value=2024, max_value=2035, step=1, width="small"),
         "Responsible":            st.column_config.SelectboxColumn(
                                       "Responsible", options=RESPONSIBLE_OPTIONS, width="medium"),
+        "Last Collected":         st.column_config.DateColumn("Last Collected", width="small"),
+        "Collection Status":      st.column_config.TextColumn("Collection Status", disabled=True, width="small"),
     }
 
     if can_write_module("C"):

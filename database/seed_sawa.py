@@ -9,6 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from database.db import init_db, insert_returning_id, run_query, run_write
+from utils.fiscal_calendar import current_fiscal_year
 from projects.sawa import (
     PROJECT, PARTNERS, PARTNER_TARGETS, INDICATORS,
     TOC_NODES, LOGFRAME_ROWS, DATA_COLLECTION_PLAN,
@@ -137,21 +138,24 @@ def seed():
         )
         if r["indicator_code"]
     }
+    seed_fy = current_fiscal_year()
     for row in RAW_DATA_ANALYSIS:
         lf_id = lf_lookup.get(row["indicator_code"])
         insert_returning_id(
             """INSERT INTO raw_data_analysis
-               (project_id, logframe_row_id, data_type, target_value, trigger_value,
+               (project_id, logframe_row_id, reporting_year, data_type, target_value, trigger_value,
                 problem_definition, baseline_collected, baseline_value,
                 actual_q1, actual_q2, actual_q3, actual_q4, actual_year,
                 indicator_status, action_status, action_description)
-               VALUES (:project_id, :logframe_row_id, :data_type, :target_value, :trigger_value,
+               VALUES (:project_id, :logframe_row_id, :reporting_year, :data_type, :target_value,
+                       :trigger_value,
                        :problem_definition, :baseline_collected, :baseline_value,
                        :actual_q1, :actual_q2, :actual_q3, :actual_q4, :actual_year,
                        :indicator_status, :action_status, :action_description)""",
             {
                 "project_id":       project_id,
                 "logframe_row_id":  lf_id,
+                "reporting_year":   seed_fy,
                 "data_type":        row["data_type"],
                 "target_value":     row["target_value"],
                 "trigger_value":    row["trigger_value"],

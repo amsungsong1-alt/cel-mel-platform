@@ -115,7 +115,8 @@ CREATE TABLE IF NOT EXISTS data_collection_plan (
     frequency             TEXT,
     collection_month      INTEGER CHECK(collection_month BETWEEN 1 AND 12),
     collection_year       INTEGER,
-    responsible_party     TEXT
+    responsible_party     TEXT,
+    last_collected_date   TEXT
 );
 
 -- Module D: Raw Data Analysis — one row per logframe indicator in the current
@@ -125,6 +126,7 @@ CREATE TABLE IF NOT EXISTS raw_data_analysis (
     id                  INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     project_id          INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
     logframe_row_id     INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+    reporting_year      INTEGER,
     data_type           TEXT    CHECK(data_type IN (
                             'Process','Performance','Assumption',
                             'Stakeholder','Problem','Solution','Attribution'

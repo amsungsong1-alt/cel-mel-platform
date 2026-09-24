@@ -131,7 +131,8 @@ def _prefill_from_lf(lf_row_id: int) -> dict:
     rda = run_query(
         """SELECT actual_q1, actual_q2, actual_q3, actual_q4
            FROM   raw_data_analysis
-           WHERE  logframe_row_id = :id AND project_id = :pid LIMIT 1""",
+           WHERE  logframe_row_id = :id AND project_id = :pid
+           ORDER  BY (reporting_year IS NULL) ASC, reporting_year DESC LIMIT 1""",
         {"id": lf_row_id, "pid": project_id},
     )
     rda = rda[0] if rda else {}

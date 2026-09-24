@@ -13,6 +13,8 @@ import sqlite3
 import streamlit as st
 from sqlalchemy import create_engine, text
 
+from utils.fiscal_calendar import current_fiscal_year
+
 _HERE = Path(__file__).parent
 DB_PATH = _HERE / "cel_mel.db"
 SCHEMA_PATH = _HERE / "schema.sql"
@@ -59,20 +61,40 @@ def init_db():
                 stmt = stmt.strip()
                 if stmt:
                     conn.execute(text(stmt))
+            # Migrate existing tables that predate these columns.
+            for stmt in (
+                "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS reporting_year INTEGER",
+                "ALTER TABLE data_collection_plan ADD COLUMN IF NOT EXISTS last_collected_date TEXT",
+            ):
+                conn.execute(text(stmt))
+            # Backfill rows written before reporting_year existed, so every
+            # query can filter on it directly without a NULL special case.
+            conn.execute(
+                text("UPDATE raw_data_analysis SET reporting_year=:yr WHERE reporting_year IS NULL"),
+                {"yr": current_fiscal_year()},
+            )
         return
 
     schema = SCHEMA_PATH.read_text()
     conn = get_connection()
     conn.executescript(schema)
-    # Migrate existing databases that predate the source_verified/source_note columns.
+    # Migrate existing databases that predate these columns.
     for stmt in (
         "ALTER TABLE toc_nodes ADD COLUMN source_verified BOOLEAN DEFAULT 1",
         "ALTER TABLE toc_nodes ADD COLUMN source_note TEXT",
+        "ALTER TABLE raw_data_analysis ADD COLUMN reporting_year INTEGER",
+        "ALTER TABLE data_collection_plan ADD COLUMN last_collected_date TEXT",
     ):
         try:
             conn.execute(stmt)
         except Exception:
             pass  # column already exists
+    # Backfill rows written before reporting_year existed, so every query
+    # can filter on it directly without a NULL special case.
+    conn.execute(
+        "UPDATE raw_data_analysis SET reporting_year=? WHERE reporting_year IS NULL",
+        (current_fiscal_year(),),
+    )
     conn.commit()
     conn.close()
 

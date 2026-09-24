@@ -115,7 +115,8 @@ CREATE TABLE IF NOT EXISTS data_collection_plan (
     frequency             TEXT,
     collection_month      INTEGER CHECK(collection_month BETWEEN 1 AND 12),
     collection_year       INTEGER,
-    responsible_party     TEXT
+    responsible_party     TEXT,
+    last_collected_date   TEXT    -- ISO-8601 date: YYYY-MM-DD; NULL = never recorded
 );
 
 -- Module D: Raw Data Analysis — one row per logframe indicator in the current
@@ -125,6 +126,13 @@ CREATE TABLE IF NOT EXISTS raw_data_analysis (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
     project_id          INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
     logframe_row_id     INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+    -- Calendar year the programme's fiscal year STARTS in (SAWA: Jul-Jun,
+    -- so FY2026 = Jul 2026-Jun 2027). One row per (project, logframe_row,
+    -- reporting_year) — without this, a second year's actuals would
+    -- overwrite the first year's in the same actual_q1..q4 cells. NULL on
+    -- rows created before this column existed; treat NULL as "the only
+    -- year that existed at the time" when querying.
+    reporting_year      INTEGER,
     data_type           TEXT    CHECK(data_type IN (
                             'Process','Performance','Assumption',
                             'Stakeholder','Problem','Solution','Attribution'
