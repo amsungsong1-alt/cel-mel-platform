@@ -347,12 +347,20 @@ if can_write_module("E"):
                     f"**{code}**: action_description required for "
                     f"'{a_status}'"
                 )
+            # A non-empty actual with no digit at all is almost always a typo —
+            # it would silently parse to 0 in every downstream dashboard
+            # (Module H, Module I) with no indication anything went wrong.
+            for q_col in ("Q1 2026", "Q2 2026", "Q3 2026", "Q4 2026", "Year 2026"):
+                q_val = str(edit_row.get(q_col) or "").strip()
+                if q_val and not any(ch.isdigit() for ch in q_val):
+                    errors.append(
+                        f"**{code}**: '{q_col}' = \"{q_val}\" has no number in it — "
+                        "leave it blank if there's genuinely no data yet"
+                    )
 
         if errors:
             st.error(
-                "⛔ **Save blocked** — action_description is missing for the following "
-                "indicators. An action status with no description is the exact failure mode "
-                "this module exists to prevent:  \n"
+                "⛔ **Save blocked** — fix the following before saving:  \n"
                 + "  \n".join(f"- {e}" for e in errors)
             )
         else:

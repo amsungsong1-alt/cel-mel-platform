@@ -375,6 +375,7 @@ def _do_sync(
 
         q_col   = f"actual_q{_current_quarter()}"
         now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        by      = f"Kobo sync ({st.session_state.get('name', st.session_state.get('username', 'unknown'))})"
 
         for m in mappings:
             field    = m["kobo_field_name"]
@@ -390,9 +391,10 @@ def _do_sync(
                 f"""UPDATE raw_data_analysis
                     SET    {q_col}=:v,
                            indicator_status='Data currently being collected/analysed',
-                           last_updated=:ts
+                           last_updated=:ts,
+                           updated_by=:by
                     WHERE  project_id=:pid AND logframe_row_id=:lf""",
-                {"v": value, "ts": now_iso, "pid": project_id, "lf": lf_id},
+                {"v": value, "ts": now_iso, "by": by, "pid": project_id, "lf": lf_id},
             )
             _recompute_actual_year(project_id, lf_id)
 
@@ -955,6 +957,7 @@ with tab_upload:
                             key="apply_manual_upload",
                         ):
                             now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                            by = st.session_state.get("name", st.session_state.get("username", "unknown"))
                             written = 0
                             for job in quarter_jobs:
                                 q_col = f"actual_q{job['quarter']}"
@@ -970,11 +973,12 @@ with tab_upload:
                                             SET    {q_col}=:v,
                                                    indicator_status=
                                                        'Data currently being collected/analysed',
-                                                   last_updated=:ts
+                                                   last_updated=:ts,
+                                                   updated_by=:by
                                             WHERE  project_id=:pid
                                             AND    logframe_row_id=:lf""",
                                         {
-                                            "v": value, "ts": now_iso,
+                                            "v": value, "ts": now_iso, "by": by,
                                             "pid": project_id, "lf": m["logframe_row_id"],
                                         },
                                     )
