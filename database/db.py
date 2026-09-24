@@ -48,7 +48,20 @@ def get_connection():
 
 
 def init_db():
-    """Create all tables if they do not yet exist."""
+    """Create all tables and apply migrations — exactly once per process.
+
+    Every page calls this on every load, for every concurrent user session.
+    Postgres DDL (ALTER TABLE) takes a strong lock, so if this ran fresh each
+    time, multiple sessions hitting it at once (e.g. right after a reboot)
+    could deadlock against each other. st.cache_resource makes the actual
+    work below run once and caches the result; concurrent first-callers
+    block on Streamlit's cache lock rather than racing Postgres locks.
+    """
+    _run_migrations()
+
+
+@st.cache_resource
+def _run_migrations() -> bool:
     if IS_POSTGRES:
         # Strip '--' line comments before splitting on ';' — a semicolon
         # inside a comment (e.g. "-- one row; not two") would otherwise
@@ -57,6 +70,12 @@ def init_db():
         schema = "\n".join(lines)
         engine = get_engine()
         with engine.begin() as conn:
+            # Belt-and-braces against the same deadlock across separate
+            # processes (e.g. old + new process briefly overlapping during a
+            # rolling redeploy) — pg_advisory_xact_lock serializes any other
+            # session trying to migrate at the same time and auto-releases
+            # at transaction end, so it can't leak on an exception.
+            conn.execute(text("SELECT pg_advisory_xact_lock(823771)"))
             for stmt in schema.split(";"):
                 stmt = stmt.strip()
                 if stmt:
@@ -73,7 +92,7 @@ def init_db():
                 text("UPDATE raw_data_analysis SET reporting_year=:yr WHERE reporting_year IS NULL"),
                 {"yr": current_fiscal_year()},
             )
-        return
+        return True
 
     schema = SCHEMA_PATH.read_text()
     conn = get_connection()
@@ -97,6 +116,7 @@ def init_db():
     )
     conn.commit()
     conn.close()
+    return True
 
 
 def run_query(sql: str, params: dict | None = None):
