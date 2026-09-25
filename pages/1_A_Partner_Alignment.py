@@ -219,6 +219,22 @@ for lvl in (1, 2, 3, 4):
         unsafe_allow_html=True,
     )
 
+    # Level 1 is the only band that mixes time bases (LOP totals alongside
+    # partners' own Year 1 plans) — let the reader filter to one at a time,
+    # the same interaction as the "Show:" chips on the reference comparison
+    # page, applied to the dimension that actually varies within this band.
+    if lvl == 1 and rows:
+        basis_filter = st.pills(
+            "Show",
+            options=["All", "Life of programme", "Year 1"],
+            default="All",
+            selection_mode="single",
+            key="l1_basis_filter",
+            label_visibility="collapsed",
+        )
+        if basis_filter and basis_filter != "All":
+            rows = [r for r in rows if r["time_basis"] == basis_filter]
+
     if not rows:
         st.caption("No data — run `python -m database.seed_sawa` to load SAWA data.")
         continue
