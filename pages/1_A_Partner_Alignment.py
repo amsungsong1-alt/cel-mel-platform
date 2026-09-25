@@ -60,6 +60,7 @@ for t in targets:
 
 # ── Time-basis reconciliation warning ────────────────────────────────────────
 l1_lop  = any(t["time_basis"] == "Life of programme" for t in by_level[1])
+l1_yr1  = any(t["time_basis"] == "Year 1" for t in by_level[1])
 l23_yr1 = any(t["time_basis"] == "Year 1" for t in by_level[2] + by_level[3])
 
 if l1_lop and l23_yr1:
@@ -71,6 +72,17 @@ if l1_lop and l23_yr1:
         "These figures operate on different time horizons. Never aggregate them or "
         "use them as numerator/denominator in the same ratio without first converting "
         "both to the same basis (e.g. a pro-rata Year 1 share of the LoP total)."
+    )
+
+if l1_lop and l1_yr1:
+    st.warning(
+        "⚠️ **Level 1 itself mixes two time bases — read each card's badge.**  \n"
+        "Some Level 1 cards are *Life of Programme* totals from the original SAWA "
+        "proposal (**LOP** badge); others are a partner's own confirmed *Year 1* "
+        "target from their Year 1 implementation plan (**YR 1** badge). A partner's "
+        "LOP and Year 1 figures are not the same metric on different scales — the "
+        "Year 1 figure is that partner's own near-term plan, not necessarily 1/5th "
+        "of the LOP total. Compare within a badge, not across badges."
     )
 
 # ── Funnel header ─────────────────────────────────────────────────────────────
@@ -86,7 +98,8 @@ editable = can_write_module("A")
 BANDS = {
     1: {
         "title":  "Level 1 — Anchor Partner Commitments",
-        "sub":    "Life of Programme · Source: SAWA Proposal, 28 Nov 2025",
+        "sub":    "LOP totals (SAWA Proposal, 28 Nov 2025) alongside partners' own "
+                   "confirmed Year 1 plans (Sep 2026) — see each card's badge",
         "color":  "#00838F",   # teal
         "bg":     "#E0F7FA",
     },
@@ -113,15 +126,30 @@ BANDS = {
 PILLAR_COLORS = ["#0288D1", "#2E7D32", "#E65100", "#6A1B9A", "#455A64"]
 
 
+_BASIS_BADGE = {
+    "Life of programme": ("LOP", "#455A64"),
+    "Year 1":             ("YR 1", "#00695C"),
+    "Annual":             ("ANNUAL", "#6D4C41"),
+}
+
+
 def _card_html(label: str, value: str, unit: str, color: str, bg: str,
-               source_doc: str) -> str:
+               source_doc: str, time_basis: str = "") -> str:
     tooltip = f"Source: {source_doc}" if source_doc else ""
+    badge_txt, badge_col = _BASIS_BADGE.get(time_basis, ("", None))
+    badge_html = (
+        f'<span style="position:absolute; top:8px; right:10px; font-size:0.6em; '
+        f'font-weight:700; letter-spacing:.04em; color:white; background:{badge_col}; '
+        f'padding:1px 6px; border-radius:3px;">{badge_txt}</span>'
+        if badge_txt else ""
+    )
     return f"""
     <div title="{tooltip}" style="
-        background:{bg}; border-left:4px solid {color};
+        position:relative; background:{bg}; border-left:4px solid {color};
         border-radius:6px; padding:10px 14px; margin-bottom:6px;
         min-height:82px;">
-      <p style="margin:0 0 4px 0; font-size:0.72em; color:#555; line-height:1.3;">{label}</p>
+      {badge_html}
+      <p style="margin:0 20px 4px 0; font-size:0.72em; color:#555; line-height:1.3;">{label}</p>
       <p style="margin:0 0 2px 0; font-size:1.3em; font-weight:700; color:{color};">{value}</p>
       <p style="margin:0; font-size:0.68em; color:#777;">{unit}</p>
     </div>"""
@@ -166,6 +194,7 @@ for lvl in (1, 2, 3, 4):
                     color,
                     bg,
                     row["source_doc"],
+                    row["time_basis"],
                 ),
                 unsafe_allow_html=True,
             )
