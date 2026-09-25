@@ -1,7 +1,9 @@
 """Module A — Partner Alignment
 
-Four-level funnel view of the SAWA commitment chain:
-  Level 1 — Anchor Partner Commitments (Life of Programme)
+Flat, sortable table view of the SAWA commitment chain, one section per
+level of the funnel:
+  Level 1 — Anchor Partner Commitments (Life of Programme + confirmed
+            partner Year 1 plans — filterable by which basis to show)
   Level 2 — CEL Year 1 Delivery
   Level 3 — Year 1 Results
   Level 4 — Programme Impact
@@ -17,7 +19,7 @@ import plotly.graph_objects as go
 from database.db import init_db, run_query, run_write
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
-from projects.sawa import PILLAR_BUDGETS
+from projects.sawa import PILLAR_BUDGETS, PROJECT
 from utils.nav_strip import render_nav_strip
 
 st.set_page_config(page_title="Partner Alignment — CEL MEL", layout="wide")
@@ -132,97 +134,97 @@ if l1_lop and l1_yr1:
         "of the LOP total. Compare within a badge, not across badges."
     )
 
-# ── Funnel header ─────────────────────────────────────────────────────────────
+# ── Header ────────────────────────────────────────────────────────────────────
 st.title("Module A — Partner Alignment")
 st.caption(
     "Commitment chain from anchor partners → CEL delivery → Year 1 results → "
-    "programme impact.  Source documents shown on hover."
+    "programme impact. Sort any table by clicking a column header; sources "
+    "are their own column, not a hover-only tooltip."
 )
 
 editable = can_write_module("A")
 
-# ── Band configuration ────────────────────────────────────────────────────────
+# ── Summary stat tiles ────────────────────────────────────────────────────────
+_n_partners = len({
+    r["partner_name"] for r in by_level[1] if r["partner_name"] != "Programme"
+})
+_n_lop = sum(1 for r in by_level[1] if r["time_basis"] == "Life of programme")
+_n_yr1 = sum(1 for r in by_level[1] if r["time_basis"] == "Year 1")
+_span  = f"{PROJECT['start_date'][:4]}–{PROJECT['end_date'][:4]}"
+_budget_m = f"${PROJECT['budget_total'] / 1_000_000:.2f}M"
+
+
+def _stat_tile_html(value: str, label: str) -> str:
+    return f"""
+    <div style="background:#FFFFFF; border:1px solid #DED7C6; border-radius:10px;
+                padding:14px 16px; box-shadow:0 1px 2px rgba(20,30,28,.05); min-height:64px;">
+      <p style="margin:0; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+                font-size:1.35em; font-weight:600; color:#16262E;">{value}</p>
+      <p style="margin:2px 0 0 0; font-family:'Public Sans',sans-serif; font-size:0.72em; color:#5E6A6A;">{label}</p>
+    </div>"""
+
+
+_stat_cols = st.columns(5)
+for _c, (_val, _lbl) in zip(_stat_cols, [
+    (str(_n_partners),      "Anchor partners"),
+    (f"{_n_lop} / {_n_yr1}", "LOP rows · Year 1 rows"),
+    (_span,                 "Programme span"),
+    (_budget_m,              "Total programme budget"),
+    (str(len(PILLAR_BUDGETS)), "Budget pillars"),
+]):
+    with _c:
+        st.markdown(_stat_tile_html(_val, _lbl), unsafe_allow_html=True)
+
+st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+
+# ── Level configuration (color = left-rule accent, no filled band anymore) ────
 BANDS = {
     1: {
-        "title":  "Level 1 — Anchor Partner Commitments",
-        "sub":    "LOP totals (SAWA Proposal, 28 Nov 2025) alongside partners' own "
-                   "confirmed Year 1 plans (Sep 2026) — see each card's badge",
-        "color":  "#1E7E76",   # teal
-        "bg":     "#E7F3F1",
+        "title": "Level 1 — Anchor Partner Commitments",
+        "sub":   "LOP totals (SAWA Proposal, 28 Nov 2025) alongside partners' own "
+                  "confirmed Year 1 plans (Sep 2026) — filter by basis below",
+        "color": "#1E7E76",   # teal
     },
     2: {
-        "title":  "Level 2 — CEL Year 1 Delivery",
-        "sub":    "Year 1 · Source: CEL Year 1 Consolidated Workplan",
-        "color":  "#4A6B5C",   # sage
-        "bg":     "#E9F1EC",
+        "title": "Level 2 — CEL Year 1 Delivery",
+        "sub":   "Year 1 · Source: CEL Year 1 Consolidated Workplan",
+        "color": "#4A6B5C",   # sage
     },
     3: {
-        "title":  "Level 3 — Year 1 Results",
-        "sub":    "Year 1 indicator targets · Source: CEL Year 1 Consolidated Workplan",
-        "color":  "#B96A2E",   # clay
-        "bg":     "#FBEEE3",
+        "title": "Level 3 — Year 1 Results",
+        "sub":   "Year 1 indicator targets · Source: CEL Year 1 Consolidated Workplan",
+        "color": "#B96A2E",   # clay
     },
     4: {
-        "title":  "Level 4 — Programme Impact",
-        "sub":    "Life of Programme (2026–2030) · Source: SAWA Proposal, 28 Nov 2025",
-        "color":  "#A97C1E",   # ochre
-        "bg":     "#FBF3DF",
+        "title": "Level 4 — Programme Impact",
+        "sub":   "Life of Programme (2026–2030) · Source: SAWA Proposal, 28 Nov 2025",
+        "color": "#A97C1E",   # ochre
     },
 }
 
 PILLAR_COLORS = ["#1E7E76", "#4A6B5C", "#B96A2E", "#A97C1E", "#7A8A93"]
 
 
-_BASIS_BADGE = {
-    "Life of programme": ("LOP", "#5E6A6A"),
-    "Year 1":             ("YR 1", "#1E7E76"),
-    "Annual":             ("ANNUAL", "#A97C1E"),
-}
-
-
-def _card_html(label: str, value: str, unit: str, color: str, bg: str,
-               source_doc: str, time_basis: str = "") -> str:
-    tooltip = f"Source: {source_doc}" if source_doc else ""
-    badge_txt, badge_col = _BASIS_BADGE.get(time_basis, ("", None))
-    badge_html = (
-        f'<span style="position:absolute; top:8px; right:10px; font-family:\'IBM Plex Mono\',monospace; '
-        f'font-size:0.6em; font-weight:600; letter-spacing:.05em; color:white; background:{badge_col}; '
-        f'padding:2px 7px; border-radius:999px;">{badge_txt}</span>'
-        if badge_txt else ""
-    )
-    return f"""
-    <div title="{tooltip}" style="
-        position:relative; background:{bg}; border-left:4px solid {color};
-        border-radius:10px; padding:12px 14px; margin-bottom:8px;
-        min-height:86px; box-shadow:0 1px 2px rgba(20,30,28,.05);">
-      {badge_html}
-      <p style="margin:0 20px 5px 0; font-family:'Public Sans',sans-serif; font-size:0.72em; color:#5E6A6A; line-height:1.3;">{label}</p>
-      <p style="margin:0 0 2px 0; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:1.28em; font-weight:600; color:{color};">{value}</p>
-      <p style="margin:0; font-family:'Public Sans',sans-serif; font-size:0.68em; color:#8A9494;">{unit}</p>
-    </div>"""
-
-
-# ── Render each level band ────────────────────────────────────────────────────
-for lvl in (1, 2, 3, 4):
-    band  = BANDS[lvl]
-    rows  = by_level[lvl]
-    color = band["color"]
-    bg    = band["bg"]
-
-    # Band header
+def _section_header(band: dict) -> None:
     st.markdown(
-        f"""<div style="background:{bg}; border-left:6px solid {color};
-                        padding:12px 18px; border-radius:8px; margin:20px 0 12px 0;">
-            <span style="font-family:'Fraunces',Georgia,serif; font-size:1.1em; font-weight:600; color:{color};">{band['title']}</span><br>
-            <span style="font-family:'Public Sans',sans-serif; font-size:0.75em; color:#5E6A6A;">{band['sub']}</span>
+        f"""<div style="border-left:4px solid {band['color']}; padding:2px 0 2px 14px; margin:26px 0 10px 0;">
+            <span style="font-family:'Fraunces',Georgia,serif; font-size:1.15em; font-weight:600; color:#16262E;">{band['title']}</span><br>
+            <span style="font-family:'Public Sans',sans-serif; font-size:0.78em; color:#5E6A6A;">{band['sub']}</span>
             </div>""",
         unsafe_allow_html=True,
     )
 
-    # Level 1 is the only band that mixes time bases (LOP totals alongside
-    # partners' own Year 1 plans) — let the reader filter to one at a time,
-    # the same interaction as the "Show:" chips on the reference comparison
-    # page, applied to the dimension that actually varies within this band.
+
+# ── Render each level as one flat, sortable table ─────────────────────────────
+for lvl in (1, 2, 3, 4):
+    band = BANDS[lvl]
+    rows = by_level[lvl]
+
+    _section_header(band)
+
+    # Level 1 is the only level that mixes time bases (LOP totals alongside
+    # partners' own Year 1 plans) — let the reader filter to one at a time
+    # instead of scanning a mixed table for the basis they want.
     if lvl == 1 and rows:
         basis_filter = st.pills(
             "Show",
@@ -239,58 +241,44 @@ for lvl in (1, 2, 3, 4):
         st.caption("No data — run `python -m database.seed_sawa` to load SAWA data.")
         continue
 
-    # Metric cards (read-only for all roles)
-    n = min(len(rows), 5)
-    cols = st.columns(n)
-    for i, row in enumerate(rows):
-        label = (
-            f"**{row['partner_name']}**<br>{row['metric_label']}"
-            if row["partner_name"] != "Programme"
-            else row["metric_label"]
-        )
-        with cols[i % n]:
-            st.markdown(
-                _card_html(
-                    label.replace("**", "").replace("<br>", " — "),
-                    row["target_value"],
-                    row["unit"],
-                    color,
-                    bg,
-                    row["source_doc"],
-                    row["time_basis"],
-                ),
-                unsafe_allow_html=True,
-            )
+    show_partner = lvl == 1
+    records = []
+    for row in rows:
+        rec: dict = {"Partner": row["partner_name"]} if show_partner else {}
+        rec.update({
+            "Metric":       row["metric_label"],
+            "Target Value": row["target_value"],
+            "Unit":         row["unit"],
+            "Time Basis":   row["time_basis"],
+            "Source":       row["source_doc"],
+            "id":           row["id"],
+        })
+        records.append(rec)
+    df = pd.DataFrame(records)
 
-    # Inline editor (Admin / Editor only)
     if editable:
-        with st.expander(f"✏️ Edit Level {lvl} targets", expanded=False):
-            df_edit = pd.DataFrame([
-                {
-                    "id":           row["id"],
-                    "Metric":       row["metric_label"],
-                    "Target Value": row["target_value"],
-                    "Unit":         row["unit"],
-                    "Time Basis":   row["time_basis"],
-                    "Source Doc":   row["source_doc"],
-                }
-                for row in rows
-            ])
-            edited = st.data_editor(
-                df_edit,
-                key=f"editor_{lvl}",
-                disabled=["id", "Metric", "Unit", "Time Basis", "Source Doc"],
-                hide_index=True,
-                use_container_width=True,
-            )
-            if st.button(f"💾 Save Level {lvl}", key=f"save_{lvl}"):
-                for _, r in edited.iterrows():
-                    run_write(
-                        "UPDATE partner_targets SET target_value=:v WHERE id=:id",
-                        {"v": str(r["Target Value"]), "id": int(r["id"])},
-                    )
-                st.success("Saved.")
-                st.rerun()
+        disabled_cols = [c for c in df.columns if c != "Target Value"]
+        edited = st.data_editor(
+            df,
+            key=f"editor_{lvl}",
+            disabled=disabled_cols,
+            hide_index=True,
+            use_container_width=True,
+            column_config={"id": None},
+        )
+        if st.button("💾 Save", key=f"save_{lvl}"):
+            for _, r in edited.iterrows():
+                run_write(
+                    "UPDATE partner_targets SET target_value=:v WHERE id=:id",
+                    {"v": str(r["Target Value"]), "id": int(r["id"])},
+                )
+            st.success("Saved.")
+            st.rerun()
+    else:
+        st.dataframe(
+            df, hide_index=True, use_container_width=True,
+            column_config={"id": None},
+        )
 
 st.divider()
 
