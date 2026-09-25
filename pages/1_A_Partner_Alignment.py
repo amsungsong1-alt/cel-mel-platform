@@ -21,6 +21,53 @@ from projects.sawa import PILLAR_BUDGETS
 from utils.nav_strip import render_nav_strip
 
 st.set_page_config(page_title="Partner Alignment — CEL MEL", layout="wide")
+
+# ── Shared visual language (fonts + warm/teal palette) ───────────────────────
+# Matches the SAWA Partner Alignment reference: Fraunces for headings, Public
+# Sans for body copy, IBM Plex Mono for figures/labels, on a warm-cream
+# ground with a teal/sage/clay/ochre accent family instead of a stock
+# Material rainbow.
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+    :root{
+        --pa-bg:#F6F3EC; --pa-surface:#FFFFFF; --pa-ink:#16262E;
+        --pa-muted:#5E6A6A; --pa-border:#DED7C6; --pa-accent:#1E7E76;
+    }
+    [data-testid="stAppViewContainer"] { background:var(--pa-bg); }
+    .stApp, .stApp p, .stApp li, .stApp label, .stApp span {
+        font-family:'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        color:var(--pa-ink);
+    }
+    .stApp h1, .stApp h2, .stApp h3 {
+        font-family:'Fraunces', Georgia, serif !important;
+        color:var(--pa-ink) !important;
+        letter-spacing:-.01em;
+        font-weight:600 !important;
+    }
+    .stApp [data-testid="stCaptionContainer"] p,
+    .stApp [data-testid="stCaptionContainer"] span {
+        color:var(--pa-muted) !important;
+        font-family:'Public Sans', sans-serif !important;
+    }
+    .stApp [data-testid="stDataFrame"] *,
+    .stApp [data-testid="stMetricValue"] {
+        font-family:'IBM Plex Mono', monospace !important;
+    }
+    .stApp button {
+        font-family:'Public Sans', sans-serif !important;
+        border-radius:8px !important;
+    }
+    .stApp [data-testid="stExpander"] summary {
+        font-family:'Public Sans', sans-serif !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 init_db()
 render_nav_strip("Input")
 
@@ -100,36 +147,36 @@ BANDS = {
         "title":  "Level 1 — Anchor Partner Commitments",
         "sub":    "LOP totals (SAWA Proposal, 28 Nov 2025) alongside partners' own "
                    "confirmed Year 1 plans (Sep 2026) — see each card's badge",
-        "color":  "#00838F",   # teal
-        "bg":     "#E0F7FA",
+        "color":  "#1E7E76",   # teal
+        "bg":     "#E7F3F1",
     },
     2: {
         "title":  "Level 2 — CEL Year 1 Delivery",
         "sub":    "Year 1 · Source: CEL Year 1 Consolidated Workplan",
-        "color":  "#6A1B9A",   # purple
-        "bg":     "#F3E5F5",
+        "color":  "#4A6B5C",   # sage
+        "bg":     "#E9F1EC",
     },
     3: {
         "title":  "Level 3 — Year 1 Results",
         "sub":    "Year 1 indicator targets · Source: CEL Year 1 Consolidated Workplan",
-        "color":  "#BF360C",   # coral
-        "bg":     "#FBE9E7",
+        "color":  "#B96A2E",   # clay
+        "bg":     "#FBEEE3",
     },
     4: {
         "title":  "Level 4 — Programme Impact",
         "sub":    "Life of Programme (2026–2030) · Source: SAWA Proposal, 28 Nov 2025",
-        "color":  "#E65100",   # gold/amber
-        "bg":     "#FFF8E1",
+        "color":  "#A97C1E",   # ochre
+        "bg":     "#FBF3DF",
     },
 }
 
-PILLAR_COLORS = ["#0288D1", "#2E7D32", "#E65100", "#6A1B9A", "#455A64"]
+PILLAR_COLORS = ["#1E7E76", "#4A6B5C", "#B96A2E", "#A97C1E", "#7A8A93"]
 
 
 _BASIS_BADGE = {
-    "Life of programme": ("LOP", "#455A64"),
-    "Year 1":             ("YR 1", "#00695C"),
-    "Annual":             ("ANNUAL", "#6D4C41"),
+    "Life of programme": ("LOP", "#5E6A6A"),
+    "Year 1":             ("YR 1", "#1E7E76"),
+    "Annual":             ("ANNUAL", "#A97C1E"),
 }
 
 
@@ -138,20 +185,20 @@ def _card_html(label: str, value: str, unit: str, color: str, bg: str,
     tooltip = f"Source: {source_doc}" if source_doc else ""
     badge_txt, badge_col = _BASIS_BADGE.get(time_basis, ("", None))
     badge_html = (
-        f'<span style="position:absolute; top:8px; right:10px; font-size:0.6em; '
-        f'font-weight:700; letter-spacing:.04em; color:white; background:{badge_col}; '
-        f'padding:1px 6px; border-radius:3px;">{badge_txt}</span>'
+        f'<span style="position:absolute; top:8px; right:10px; font-family:\'IBM Plex Mono\',monospace; '
+        f'font-size:0.6em; font-weight:600; letter-spacing:.05em; color:white; background:{badge_col}; '
+        f'padding:2px 7px; border-radius:999px;">{badge_txt}</span>'
         if badge_txt else ""
     )
     return f"""
     <div title="{tooltip}" style="
         position:relative; background:{bg}; border-left:4px solid {color};
-        border-radius:6px; padding:10px 14px; margin-bottom:6px;
-        min-height:82px;">
+        border-radius:10px; padding:12px 14px; margin-bottom:8px;
+        min-height:86px; box-shadow:0 1px 2px rgba(20,30,28,.05);">
       {badge_html}
-      <p style="margin:0 20px 4px 0; font-size:0.72em; color:#555; line-height:1.3;">{label}</p>
-      <p style="margin:0 0 2px 0; font-size:1.3em; font-weight:700; color:{color};">{value}</p>
-      <p style="margin:0; font-size:0.68em; color:#777;">{unit}</p>
+      <p style="margin:0 20px 5px 0; font-family:'Public Sans',sans-serif; font-size:0.72em; color:#5E6A6A; line-height:1.3;">{label}</p>
+      <p style="margin:0 0 2px 0; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:1.28em; font-weight:600; color:{color};">{value}</p>
+      <p style="margin:0; font-family:'Public Sans',sans-serif; font-size:0.68em; color:#8A9494;">{unit}</p>
     </div>"""
 
 
@@ -165,9 +212,9 @@ for lvl in (1, 2, 3, 4):
     # Band header
     st.markdown(
         f"""<div style="background:{bg}; border-left:6px solid {color};
-                        padding:10px 18px; border-radius:5px; margin:18px 0 10px 0;">
-            <span style="font-size:1.05em; font-weight:700; color:{color};">{band['title']}</span><br>
-            <span style="font-size:0.75em; color:#666;">{band['sub']}</span>
+                        padding:12px 18px; border-radius:8px; margin:20px 0 12px 0;">
+            <span style="font-family:'Fraunces',Georgia,serif; font-size:1.1em; font-weight:600; color:{color};">{band['title']}</span><br>
+            <span style="font-family:'Public Sans',sans-serif; font-size:0.75em; color:#5E6A6A;">{band['sub']}</span>
             </div>""",
         unsafe_allow_html=True,
     )
@@ -254,7 +301,10 @@ for name, val, col in zip(pillar_names, pillar_usd_m, PILLAR_COLORS):
 
 fig.update_layout(
     barmode="stack",
-    title=dict(text=f"SAWA Programme Budget — USD {total_m:.2f}M total", font_size=14),
+    title=dict(
+        text=f"SAWA Programme Budget — USD {total_m:.2f}M total",
+        font=dict(family="Fraunces, Georgia, serif", size=15, color="#16262E"),
+    ),
     height=175,
     margin=dict(l=0, r=0, t=40, b=70),
     xaxis=dict(title="USD Million", showgrid=True, gridcolor="#eee"),
@@ -262,7 +312,7 @@ fig.update_layout(
     legend=dict(orientation="h", y=-1.1, x=0),
     plot_bgcolor="rgba(0,0,0,0)",
     paper_bgcolor="rgba(0,0,0,0)",
-    font=dict(size=11),
+    font=dict(family="IBM Plex Mono, monospace", size=11, color="#5E6A6A"),
 )
 st.plotly_chart(fig, use_container_width=True)
 
@@ -275,22 +325,22 @@ st.caption("Source: CEL SAWA proposal (Value Chain Pathway & Job Roles slide, Ju
 rc1, rc2, rc3 = st.columns(3)
 with rc1:
     st.markdown(
-        '<div style="background:#E8F5E9;border-left:4px solid #2E7D32;'
-        'border-radius:6px;padding:12px 16px;">'
-        '<p style="margin:0 0 6px 0;font-weight:bold;color:#2E7D32;">Jobs Target</p>'
-        '<p style="margin:0;font-size:1.3em;font-weight:700;color:#1B5E20;">600 D&amp;F</p>'
-        '<p style="margin:0;font-size:0.78em;color:#555;">Displaced &amp; Female participants</p>'
-        '<p style="margin:8px 0 0 0;font-size:1.3em;font-weight:700;color:#1B5E20;">800 YiW</p>'
-        '<p style="margin:0;font-size:0.78em;color:#555;">Youth in Work</p>'
+        '<div style="background:#E7F3F1;border-left:4px solid #1E7E76;'
+        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#1E7E76;">Jobs Target</p>'
+        '<p style="margin:0;font-family:\'IBM Plex Mono\',monospace;font-size:1.28em;font-weight:600;color:#125650;">600 D&amp;F</p>'
+        '<p style="margin:0;font-size:0.78em;color:#5E6A6A;">Displaced &amp; Female participants</p>'
+        '<p style="margin:8px 0 0 0;font-family:\'IBM Plex Mono\',monospace;font-size:1.28em;font-weight:600;color:#125650;">800 YiW</p>'
+        '<p style="margin:0;font-size:0.78em;color:#5E6A6A;">Youth in Work</p>'
         '</div>',
         unsafe_allow_html=True,
     )
 with rc2:
     st.markdown(
-        '<div style="background:#FFF8E1;border-left:4px solid #E65100;'
-        'border-radius:6px;padding:12px 16px;">'
-        '<p style="margin:0 0 6px 0;font-weight:bold;color:#E65100;">CEL Delivers</p>'
-        '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#444;">'
+        '<div style="background:#FBEEE3;border-left:4px solid #B96A2E;'
+        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#B96A2E;">CEL Delivers</p>'
+        '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#3A2E24;">'
         '<li>BDS support at Grow-Out stage</li>'
         '<li>Training delivery at Hatchery stage</li>'
         '<li>Entrepreneurship &amp; business skills training (Fry→Juvenile)</li>'
@@ -302,10 +352,10 @@ with rc2:
     )
 with rc3:
     st.markdown(
-        '<div style="background:#E3F2FD;border-left:4px solid #1565C0;'
-        'border-radius:6px;padding:12px 16px;">'
-        '<p style="margin:0 0 6px 0;font-weight:bold;color:#1565C0;">National Mandate</p>'
-        '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#444;">'
+        '<div style="background:#E9F1EC;border-left:4px solid #4A6B5C;'
+        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#4A6B5C;">National Mandate</p>'
+        '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#28362F;">'
         '<li>Enterprise training (national)</li>'
         '<li>Safeguarding focal point across all IPs</li>'
         '<li>Women in Aquaculture Network (WAN) establishment</li>'
@@ -325,12 +375,14 @@ st.caption("Source: SAWA Partner Roles & Expectations slide — defines the mutu
 pe1, pe2 = st.columns(2)
 with pe1:
     st.markdown(
-        '<div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:6px;overflow:hidden;">'
-        '<div style="background:#BF360C;padding:8px 14px;">'
-        '<p style="margin:0;color:white;font-weight:bold;font-size:0.9em;">WHAT SAWA / AGRI-IMPACT PROVIDES</p>'
+        '<div style="background:#FFFFFF;border:1px solid #DED7C6;border-radius:10px;overflow:hidden;'
+        'box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+        '<div style="background:#1E7E76;padding:8px 14px;">'
+        '<p style="margin:0;color:white;font-family:\'IBM Plex Mono\',monospace;font-weight:600;'
+        'letter-spacing:.03em;font-size:0.8em;">WHAT SAWA / AGRI-IMPACT PROVIDES</p>'
         '</div>'
         '<div style="padding:12px 16px;">'
-        '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#222;">'
+        '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#16262E;">'
         '<li>Funding and resource mobilisation</li>'
         '<li>Program management and coordination</li>'
         '<li>Training and capacity building support</li>'
@@ -344,12 +396,14 @@ with pe1:
     )
 with pe2:
     st.markdown(
-        '<div style="background:#E3F2FD;border:1px solid #90CAF9;border-radius:6px;overflow:hidden;">'
-        '<div style="background:#BF360C;padding:8px 14px;">'
-        '<p style="margin:0;color:white;font-weight:bold;font-size:0.9em;">WHAT IMPLEMENTING PARTNERS COMMIT TO</p>'
+        '<div style="background:#FFFFFF;border:1px solid #DED7C6;border-radius:10px;overflow:hidden;'
+        'box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+        '<div style="background:#B96A2E;padding:8px 14px;">'
+        '<p style="margin:0;color:white;font-family:\'IBM Plex Mono\',monospace;font-weight:600;'
+        'letter-spacing:.03em;font-size:0.8em;">WHAT IMPLEMENTING PARTNERS COMMIT TO</p>'
         '</div>'
         '<div style="padding:12px 16px;">'
-        '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#222;">'
+        '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#16262E;">'
         '<li>Infrastructure and facility access</li>'
         '<li>Technical expertise and last-mile delivery</li>'
         '<li>Participant recruitment and mobilisation</li>'

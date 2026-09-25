@@ -10,7 +10,6 @@ PROJECT = {
 
 # ── Partners ──────────────────────────────────────────────────────────────────
 PARTNERS = [
-    {"name": "R&B Farms",          "role": "Anchor Partner", "tier": "Anchor"},
     {"name": "AgroKings",          "role": "Anchor Partner", "tier": "Anchor"},
     {"name": "Yedent/Naple Betta", "role": "Anchor Partner", "tier": "Anchor"},
     {"name": "Aglow Farms",        "role": "Anchor Partner", "tier": "Anchor"},
@@ -22,7 +21,6 @@ PARTNERS = [
 # partner_name=None → Level 2/3/4 (programme-wide, no single partner).
 PARTNER_TARGETS = [
     # ── Level 1: Anchor Partner Commitments (source: SAWA Proposal, 28 Nov 2025)
-    {"partner_name": "R&B Farms",          "level": 1, "metric_label": "Young women & PWDs",     "target_value": "7,000",   "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
     {"partner_name": "AgroKings",          "level": 1, "metric_label": "Young women & PWDs",     "target_value": "14,000",  "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
     {"partner_name": "Yedent/Naple Betta", "level": 1, "metric_label": "Jobs",                   "target_value": "6,000",   "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
     {"partner_name": "Yedent/Naple Betta", "level": 1, "metric_label": "SME graduates",          "target_value": "800",     "unit": "graduates",     "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
