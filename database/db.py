@@ -26,7 +26,15 @@ def _database_url() -> str:
         secret_url = st.secrets.get("DATABASE_URL")
     except Exception:
         secret_url = None
-    return secret_url or os.environ.get("DATABASE_URL") or f"sqlite:///{DB_PATH}"
+    url = secret_url or os.environ.get("DATABASE_URL") or f"sqlite:///{DB_PATH}"
+    # Force the psycopg (v3) driver explicitly rather than relying on
+    # SQLAlchemy's default dialect choice for a bare "postgresql://" URL.
+    # psycopg2 has no prebuilt wheel on newer Python versions (e.g. the
+    # 3.14 Streamlit Cloud now runs), which surfaced as a
+    # ModuleNotFoundError at create_engine() on the live site.
+    if url.startswith("postgresql://"):
+        url = "postgresql+psycopg://" + url[len("postgresql://"):]
+    return url
 
 
 DATABASE_URL = _database_url()
