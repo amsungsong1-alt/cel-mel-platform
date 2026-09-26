@@ -11,7 +11,7 @@ from pathlib import Path
 import os
 import sqlite3
 import streamlit as st
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.pool import NullPool
 
 from utils.fiscal_calendar import current_fiscal_year
@@ -46,29 +46,32 @@ IS_POSTGRES = DATABASE_URL.startswith("postgresql")
 def get_engine():
     """Return a cached SQLAlchemy engine (one per Streamlit process)."""
     if IS_POSTGRES:
-        # NullPool + prepare_threshold=0: belt-and-suspenders against the
-        # "prepared statement _pg3_N does/already not exist" errors that arise
-        # when Supabase's PgBouncer (transaction-pooling mode) assigns a
-        # different backend session to each transaction.  Prepared statements
-        # are session-scoped in Postgres, so any pooling causes a mismatch
-        # between what psycopg3 thinks is prepared and what the backend knows.
-        #
-        # NullPool creates a fresh TCP connection for every engine.begin() /
-        # engine.connect() call and closes it immediately on exit.  There is
-        # no connection reuse, so there is no prepared-statement lifecycle.
-        # prepare_threshold=0 tells psycopg3 never to auto-prepare as a
-        # second line of defence in case the pool setting doesn't apply.
-        engine = create_engine(
-            DATABASE_URL,
-            poolclass=NullPool,
-            connect_args={"prepare_threshold": 0},
-        )
-    else:
-        engine = create_engine(
-            DATABASE_URL,
-            connect_args={"check_same_thread": False},
-        )
-    return engine
+        # NullPool: every engine.begin()/engine.connect() call opens a fresh
+        # TCP connection and closes it on exit.  No connection reuse means no
+        # prepared-statement lifecycle collisions from Supabase's PgBouncer
+        # (which operates in transaction-pooling mode and may hand different
+        # backend sessions to consecutive calls, making session-scoped
+        # prepared statements invisible across those calls).
+        engine = create_engine(DATABASE_URL, poolclass=NullPool)
+
+        # psycopg3 semantics for prepare_threshold:
+        #   None → never auto-prepare  (what we want)
+        #   0    → prepare on every first execution
+        #   N    → prepare after N executions (default 5)
+        # SQLAlchemy strips None from connect_args before passing to the
+        # driver, so we cannot pass it that way.  A "connect" event listener
+        # sets the attribute directly on the psycopg3 Connection object after
+        # creation — this is the only reliable path.
+        @event.listens_for(engine, "connect")
+        def _disable_auto_prepare(dbapi_conn, _):
+            dbapi_conn.prepare_threshold = None
+
+        return engine
+
+    return create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+    )
 
 
 def get_connection():
