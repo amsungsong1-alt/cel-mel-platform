@@ -12,6 +12,7 @@ import os
 import sqlite3
 import streamlit as st
 from sqlalchemy import create_engine, text
+from sqlalchemy.pool import NullPool
 
 from utils.fiscal_calendar import current_fiscal_year
 
@@ -45,17 +46,28 @@ IS_POSTGRES = DATABASE_URL.startswith("postgresql")
 def get_engine():
     """Return a cached SQLAlchemy engine (one per Streamlit process)."""
     if IS_POSTGRES:
-        # prepare_threshold=0 disables psycopg3's automatic server-side
-        # prepared-statement cache entirely (None means "prepare immediately",
-        # 0 means "never prepare").  Without this, SQLAlchemy's connection pool
-        # recycles connections across requests; Postgres backend sessions retain
-        # their prepared statements, so a recycled connection either can't find
-        # a statement prepared elsewhere ("does not exist") or tries to prepare
-        # one that's already there ("already exists").
-        connect_args = {"prepare_threshold": 0}
+        # NullPool + prepare_threshold=0: belt-and-suspenders against the
+        # "prepared statement _pg3_N does/already not exist" errors that arise
+        # when Supabase's PgBouncer (transaction-pooling mode) assigns a
+        # different backend session to each transaction.  Prepared statements
+        # are session-scoped in Postgres, so any pooling causes a mismatch
+        # between what psycopg3 thinks is prepared and what the backend knows.
+        #
+        # NullPool creates a fresh TCP connection for every engine.begin() /
+        # engine.connect() call and closes it immediately on exit.  There is
+        # no connection reuse, so there is no prepared-statement lifecycle.
+        # prepare_threshold=0 tells psycopg3 never to auto-prepare as a
+        # second line of defence in case the pool setting doesn't apply.
+        engine = create_engine(
+            DATABASE_URL,
+            poolclass=NullPool,
+            connect_args={"prepare_threshold": 0},
+        )
     else:
-        connect_args = {"check_same_thread": False}
-    engine = create_engine(DATABASE_URL, connect_args=connect_args)
+        engine = create_engine(
+            DATABASE_URL,
+            connect_args={"check_same_thread": False},
+        )
     return engine
 
 
