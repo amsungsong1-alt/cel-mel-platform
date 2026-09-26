@@ -172,6 +172,29 @@ def _run_migrations() -> bool:
                   AND time_basis = 'Year 1'
                   AND target_value <> '500'
             """))
+            # Rename Level 2 Year 1 metric labels and units to match revised workplan.
+            conn.execute(text("""
+                UPDATE partner_targets
+                SET metric_label = 'Women in coaching & mentorship (gender, financial and digital literacy)'
+                WHERE metric_label = 'Women in coaching & mentoring'
+                  AND level = 2 AND time_basis = 'Year 1'
+            """))
+            conn.execute(text("""
+                UPDATE partner_targets
+                SET metric_label = 'WAN forum engagements (awareness campaigns/road shows, institutionalize occupational health standards)',
+                    unit         = 'campaigns/roadshows, sites/partners covered'
+                WHERE metric_label = 'WAN forum engagements'
+                  AND level = 2 AND time_basis = 'Year 1'
+            """))
+            conn.execute(text("""
+                UPDATE partner_targets
+                SET metric_label = 'Women-led cooperatives/clusters strengthened (focal persons on GALS & EMAP)',
+                    unit         = 'focal persons on cooperatives'
+                WHERE metric_label IN ('Women-led groups strengthened',
+                                       'Women-led cooperatives/clusters strengthened (focal persons on GALS & EMAP)')
+                  AND level = 2 AND time_basis = 'Year 1'
+                  AND unit <> 'focal persons on cooperatives'
+            """))
         return True
 
     schema = SCHEMA_PATH.read_text()
