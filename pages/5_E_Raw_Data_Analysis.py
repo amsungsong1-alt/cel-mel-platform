@@ -317,10 +317,13 @@ filtered = [
 st.caption(f"Showing **{len(filtered)}** of **{len(rda_rows)}** indicators.")
 
 # ── Build display DataFrame ───────────────────────────────────────────────────
-Q1_LABEL, Q2_LABEL, Q3_LABEL, Q4_LABEL, YEAR_LABEL = (
-    f"Q1 {selected_year}", f"Q2 {selected_year}", f"Q3 {selected_year}",
-    f"Q4 {selected_year}", f"Year {selected_year}",
-)
+# Quarter labels reflect CEL's Jul–Jun fiscal year structure (slide 15, CEL's contribution to SAWA Sep 2026)
+_sy, _ey = selected_year % 100, (selected_year + 1) % 100
+Q1_LABEL   = f"Q1 Jul–Sep {_sy:02d}"
+Q2_LABEL   = f"Q2 Oct–Dec {_sy:02d}"
+Q3_LABEL   = f"Q3 Jan–Mar {_ey:02d}"
+Q4_LABEL   = f"Q4 Apr–Jun {_ey:02d}"
+YEAR_LABEL = f"FY{selected_year} Total"
 _DISPLAY_COLS = {
     "Code":               "indicator_code",
     "Level":              "result_level",
@@ -555,8 +558,8 @@ if suggestions:
 # ── Data completeness expander ────────────────────────────────────────────────
 with st.expander("📊 Data completeness summary"):
     st.caption(
-        f"Shows which FY{selected_year} Q1–Q4 cells have data entered "
-        "(across all indicators, unfiltered)."
+        f"CEL FY{selected_year} ({Q1_LABEL} · {Q2_LABEL} · {Q3_LABEL} · {Q4_LABEL}). "
+        "Shows which cells have data entered across all indicators (unfiltered)."
     )
     total = len(rda_rows)
     q_cols = [(Q1_LABEL, "actual_q1"), (Q2_LABEL, "actual_q2"),

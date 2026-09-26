@@ -9,57 +9,96 @@ PROJECT = {
 }
 
 # ── Partners ──────────────────────────────────────────────────────────────────
+# Source: CEL's contribution to SAWA (Sep 2026) slides 02, 08-10.
 PARTNERS = [
-    {"name": "AgroKings",          "role": "Anchor Partner", "tier": "Anchor"},
-    {"name": "Yedent/Naple Betta", "role": "Anchor Partner", "tier": "Anchor"},
-    {"name": "Aglow Farms",        "role": "Anchor Partner", "tier": "Anchor"},
-    {"name": "NewAge Agric",       "role": "Anchor Partner", "tier": "Anchor"},
-    {"name": "AFRIGEM Global LBG", "role": "Anchor Partner", "tier": "Anchor"},
+    # ── Anchor Partners — production delivery ─────────────────────────────────
+    {"name": "R&B Farms",
+     "role": "Anchor Partner",
+     "tier": "Anchor"},
+    {"name": "AFRIGEM",
+     "role": "Anchor Partner — anchors, mentors and peer circles",
+     "tier": "Anchor"},
+    {"name": "AgroKings",
+     "role": "Anchor Partner — AquaRise groups and resident trainers",
+     "tier": "Anchor"},
+    {"name": "Naple Betta",
+     "role": "Anchor Partner — production hubs, processors and women-led grill outlets",
+     "tier": "Anchor"},
+    {"name": "Aglow Aqua",
+     "role": "Anchor Partner — community clusters and cooperatives",
+     "tier": "Anchor"},
+    {"name": "NewAge Agric",
+     "role": "Anchor Partner — Adwenepa hubs, Urban/Rural Blue and Aqua Professionals",
+     "tier": "Anchor"},
+    # ── Lead Implementing Partner ──────────────────────────────────────────────
+    {"name": "Agri-Impact Ltd (AIL)",
+     "role": "Lead Implementing Partner — programme management and advocacy coordination",
+     "tier": "Implementing"},
+    # ── Technical Partners ─────────────────────────────────────────────────────
+    {"name": "TechnoServe",
+     "role": "Technical Partner — programme finance eligibility assessment",
+     "tier": "Technical"},
+    {"name": "Fisheries Commission",
+     "role": "Technical Partner — regulatory guidance, compliance clinics and referrals",
+     "tier": "Technical"},
+    {"name": "CSIR",
+     "role": "Technical Partner — product development, processing quality and value addition",
+     "tier": "Technical"},
+    {"name": "e-SAWA/KNUST",
+     "role": "Technical Partner — SAWAtech digital tools, SAWA Voices and e-SAWA platform",
+     "tier": "Technical"},
 ]
 
 # ── Module A — Partner Target Funnel ──────────────────────────────────────────
 # partner_name=None → Level 2/3/4 (programme-wide, no single partner).
 PARTNER_TARGETS = [
     # ── Level 1: Anchor Partner Commitments (source: SAWA Proposal, 28 Nov 2025)
-    {"partner_name": "AgroKings",          "level": 1, "metric_label": "Young women & PWDs",     "target_value": "14,000",  "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
-    {"partner_name": "Yedent/Naple Betta", "level": 1, "metric_label": "Jobs",                   "target_value": "6,000",   "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
-    {"partner_name": "Yedent/Naple Betta", "level": 1, "metric_label": "SME graduates",          "target_value": "800",     "unit": "graduates",     "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
-    {"partner_name": "Aglow Farms",        "level": 1, "metric_label": "Young women",            "target_value": "3,000",   "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
-    {"partner_name": "NewAge Agric",       "level": 1, "metric_label": "Production jobs",        "target_value": "5,000",   "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
-    {"partner_name": "NewAge Agric",       "level": 1, "metric_label": "Processing jobs",        "target_value": "1,000",   "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
-    {"partner_name": "Yedent/Naple Betta", "level": 1, "metric_label": "Young women empowered", "target_value": "8,000",  "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
+    # ── Life-of-programme targets (source: SAWA Proposal, 28 Nov 2025 + CEL deck Sep 2026)
+    {"partner_name": "R&B Farms",    "level": 1, "metric_label": "Young women & PWDs",  "target_value": "7,000",  "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
+    {"partner_name": "AFRIGEM",      "level": 1, "metric_label": "Women mentored (peer circles)", "target_value": "TBC", "unit": "participants", "time_basis": "Life of programme", "source_doc": "CEL's contribution to SAWA (Sep 2026)", "source_page": "08"},
+    {"partner_name": "AgroKings",    "level": 1, "metric_label": "Young women & PWDs",  "target_value": "14,000", "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
+    {"partner_name": "Naple Betta",  "level": 1, "metric_label": "Jobs",                "target_value": "6,000",  "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
+    {"partner_name": "Naple Betta",  "level": 1, "metric_label": "SME graduates",       "target_value": "800",    "unit": "graduates",     "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
+    {"partner_name": "Naple Betta",  "level": 1, "metric_label": "Young women empowered", "target_value": "8,000", "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
+    {"partner_name": "Aglow Aqua",   "level": 1, "metric_label": "Young women",         "target_value": "3,000",  "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
+    {"partner_name": "NewAge Agric", "level": 1, "metric_label": "Production jobs",     "target_value": "5,000",  "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
+    {"partner_name": "NewAge Agric", "level": 1, "metric_label": "Processing jobs",     "target_value": "1,000",  "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
+    {"partner_name": "TechnoServe",  "level": 1, "metric_label": "Finance applications assessed", "target_value": "TBC", "unit": "applications", "time_basis": "Annual",     "source_doc": "CEL's contribution to SAWA (Sep 2026)", "source_page": "06"},
 
     # ── Level 1, Year 1 basis: confirmed partner Year 1 implementation plans
     # (source: partner Year 1 decks presented to AIL, Sep 2026 — NOT the same
     # time basis as the Life-of-Programme rows above; see the time-basis
     # warning banner and each card's "YR 1" badge before comparing the two.)
-    {"partner_name": "AgroKings",          "level": 1, "metric_label": "Young women",           "target_value": "2,650",   "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AgroKings SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "AgroKings",          "level": 1, "metric_label": "Group enterprises",     "target_value": "800",     "unit": "enterprises",   "time_basis": "Year 1", "source_doc": "AgroKings SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "AgroKings",          "level": 1, "metric_label": "Operational roles",     "target_value": "400",     "unit": "roles",         "time_basis": "Year 1", "source_doc": "AgroKings SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "AgroKings",          "level": 1, "metric_label": "PWD reached",           "target_value": "170",    "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AgroKings SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "Yedent/Naple Betta", "level": 1, "metric_label": "Young women mobilised", "target_value": "1,850",  "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "Yedent/Naple Betta", "level": 1, "metric_label": "Young women in work",   "target_value": "1,712",  "unit": "YiW",           "time_basis": "Year 1", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "Yedent/Naple Betta", "level": 1, "metric_label": "PWD in D&F work",       "target_value": "15",     "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "Aglow Farms",        "level": 1, "metric_label": "Beneficiaries",         "target_value": "1,200",  "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "Aglow Farms",        "level": 1, "metric_label": "PWD reached",           "target_value": "45",     "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "AFRIGEM Global LBG", "level": 1, "metric_label": "Young women",           "target_value": "1,000",  "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AFRIGEM Global LBG SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "AFRIGEM Global LBG", "level": 1, "metric_label": "PWD reached",           "target_value": "50",     "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AFRIGEM Global LBG SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
+    {"partner_name": "AgroKings",   "level": 1, "metric_label": "Young women",           "target_value": "2,650", "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AgroKings SAWA Year 1 Implementation Plan, Sep 2026",   "source_page": ""},
+    {"partner_name": "AgroKings",   "level": 1, "metric_label": "Group enterprises",     "target_value": "800",   "unit": "enterprises",   "time_basis": "Year 1", "source_doc": "AgroKings SAWA Year 1 Implementation Plan, Sep 2026",   "source_page": ""},
+    {"partner_name": "AgroKings",   "level": 1, "metric_label": "Operational roles",     "target_value": "400",   "unit": "roles",         "time_basis": "Year 1", "source_doc": "AgroKings SAWA Year 1 Implementation Plan, Sep 2026",   "source_page": ""},
+    {"partner_name": "AgroKings",   "level": 1, "metric_label": "PWD reached",           "target_value": "170",   "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AgroKings SAWA Year 1 Implementation Plan, Sep 2026",   "source_page": ""},
+    {"partner_name": "Naple Betta", "level": 1, "metric_label": "Young women mobilised", "target_value": "1,850", "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
+    {"partner_name": "Naple Betta", "level": 1, "metric_label": "Young women in work",   "target_value": "1,712", "unit": "YiW",           "time_basis": "Year 1", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
+    {"partner_name": "Naple Betta", "level": 1, "metric_label": "PWD in D&F work",       "target_value": "15",    "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
+    {"partner_name": "Aglow Aqua",  "level": 1, "metric_label": "Beneficiaries",         "target_value": "1,200", "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026",  "source_page": ""},
+    {"partner_name": "Aglow Aqua",  "level": 1, "metric_label": "PWD reached",           "target_value": "45",    "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026",  "source_page": ""},
+    {"partner_name": "AFRIGEM",     "level": 1, "metric_label": "Young women",           "target_value": "1,000", "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",      "source_page": ""},
+    {"partner_name": "AFRIGEM",     "level": 1, "metric_label": "PWD reached",           "target_value": "50",    "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",      "source_page": ""},
 
-    # ── Level 2: CEL Year 1 Delivery (source: CEL Year 1 Consolidated Workplan)
-    {"partner_name": None, "level": 2, "metric_label": "Youth mobilised",               "target_value": "500", "unit": "youth",        "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 2, "metric_label": "BDS trained",                   "target_value": "500", "unit": "participants", "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 2, "metric_label": "Cooperative frameworks",         "target_value": "25",  "unit": "cooperatives", "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 2, "metric_label": "Gender-transformative trained", "target_value": "500", "unit": "participants", "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 2, "metric_label": "Safeguarding trained",          "target_value": "500", "unit": "participants", "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 2, "metric_label": "PWD mentors identified",        "target_value": "8",   "unit": "mentors",      "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
+    # ── Level 2: CEL Year 1 Delivery — Jul 2026–Jun 2027 ─────────────────────
+    # Sources: CEL Year 1 Consolidated Workplan + CEL's contribution to SAWA (Sep 2026) p.16
+    {"partner_name": None, "level": 2, "metric_label": "Youth mobilised",                "target_value": "500",   "unit": "youth",        "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan",         "source_page": ""},
+    {"partner_name": None, "level": 2, "metric_label": "Women receiving BDS",            "target_value": "500",   "unit": "participants", "time_basis": "Year 1", "source_doc": "CEL's contribution to SAWA (Sep 2026)",    "source_page": "16"},
+    {"partner_name": None, "level": 2, "metric_label": "Women in coaching & mentoring",  "target_value": "~2,000","unit": "participants", "time_basis": "Year 1", "source_doc": "CEL's contribution to SAWA (Sep 2026)",    "source_page": "05"},
+    {"partner_name": None, "level": 2, "metric_label": "WAN forum engagements",          "target_value": "500",   "unit": "engagements",  "time_basis": "Year 1", "source_doc": "CEL's contribution to SAWA (Sep 2026)",    "source_page": "16"},
+    {"partner_name": None, "level": 2, "metric_label": "Women-led groups strengthened",  "target_value": "25",    "unit": "cooperatives", "time_basis": "Year 1", "source_doc": "CEL's contribution to SAWA (Sep 2026)",    "source_page": "16"},
+    {"partner_name": None, "level": 2, "metric_label": "Gender-transformative trained",  "target_value": "500",   "unit": "participants", "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan",         "source_page": ""},
+    {"partner_name": None, "level": 2, "metric_label": "Safeguarding trained",           "target_value": "500",   "unit": "participants", "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan",         "source_page": ""},
+    {"partner_name": None, "level": 2, "metric_label": "PWD mentors identified",         "target_value": "8",     "unit": "mentors",      "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan",         "source_page": ""},
 
-    # ── Level 3: Year 1 Results (source: CEL Year 1 Consolidated Workplan)
-    {"partner_name": None, "level": 3, "metric_label": "Plll.R1  D&F jobs (value addition)",       "target_value": "100",     "unit": "jobs",    "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 3, "metric_label": "Pll.R5   D&F jobs (PWD, programme-wide)",  "target_value": "8",       "unit": "jobs",    "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 3, "metric_label": "Pll.R6   Fish produced by PWDs in D&F",   "target_value": "9.26",    "unit": "MT",      "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 3, "metric_label": "Pll.R7   Revenue, PWDs in D&F",           "target_value": "16,667",  "unit": "USD",     "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 3, "metric_label": "Plll.R2  Fish produced/traded",           "target_value": "115.74",  "unit": "MT",      "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
-    {"partner_name": None, "level": 3, "metric_label": "Plll.R3  Revenue, value-added trading",   "target_value": "208,333", "unit": "USD",     "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan", "source_page": ""},
+    # ── Level 3: Year 1 Results
+    {"partner_name": None, "level": 3, "metric_label": "PIII.R1  D&F jobs (value addition)",       "target_value": "100",     "unit": "jobs",    "time_basis": "Year 1", "source_doc": "CEL's contribution to SAWA (Sep 2026)",    "source_page": "16"},
+    {"partner_name": None, "level": 3, "metric_label": "PII.R5   D&F jobs (PWD, programme-wide)",  "target_value": "8",       "unit": "jobs",    "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan",         "source_page": ""},
+    {"partner_name": None, "level": 3, "metric_label": "PII.R6   Fish produced by PWDs in D&F",    "target_value": "9 MT",    "unit": "MT",      "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan",         "source_page": ""},
+    {"partner_name": None, "level": 3, "metric_label": "PII.R7   Revenue, PWDs in D&F",            "target_value": "16,667",  "unit": "USD",     "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan",         "source_page": ""},
+    {"partner_name": None, "level": 3, "metric_label": "PIII.R2  Fish produced/traded",            "target_value": "115.74",  "unit": "MT",      "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan",         "source_page": ""},
+    {"partner_name": None, "level": 3, "metric_label": "PIII.R3  Revenue, value-added trading",    "target_value": "208,333", "unit": "USD",     "time_basis": "Year 1", "source_doc": "CEL Year 1 Consolidated Workplan",         "source_page": ""},
 
     # ── Level 4: Programme Impact (source: SAWA Proposal, 28 Nov 2025)
     {"partner_name": None, "level": 4, "metric_label": "Young women & PWDs into D&F work",  "target_value": "60,000+", "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025", "source_page": ""},
