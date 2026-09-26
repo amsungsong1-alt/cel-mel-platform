@@ -51,14 +51,8 @@ _needs_seed = (
         "SELECT 1 FROM toc_nodes WHERE statement LIKE '%climate-resilient%' LIMIT 1",
         {},
     )
-    or run_query(
-        # stale: old partner names (pre-CEL deck Sep 2026)
-        # 'Aglow Farms' renamed to 'Aglow Aqua'; 'Yedent/Naple Betta' to 'Naple Betta';
-        # AFRIGEM, TechnoServe, Fisheries Commission, CSIR, e-SAWA/KNUST, AIL missing
-        "SELECT 1 FROM partners WHERE name IN ('Aglow Farms','Yedent/Naple Betta') LIMIT 1",
-        {},
-    )
     or not run_query(
+        # stale: new partners not yet seeded (AFRIGEM is the sentinel)
         "SELECT 1 FROM partners WHERE name = 'AFRIGEM' LIMIT 1",
         {},
     )

@@ -52,7 +52,15 @@ def seed():
                 {**partner, "project_id": project_id},
             )
             partner_id_map[partner["name"]] = pid
-    print(f"Partners: {len(partner_id_map)} ready.")
+    # Remove any partners whose names were retired in previous seed versions so
+    # that _needs_seed checks stay stable after a reseed.  Cascades to their
+    # partner_targets rows automatically via the FK ON DELETE CASCADE.
+    for _retired in ("Aglow Farms", "Yedent/Naple Betta", "AFRIGEM Global LBG", "R&B Farms"):
+        run_write(
+            "DELETE FROM partners WHERE project_id=:pid AND name=:name",
+            {"pid": project_id, "name": _retired},
+        )
+    print(f"Partners: {len(partner_id_map)} ready (retired names purged).")
 
     # ── Partner targets ───────────────────────────────────────────────────────
     run_write("DELETE FROM partner_targets WHERE project_id = :pid", {"pid": project_id})

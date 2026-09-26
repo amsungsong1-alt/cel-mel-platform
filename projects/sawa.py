@@ -12,9 +12,6 @@ PROJECT = {
 # Source: CEL's contribution to SAWA (Sep 2026) slides 02, 08-10.
 PARTNERS = [
     # ── Anchor Partners — production delivery ─────────────────────────────────
-    {"name": "R&B Farms",
-     "role": "Anchor Partner",
-     "tier": "Anchor"},
     {"name": "AFRIGEM",
      "role": "Anchor Partner — anchors, mentors and peer circles",
      "tier": "Anchor"},
@@ -54,7 +51,6 @@ PARTNERS = [
 PARTNER_TARGETS = [
     # ── Level 1: Anchor Partner Commitments (source: SAWA Proposal, 28 Nov 2025)
     # ── Life-of-programme targets (source: SAWA Proposal, 28 Nov 2025 + CEL deck Sep 2026)
-    {"partner_name": "R&B Farms",    "level": 1, "metric_label": "Young women & PWDs",  "target_value": "7,000",  "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
     {"partner_name": "AFRIGEM",      "level": 1, "metric_label": "Women mentored (peer circles)", "target_value": "TBC", "unit": "participants", "time_basis": "Life of programme", "source_doc": "CEL's contribution to SAWA (Sep 2026)", "source_page": "08"},
     {"partner_name": "AgroKings",    "level": 1, "metric_label": "Young women & PWDs",  "target_value": "14,000", "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
     {"partner_name": "Naple Betta",  "level": 1, "metric_label": "Jobs",                "target_value": "6,000",  "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},

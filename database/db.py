@@ -125,6 +125,45 @@ def _run_migrations() -> bool:
                 text("UPDATE raw_data_analysis SET reporting_year=:yr WHERE reporting_year IS NULL"),
                 {"yr": current_fiscal_year()},
             )
+            # One-time cleanup: retire old partner names and their cascaded
+            # partner_targets (left over from pre-Sep-2026-deck seed versions
+            # that were never purged, causing _needs_seed to fire on every load
+            # and concurrent reseeds to produce duplicate partner_target rows).
+            for _retired in (
+                "Aglow Farms", "Yedent/Naple Betta", "AFRIGEM Global LBG", "R&B Farms",
+            ):
+                conn.execute(
+                    text("DELETE FROM partners WHERE name = :n"), {"n": _retired}
+                )
+            # Dedup any surviving partner_targets rows (keep lowest id per
+            # logical key) that may have been double-inserted during the
+            # concurrent-reseed window.
+            conn.execute(text("""
+                DELETE FROM partner_targets a
+                USING partner_targets b
+                WHERE a.id > b.id
+                  AND a.project_id = b.project_id
+                  AND a.level = b.level
+                  AND a.metric_label = b.metric_label
+                  AND COALESCE(a.partner_id, -1) = COALESCE(b.partner_id, -1)
+                  AND COALESCE(a.time_basis, '') = COALESCE(b.time_basis, '')
+            """))
+            # Remove decision_reports/actions whose logframe_row_id no longer
+            # exists (left by a concurrent reseed where one process deleted
+            # logframe_rows that another process had used for its FK inserts).
+            conn.execute(text("""
+                DELETE FROM decision_actions
+                WHERE report_id IN (
+                    SELECT id FROM decision_reports
+                    WHERE logframe_row_id IS NOT NULL
+                      AND logframe_row_id NOT IN (SELECT id FROM logframe_rows)
+                )
+            """))
+            conn.execute(text("""
+                DELETE FROM decision_reports
+                WHERE logframe_row_id IS NOT NULL
+                  AND logframe_row_id NOT IN (SELECT id FROM logframe_rows)
+            """))
         return True
 
     schema = SCHEMA_PATH.read_text()
