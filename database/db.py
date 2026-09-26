@@ -44,7 +44,15 @@ IS_POSTGRES = DATABASE_URL.startswith("postgresql")
 @st.cache_resource
 def get_engine():
     """Return a cached SQLAlchemy engine (one per Streamlit process)."""
-    connect_args = {} if IS_POSTGRES else {"check_same_thread": False}
+    if IS_POSTGRES:
+        # prepare_threshold=None disables psycopg3's automatic server-side
+        # prepared-statement cache.  Without this, SQLAlchemy's connection pool
+        # recycles connections that were prepared on a previous checkout, and
+        # Postgres raises "prepared statement _pg3_N does not exist" because
+        # the statement was never visible outside its original backend session.
+        connect_args = {"prepare_threshold": None}
+    else:
+        connect_args = {"check_same_thread": False}
     engine = create_engine(DATABASE_URL, connect_args=connect_args)
     return engine
 
