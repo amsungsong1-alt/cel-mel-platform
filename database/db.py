@@ -193,11 +193,11 @@ def _run_migrations() -> bool:
             conn.execute(text("""
                 UPDATE partner_targets
                 SET metric_label = 'Women-led cooperatives/clusters strengthened (focal persons on GALS & EMAP)',
-                    unit         = 'cooperatives, focal persons'
+                    unit         = 'cooperatives/clusters, focal persons'
                 WHERE metric_label IN ('Women-led groups strengthened',
                                        'Women-led cooperatives/clusters strengthened (focal persons on GALS & EMAP)')
                   AND level = 2 AND time_basis = 'Year 1'
-                  AND unit <> 'cooperatives, focal persons'
+                  AND unit <> 'cooperatives/clusters, focal persons'
             """))
         return True
 
