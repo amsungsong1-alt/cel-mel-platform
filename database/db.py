@@ -164,6 +164,14 @@ def _run_migrations() -> bool:
                 WHERE logframe_row_id IS NOT NULL
                   AND logframe_row_id NOT IN (SELECT id FROM logframe_rows)
             """))
+            # Correct Year 1 target: ~2,000 was the LoP figure; Year 1 is 500.
+            conn.execute(text("""
+                UPDATE partner_targets
+                SET target_value = '500'
+                WHERE metric_label = 'Women in coaching & mentoring'
+                  AND time_basis = 'Year 1'
+                  AND target_value <> '500'
+            """))
         return True
 
     schema = SCHEMA_PATH.read_text()
