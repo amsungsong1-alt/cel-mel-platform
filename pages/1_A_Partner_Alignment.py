@@ -41,7 +41,7 @@ st.markdown(
         --pa-muted:#5E6A6A; --pa-border:#DED7C6; --pa-accent:#1E7E76;
     }
     [data-testid="stAppViewContainer"] { background:var(--pa-bg); }
-    .stApp, .stApp p, .stApp li, .stApp label, .stApp span {
+    .stApp {
         font-family:'Public Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         color:var(--pa-ink);
     }
@@ -51,21 +51,15 @@ st.markdown(
         letter-spacing:-.01em;
         font-weight:600 !important;
     }
-    .stApp [data-testid="stCaptionContainer"] p,
-    .stApp [data-testid="stCaptionContainer"] span {
+    .stApp [data-testid="stCaptionContainer"] p {
         color:var(--pa-muted) !important;
-        font-family:'Public Sans', sans-serif !important;
     }
     .stApp [data-testid="stDataFrame"] *,
     .stApp [data-testid="stMetricValue"] {
         font-family:'IBM Plex Mono', monospace !important;
     }
     .stApp button {
-        font-family:'Public Sans', sans-serif !important;
         border-radius:8px !important;
-    }
-    .stApp [data-testid="stExpander"] summary {
-        font-family:'Public Sans', sans-serif !important;
     }
     </style>
     """,
