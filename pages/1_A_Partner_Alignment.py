@@ -672,37 +672,77 @@ _QUARTERS = [
     },
 ]
 
+import re as _re_md
+
+
+def _bold(text: str) -> str:
+    return _re_md.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+
+
+def _card(label: str, text: str, color: str) -> str:
+    return (
+        f'<div style="background:#FFFFFF;border:1px solid #DED7C6;border-radius:10px;'
+        f'overflow:hidden;box-shadow:0 2px 6px rgba(20,30,28,.09);margin-bottom:2px;">'
+        f'<div style="background:{color};padding:6px 14px;">'
+        f'<p style="margin:0;color:rgba(255,255,255,.95);font-family:\'IBM Plex Mono\','
+        f'monospace;font-weight:700;letter-spacing:.05em;font-size:0.72em;">{label}</p>'
+        f'</div>'
+        f'<div style="padding:11px 15px;font-size:0.84em;color:#16262E;line-height:1.55;">'
+        f'{_bold(text)}'
+        f'</div></div>'
+    )
+
+
+_Q_COLORS = {
+    "cel_bds":     "#1E7E76",
+    "cel_wan":     "#1E7E76",
+    "agrokings":   "#1565C0",
+    "aglow":       "#2E7D32",
+    "afrigem":     "#6A1B9A",
+    "naple_betta": "#00838F",
+    "newage":      "#BF360C",
+    "technoserve": "#37474F",
+    "fc_csir":     "#263238",
+}
+
 _q_tabs = st.tabs(["Q1 Jul–Sep 2026", "Q2 Oct–Dec 2026", "Q3 Jan–Mar 2027", "Q4 Apr–Jun 2027"])
 for _tab, _qd in zip(_q_tabs, _QUARTERS):
     with _tab:
-        _col1, _col2 = st.columns(2)
-        with _col1:
-            st.markdown("**CEL — BDS Delivery**")
-            st.markdown(_qd["cel_bds"])
-            st.markdown("**CEL — WAN & Partner Engagement**")
-            st.markdown(_qd["cel_wan"])
-        with _col2:
-            st.markdown("**AgroKings**")
-            st.markdown(_qd["agrokings"])
-            st.markdown("**Aglow Farms**")
-            st.markdown(_qd["aglow"])
-        _col3, _col4, _col5 = st.columns(3)
-        with _col3:
-            st.markdown("**AFRIGEM**")
-            st.markdown(_qd["afrigem"])
-        with _col4:
-            st.markdown("**Naple Betta**")
-            st.markdown(_qd["naple_betta"])
-        with _col5:
-            st.markdown("**NewAge Agric**")
-            st.markdown(_qd["newage"])
-        _col6, _col7 = st.columns(2)
-        with _col6:
-            st.markdown("**TechnoServe**")
-            st.markdown(_qd["technoserve"])
-        with _col7:
-            st.markdown("**FC & CSIR**")
-            st.markdown(_qd["fc_csir"])
+        _gap = '<div style="height:10px"></div>'
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown(_card("CEL — BDS DELIVERY", _qd["cel_bds"], _Q_COLORS["cel_bds"]),
+                        unsafe_allow_html=True)
+        with c2:
+            st.markdown(_card("CEL — WAN & PARTNER ENGAGEMENT", _qd["cel_wan"], _Q_COLORS["cel_wan"]),
+                        unsafe_allow_html=True)
+        st.markdown(_gap, unsafe_allow_html=True)
+        c3, c4 = st.columns(2)
+        with c3:
+            st.markdown(_card("AGROKINGS", _qd["agrokings"], _Q_COLORS["agrokings"]),
+                        unsafe_allow_html=True)
+        with c4:
+            st.markdown(_card("AGLOW FARMS", _qd["aglow"], _Q_COLORS["aglow"]),
+                        unsafe_allow_html=True)
+        st.markdown(_gap, unsafe_allow_html=True)
+        c5, c6, c7 = st.columns(3)
+        with c5:
+            st.markdown(_card("AFRIGEM", _qd["afrigem"], _Q_COLORS["afrigem"]),
+                        unsafe_allow_html=True)
+        with c6:
+            st.markdown(_card("NAPLE BETTA", _qd["naple_betta"], _Q_COLORS["naple_betta"]),
+                        unsafe_allow_html=True)
+        with c7:
+            st.markdown(_card("NEWAGE AGRIC", _qd["newage"], _Q_COLORS["newage"]),
+                        unsafe_allow_html=True)
+        st.markdown(_gap, unsafe_allow_html=True)
+        c8, c9 = st.columns(2)
+        with c8:
+            st.markdown(_card("TECHNOSERVE", _qd["technoserve"], _Q_COLORS["technoserve"]),
+                        unsafe_allow_html=True)
+        with c9:
+            st.markdown(_card("FC & CSIR", _qd["fc_csir"], _Q_COLORS["fc_csir"]),
+                        unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
