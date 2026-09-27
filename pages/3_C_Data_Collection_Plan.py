@@ -41,7 +41,7 @@ st.title("Module C — Data Collection Plan")
 # ── Load data ─────────────────────────────────────────────────────────────────
 plan_rows = run_query(
     """SELECT id, stakeholder, indicator_statement, data_points, rationale,
-              instrument_status, instrument_link, journey_step,
+              instrument_name, instrument_status, instrument_link, journey_step,
               integration_mechanism, frequency,
               collection_month, collection_year, responsible_party,
               last_collected_date
@@ -234,7 +234,6 @@ with tab_plan:
         "Indicator / Statement": "indicator_statement",
         "Data Points":           "data_points",
         "Rationale":             "rationale",
-        "Status":                "instrument_status",
         "Instrument Link":       "instrument_link",
         "Journey Step":          "journey_step",
         "Integration Mechanism": "integration_mechanism",
@@ -245,7 +244,7 @@ with tab_plan:
         "Last Collected":        "last_collected_date",
     }
     _EDITABLE = [
-        "Status", "Instrument Link", "Journey Step",
+        "Instrument Link", "Journey Step",
         "Integration Mechanism", "Frequency", "Month", "Year", "Responsible",
         "Last Collected",
     ]
@@ -262,6 +261,8 @@ with tab_plan:
         {"_id": r["id"]}
         | {disp: r[db] for disp, db in _DISPLAY_COLS.items() if disp != "Last Collected"}
         | {
+            "New Instrument":    r.get("instrument_name", "") if r.get("instrument_status") == "New" else "",
+            "Existing Instrument": r.get("instrument_name", "") if r.get("instrument_status") == "Existing" else "",
             "Last Collected":    _parse_date(r.get("last_collected_date")),
             "Collection Status": "⛔ Overdue" if _is_collection_overdue(r) else "✅ On track",
         }
@@ -274,8 +275,8 @@ with tab_plan:
         "Indicator / Statement":  st.column_config.TextColumn("Indicator / Statement", disabled=True, width="large"),
         "Data Points":            st.column_config.TextColumn("Data Points", disabled=True, width="medium"),
         "Rationale":              st.column_config.TextColumn("Rationale", disabled=True, width="large"),
-        "Status":                 st.column_config.SelectboxColumn(
-                                      "Status", options=STATUS_OPTIONS, width="small"),
+        "New Instrument":         st.column_config.TextColumn("New Instrument", disabled=True, width="medium"),
+        "Existing Instrument":    st.column_config.TextColumn("Existing Instrument", disabled=True, width="medium"),
         "Instrument Link":        st.column_config.LinkColumn("Instrument Link", width="medium"),
         "Journey Step":           st.column_config.SelectboxColumn(
                                       "Journey Step", options=JOURNEY_ORDER, width="medium"),

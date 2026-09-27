@@ -117,6 +117,7 @@ def _run_migrations() -> bool:
             for stmt in (
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS reporting_year INTEGER",
                 "ALTER TABLE data_collection_plan ADD COLUMN IF NOT EXISTS last_collected_date TEXT",
+                "ALTER TABLE data_collection_plan ADD COLUMN IF NOT EXISTS instrument_name TEXT",
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS progression_stage TEXT",
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS pillar TEXT",
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS dqa_stage TEXT",
@@ -559,6 +560,7 @@ def _run_migrations() -> bool:
         "ALTER TABLE toc_nodes ADD COLUMN source_note TEXT",
         "ALTER TABLE raw_data_analysis ADD COLUMN reporting_year INTEGER",
         "ALTER TABLE data_collection_plan ADD COLUMN last_collected_date TEXT",
+        "ALTER TABLE data_collection_plan ADD COLUMN instrument_name TEXT",
         "ALTER TABLE raw_data_analysis ADD COLUMN progression_stage TEXT",
         "ALTER TABLE raw_data_analysis ADD COLUMN pillar TEXT",
         "ALTER TABLE raw_data_analysis ADD COLUMN dqa_stage TEXT",

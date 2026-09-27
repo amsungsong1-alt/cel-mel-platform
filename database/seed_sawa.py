@@ -326,11 +326,11 @@ def seed():
         insert_returning_id(
             """INSERT INTO data_collection_plan
                (project_id, stakeholder, indicator_statement, data_points,
-                rationale, instrument_status, instrument_link, journey_step,
+                rationale, instrument_name, instrument_status, instrument_link, journey_step,
                 integration_mechanism, frequency, collection_month,
                 collection_year, responsible_party)
                VALUES (:project_id, :stakeholder, :indicator_statement, :data_points,
-                       :rationale, :instrument_status, :instrument_link, :journey_step,
+                       :rationale, :instrument_name, :instrument_status, :instrument_link, :journey_step,
                        :integration_mechanism, :frequency, :collection_month,
                        :collection_year, :responsible_party)""",
             {**row, "project_id": project_id},

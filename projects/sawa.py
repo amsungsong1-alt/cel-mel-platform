@@ -1802,6 +1802,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Establishes the disability-disaggregated baseline for all subsequent data; "
             "confirms programme meets its PWD inclusion commitment (PII.R5 — 8 jobs Y1)"
         ),
+        "instrument_name": "Enrolment Screening Form (KoboToolbox Tool 1)",
         "instrument_status": "New",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "Enrolment",
@@ -1823,6 +1824,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "PI.3 (BDS completion 500 Y1); quarterly rhythm aligns with "
             "SAWA Y1 Consolidated Workplan milestones"
         ),
+        "instrument_name": "Training & BDS Attendance Register (KoboToolbox Tool 2)",
         "instrument_status": "Existing",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "Training",
@@ -1843,6 +1845,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Tracks Outcome 2 (Enterprise Growth) via PII.R6/PIII.R2 production volume; "
             "annual timing captures the full production cycle and avoids seasonal distortion"
         ),
+        "instrument_name": "Enterprise Output & Revenue Survey",
         "instrument_status": "New",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "Annual review",
@@ -1863,6 +1866,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Captures transformative gender outcomes invisible to economic metrics alone; "
             "bi-annual timing allows before/after comparison across one programme cycle"
         ),
+        "instrument_name": "Gender Empowerment Structured Interview",
         "instrument_status": "New",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "Enrolment",
@@ -1883,6 +1887,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Tracks PIII.6 and OP3 outputs; bi-annual cadence captures the mid-year "
             "market window and year-end stabilisation"
         ),
+        "instrument_name": "Market Linkage Verification Form",
         "instrument_status": "New",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "6-month follow-up",
@@ -1903,6 +1908,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Essential for adaptive management; identifies where programme design needs "
             "adjustment before the next cohort; cannot be collected retrospectively"
         ),
+        "instrument_name": "Dropout Follow-up Phone Interview",
         "instrument_status": "New",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "3-month check-in",
@@ -1923,6 +1929,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Directly measures the programme Impact statement — 'dignified and fulfilling work' "
             "— which cannot be inferred from production or revenue data alone"
         ),
+        "instrument_name": "Dignified & Fulfilling Work (DFW) Survey",
         "instrument_status": "New",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "6-month follow-up",
@@ -1943,6 +1950,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Tracks Outcome 1 (Employment) via PII.R5/PIII.R1; disaggregation by sex and PWD "
             "status enables equity analysis; bi-annual timing captures seasonal variation"
         ),
+        "instrument_name": "Participant Income Tracking Survey",
         "instrument_status": "Existing",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "6-month follow-up",
@@ -1963,6 +1971,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Tests PIII.R3 enterprise growth persistence post-programme exit; "
             "NOT collectible at baseline — enterprises do not yet exist at enrolment stage"
         ),
+        "instrument_name": "Enterprise Sustainability Assessment",
         "instrument_status": "New",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "Annual review",
@@ -1983,6 +1992,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Direct measurement of PIII.R2 and long-term impact target; "
             "quarterly frequency captures all four production cycles in Ghana's fisheries calendar"
         ),
+        "instrument_name": "Production Volume Record (Partner MEAL)",
         "instrument_status": "Existing",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "3-month check-in",
@@ -2003,6 +2013,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
             "Internal programme quality tracker; can only be measured once the programme "
             "is underway — NOT applicable at baseline or enrolment stage"
         ),
+        "instrument_name": "Programme Quality & Adaptive Management Log",
         "instrument_status": "New",
         "instrument_link": "https://kf.kobotoolbox.org/",
         "journey_step": "Annual review",
