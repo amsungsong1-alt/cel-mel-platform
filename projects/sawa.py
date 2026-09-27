@@ -60,6 +60,15 @@ PARTNER_TARGETS = [
     {"partner_name": "NewAge Agric", "level": 1, "metric_label": "Production jobs",     "target_value": "5,000",  "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
     {"partner_name": "NewAge Agric", "level": 1, "metric_label": "Processing jobs",     "target_value": "1,000",  "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
     {"partner_name": "TechnoServe",  "level": 1, "metric_label": "Finance applications assessed", "target_value": "TBC", "unit": "applications", "time_basis": "Annual",     "source_doc": "CEL's contribution to SAWA (Sep 2026)", "source_page": "06"},
+    # TechnoServe Year 1 targets (source: TechnoServe SAWA Year 1 Implementation Plan, Sep 2026 p.03)
+    # "Jobs are the core performance outcome of the grant mechanism."
+    {"partner_name": "TechnoServe",  "level": 1, "metric_label": "Young women reached",     "target_value": "320",     "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
+    {"partner_name": "TechnoServe",  "level": 1, "metric_label": "PWD reached",             "target_value": "10",      "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
+    {"partner_name": "TechnoServe",  "level": 1, "metric_label": "Catalytic grantees",      "target_value": "10",      "unit": "grantees",      "time_basis": "Year 1", "source_doc": "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
+    {"partner_name": "TechnoServe",  "level": 1, "metric_label": "Micro-grant businesses",  "target_value": "150",     "unit": "businesses",    "time_basis": "Year 1", "source_doc": "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
+    {"partner_name": "TechnoServe",  "level": 1, "metric_label": "Jobs created",            "target_value": "250",     "unit": "jobs",          "time_basis": "Year 1", "source_doc": "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
+    {"partner_name": "TechnoServe",  "level": 1, "metric_label": "Fish traded",             "target_value": "1,298+",  "unit": "MT",            "time_basis": "Year 1", "source_doc": "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
+    {"partner_name": "TechnoServe",  "level": 1, "metric_label": "Value from catfish sales","target_value": "845,000", "unit": "USD",           "time_basis": "Year 1", "source_doc": "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
 
     # ── Level 1, Year 1 basis: confirmed partner Year 1 implementation plans
     # (source: partner Year 1 decks presented to AIL, Sep 2026 — NOT the same

@@ -387,13 +387,16 @@ _cel_measures = pd.DataFrame([
         "How Partners Feed This": (
             "CEL coaches inside AgroKings, Aglow Aqua, AFRIGEM, Newage and "
             "Naple Betta cohorts.  500 are the 'accelerator / enterprises in "
-            "transition' cohort receiving direct BDS coaching."
+            "transition' cohort receiving direct BDS coaching.  "
+            "TechnoServe reaches 320 young women through its grant mechanism — "
+            "these are enterprises already in the BDS pipeline."
         ),
         "Partner Sources": (
             "AgroKings 800 groups → coaching entry · "
             "Aglow Aqua 1,200 → 300 Q1 entry · "
             "AFRIGEM 1,000 → Q1 350 · "
-            "Newage & Naple Betta hub members"
+            "Newage & Naple Betta hub members · "
+            "TechnoServe 320 (grant-pipeline enterprises)"
         ),
     },
     {
@@ -430,14 +433,17 @@ _cel_measures = pd.DataFrame([
         "How Partners Feed This": (
             "AgroKings 1909 processing & retail arm (190 women in roles); "
             "Naple Betta women-led grill outlets; Aglow Aqua processing area.  "
-            "NewAge Agric targets 5,800 D&F jobs programme-wide (≥90% young women, 290 PWD); "
-            "CEL's 100 tracks the value-addition slice only."
+            "TechnoServe targets 250 jobs through its micro-grant mechanism "
+            "(10 catalytic grantees + 150 micro-grant businesses).  "
+            "NewAge Agric targets 5,800 D&F jobs programme-wide; "
+            "CEL's 100 tracks the value-addition slice."
         ),
         "Partner Sources": (
             "AgroKings 1909 (190 roles) · "
+            "TechnoServe 250 jobs (10 catalytic + 150 micro-grant businesses) · "
             "Naple Betta grill outlets · "
-            "Aglow Aqua HQ processing (500 HQ-based opportunities) · "
-            "NewAge Agric (5,800 D&F jobs Year 1 total, 7 regions)"
+            "Aglow Aqua HQ processing · "
+            "NewAge Agric (5,800 D&F jobs, 7 regions)"
         ),
     },
 ])
@@ -491,6 +497,11 @@ _QUARTERS = [
             "Adwenepa App deployed — digital backbone for data, monitoring & stock.  "
             "e-Learning Centre live.  Recruitment & first onboarding."
         ),
+        "technoserve": (
+            "Programme orientation; pipeline mapping with CEL; "
+            "identify potential grantee pool from BDS-prepared enterprises; "
+            "design micro-grant criteria & screening process."
+        ),
         "fc_csir": (
             "**FC:** Inception & stakeholder coordination; aquaculture regulation/licensing "
             "orientation; GAqP planning; broodstock linkages.  "
@@ -523,6 +534,11 @@ _QUARTERS = [
             "**+1,884 D&F jobs** (3,340 cumulative — 61.7% of Year 1 delivered).  "
             "Peak intake. Production infrastructure scaled.  "
             "First ~3-month cycles underway."
+        ),
+        "technoserve": (
+            "Finance Readiness workshops with CEL; screen BDS-prepared enterprises; "
+            "first **10 catalytic grantees** selected; "
+            "micro-grant application process opens for 150 businesses."
         ),
         "fc_csir": (
             "**FC:** GAqP & SOP training; licensing guidance; facility/farm compliance "
@@ -559,6 +575,12 @@ _QUARTERS = [
             "Consolidation. First harvests as ~3-month cycles complete.  "
             "Market linkages active. Systems generating live M&E data."
         ),
+        "technoserve": (
+            "Micro-grants disbursed to **150 businesses**; "
+            "catalytic grants fully deployed to 10 grantees; "
+            "**250 jobs** creation tracked; "
+            "fish trading volumes building toward 1,298+ MT."
+        ),
         "fc_csir": (
             "**FC:** Continue technical support & compliance monitoring; "
             "two-tier certification pathway; quality-control & record-keeping support.  "
@@ -594,6 +616,12 @@ _QUARTERS = [
             "Year 1 cohort complete. Repeat cycles running.  "
             "Full-year data & review. Year 2 scale-up prepared."
         ),
+        "technoserve": (
+            "Monitor grant utilization & job outcomes; "
+            "**1,298+ MT** fish collectively traded; "
+            "**$845,000** value from catfish sales realised; "
+            "Year 1 review; Year 2 pipeline identified."
+        ),
         "fc_csir": (
             "**FC:** Technical audits; review GAqP/SOP gaps; policy/ecosystem-strengthening "
             "discussions; consolidate lessons for Year 2.  "
@@ -617,7 +645,7 @@ for _tab, _qd in zip(_q_tabs, _QUARTERS):
             st.markdown(_qd["agrokings"])
             st.markdown("**Aglow Aqua**")
             st.markdown(_qd["aglow"])
-        _col3, _col4, _col5 = st.columns(3)
+        _col3, _col4, _col5, _col6 = st.columns(4)
         with _col3:
             st.markdown("**AFRIGEM**")
             st.markdown(_qd["afrigem"])
@@ -625,6 +653,9 @@ for _tab, _qd in zip(_q_tabs, _QUARTERS):
             st.markdown("**NewAge Agric**")
             st.markdown(_qd["newage"])
         with _col5:
+            st.markdown("**TechnoServe**")
+            st.markdown(_qd["technoserve"])
+        with _col6:
             st.markdown("**FC & CSIR**")
             st.markdown(_qd["fc_csir"])
 
