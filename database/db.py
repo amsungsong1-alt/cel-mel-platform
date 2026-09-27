@@ -125,6 +125,28 @@ def _run_migrations() -> bool:
                 text("UPDATE raw_data_analysis SET reporting_year=:yr WHERE reporting_year IS NULL"),
                 {"yr": current_fiscal_year()},
             )
+            # Correct data_collection_plan dates to SAWA Jul 2026–Jun 2030
+            # fiscal calendar.  Old seed had Feb/May 2026 (before programme
+            # start); keyed on stakeholder+frequency which is unique per row.
+            for _stakeholder, _freq, _month, _year in [
+                ("PWD participants",                      "Once",       8, 2026),
+                ("All programme participants",            "Quarterly",  9, 2026),
+                ("Non-continuers and dropouts",           "Quarterly",  9, 2026),
+                ("Production enterprises (fishpond operators)", "Quarterly", 9, 2026),
+                ("Young women participants",              "Bi-annual", 11, 2026),
+                ("Enterprises and value chain actors",   "Bi-annual", 11, 2026),
+                ("Individual participants",               "Bi-annual", 11, 2026),
+                ("Supported enterprises",                "Annual",     6, 2027),
+                ("Programme participants (all)",          "Annual",     6, 2027),
+                ("SAWA-supported enterprises",           "Annual",     6, 2027),
+                ("Programme staff and CEL management",   "Annual",     6, 2027),
+            ]:
+                conn.execute(text("""
+                    UPDATE data_collection_plan
+                    SET collection_month = :m, collection_year = :y
+                    WHERE stakeholder = :s AND frequency = :f
+                      AND (collection_month <> :m OR collection_year <> :y)
+                """), {"s": _stakeholder, "f": _freq, "m": _month, "y": _year})
             # One-time cleanup: retire old partner names and their cascaded
             # partner_targets (left over from pre-Sep-2026-deck seed versions
             # that were never purged, causing _needs_seed to fire on every load
