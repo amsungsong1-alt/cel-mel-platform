@@ -434,6 +434,27 @@ def _run_migrations() -> bool:
                     "dt": _dt, "scope": _scope, "existing": _existing,
                     "actual": _actual, "issue": _issue, "role": _role,
                 })
+            # Ensure workplan_activities table exists (added after initial schema deploy).
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS workplan_activities (
+                    id              INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                    project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                    partner_id      INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+                    quarter         INTEGER NOT NULL CHECK(quarter IN (1,2,3,4)),
+                    fiscal_year     INTEGER NOT NULL,
+                    activity        TEXT    NOT NULL,
+                    deliverable     TEXT,
+                    due_date        TEXT,
+                    responsible     TEXT,
+                    status          TEXT    DEFAULT 'Not Started'
+                                    CHECK(status IN ('Not Started','In Progress','Complete','Delayed')),
+                    logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+                    notes           TEXT
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_wa_project ON workplan_activities(project_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_wa_partner ON workplan_activities(partner_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_wa_quarter ON workplan_activities(quarter, fiscal_year)"))
             # Remove the TBC placeholder row that was never confirmed.
             conn.execute(text("""
                 DELETE FROM partner_targets
@@ -553,6 +574,30 @@ def _run_migrations() -> bool:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_rda_partner ON raw_data_analysis(partner_id)"
         )
+    except Exception:
+        pass
+    # Ensure workplan_activities table exists (added after initial schema deploy).
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS workplan_activities (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                partner_id      INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+                quarter         INTEGER NOT NULL CHECK(quarter IN (1,2,3,4)),
+                fiscal_year     INTEGER NOT NULL,
+                activity        TEXT    NOT NULL,
+                deliverable     TEXT,
+                due_date        TEXT,
+                responsible     TEXT,
+                status          TEXT    DEFAULT 'Not Started'
+                                CHECK(status IN ('Not Started','In Progress','Complete','Delayed')),
+                logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+                notes           TEXT
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_wa_project ON workplan_activities(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_wa_partner ON workplan_activities(partner_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_wa_quarter ON workplan_activities(quarter, fiscal_year)")
     except Exception:
         pass
     # Backfill rows written before reporting_year existed, so every query
