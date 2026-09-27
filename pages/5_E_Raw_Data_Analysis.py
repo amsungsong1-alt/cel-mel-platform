@@ -25,7 +25,7 @@ from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
 from utils.fiscal_calendar import current_fiscal_year
-from utils.num_parse import num as _num, parse_quarterly_targets
+from utils.num_parse import num_or_none, parse_quarterly_targets
 
 _NUM_RE = re.compile(r"-?\d+\.?\d*")
 
@@ -575,7 +575,7 @@ for r in filtered:
         qt = qtargets.get(_qk)
         if qt is None:
             continue
-        qa = _num(r.get(f"actual_{_qk}"), default=None)
+        qa = _num(r.get(f"actual_{_qk}"))
         if qa is None:
             _status = "—"
             _colour = "#9E9E9E"
