@@ -13,7 +13,7 @@ from utils.fiscal_calendar import current_fiscal_year
 from projects.sawa import (
     PROJECT, PARTNERS, PARTNER_TARGETS, INDICATORS,
     TOC_NODES, LOGFRAME_ROWS, DATA_COLLECTION_PLAN,
-    RAW_DATA_ANALYSIS, KOBO_FORM_MAPPINGS, REVIEW_PROTOCOLS,
+    RAW_DATA_ANALYSIS, _RDA_META, KOBO_FORM_MAPPINGS, REVIEW_PROTOCOLS,
     DECISION_REPORTS,
 )
 
@@ -55,7 +55,7 @@ def seed():
     # Remove any partners whose names were retired in previous seed versions so
     # that _needs_seed checks stay stable after a reseed.  Cascades to their
     # partner_targets rows automatically via the FK ON DELETE CASCADE.
-    for _retired in ("Aglow Farms", "Yedent/Naple Betta", "AFRIGEM Global LBG", "R&B Farms"):
+    for _retired in ("Yedent/Naple Betta", "AFRIGEM Global LBG", "R&B Farms"):
         run_write(
             "DELETE FROM partners WHERE project_id=:pid AND name=:name",
             {"pid": project_id, "name": _retired},
@@ -149,17 +149,20 @@ def seed():
     seed_fy = current_fiscal_year()
     for row in RAW_DATA_ANALYSIS:
         lf_id = lf_lookup.get(row["indicator_code"])
+        meta = _RDA_META.get(row["indicator_code"], {})
         insert_returning_id(
             """INSERT INTO raw_data_analysis
                (project_id, logframe_row_id, reporting_year, data_type, target_value, trigger_value,
                 problem_definition, baseline_collected, baseline_value,
                 actual_q1, actual_q2, actual_q3, actual_q4, actual_year,
-                indicator_status, action_status, action_description)
+                indicator_status, action_status, action_description,
+                progression_stage, pillar, dqa_stage, disaggregation)
                VALUES (:project_id, :logframe_row_id, :reporting_year, :data_type, :target_value,
                        :trigger_value,
                        :problem_definition, :baseline_collected, :baseline_value,
                        :actual_q1, :actual_q2, :actual_q3, :actual_q4, :actual_year,
-                       :indicator_status, :action_status, :action_description)""",
+                       :indicator_status, :action_status, :action_description,
+                       :progression_stage, :pillar, :dqa_stage, :disaggregation)""",
             {
                 "project_id":       project_id,
                 "logframe_row_id":  lf_id,
@@ -178,6 +181,10 @@ def seed():
                 "indicator_status": row["indicator_status"],
                 "action_status":    row["action_status"],
                 "action_description": row["action_description"],
+                "progression_stage": meta.get("progression_stage"),
+                "pillar":            meta.get("pillar"),
+                "dqa_stage":         meta.get("dqa_stage"),
+                "disaggregation":    row.get("disaggregation", ""),
             },
         )
     print(f"Raw data analysis: {len(RAW_DATA_ANALYSIS)} rows inserted.")

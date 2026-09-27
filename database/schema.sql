@@ -162,7 +162,27 @@ CREATE TABLE IF NOT EXISTS raw_data_analysis (
                         )),
     action_description  TEXT,
     last_updated        TEXT,
-    updated_by          TEXT
+    updated_by          TEXT,
+    -- MCF Shared Measures 2.0 progression stage (SM1=WEO, SM5=YIW, SM6=D&F).
+    progression_stage   TEXT    CHECK(progression_stage IN ('WEO','YIW','D&F')),
+    -- SAWA intervention pillar this indicator belongs to.
+    pillar              TEXT    CHECK(pillar IN (
+                            'Capacity Building & Inclusion',
+                            'Production Expansion & Productivity',
+                            'Value Addition & Market Systems',
+                            'Ecosystem Strengthening',
+                            'Programme-wide'
+                        )),
+    -- DQA 3-stage verification status per AIL DQA framework.
+    dqa_stage           TEXT    CHECK(dqa_stage IN (
+                            'Raw',
+                            'Completeness Checked',
+                            'Traceability Verified',
+                            'Outcome Validated'
+                        )),
+    -- AIL disaggregation (JSON): {"q1":{"f":"","m":"","youth":"","pwd":""},...}
+    -- Breakdowns for Total/Female/Male/Youth/PWD per quarter per reporting standard.
+    disaggregation      TEXT
 );
 
 -- Module E: Kobo form field-to-indicator mapping.

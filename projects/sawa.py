@@ -21,7 +21,7 @@ PARTNERS = [
     {"name": "Naple Betta",
      "role": "Anchor Partner — production hubs, processors and women-led grill outlets",
      "tier": "Anchor"},
-    {"name": "Aglow Aqua",
+    {"name": "Aglow Farms",
      "role": "Anchor Partner — community clusters and cooperatives",
      "tier": "Anchor"},
     {"name": "NewAge Agric",
@@ -55,7 +55,7 @@ PARTNER_TARGETS = [
     {"partner_name": "Naple Betta",  "level": 1, "metric_label": "Jobs",                "target_value": "6,000",  "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
     {"partner_name": "Naple Betta",  "level": 1, "metric_label": "SME graduates",       "target_value": "800",    "unit": "graduates",     "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
     {"partner_name": "Naple Betta",  "level": 1, "metric_label": "Young women empowered", "target_value": "8,000", "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
-    {"partner_name": "Aglow Aqua",   "level": 1, "metric_label": "Young women",         "target_value": "3,000",  "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
+    {"partner_name": "Aglow Farms",   "level": 1, "metric_label": "Young women",         "target_value": "3,000",  "unit": "beneficiaries", "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
     {"partner_name": "NewAge Agric", "level": 1, "metric_label": "Production jobs",     "target_value": "5,000",  "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
     {"partner_name": "NewAge Agric", "level": 1, "metric_label": "Processing jobs",     "target_value": "1,000",  "unit": "jobs",          "time_basis": "Life of programme", "source_doc": "SAWA Proposal, 28 Nov 2025",             "source_page": ""},
     {"partner_name": "TechnoServe",  "level": 1, "metric_label": "Finance applications assessed", "target_value": "TBC", "unit": "applications", "time_basis": "Annual",     "source_doc": "CEL's contribution to SAWA (Sep 2026)", "source_page": "06"},
@@ -87,14 +87,14 @@ PARTNER_TARGETS = [
     {"partner_name": "Naple Betta", "level": 1, "metric_label": "Women-led grill outlets",     "target_value": "13",      "unit": "outlets",       "time_basis": "Year 1", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "07"},
     {"partner_name": "Naple Betta", "level": 1, "metric_label": "Value-added fish trade",      "target_value": "110",     "unit": "MT",            "time_basis": "Year 1", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "07"},
     {"partner_name": "Naple Betta", "level": 1, "metric_label": "Value-added revenue",         "target_value": "841,500", "unit": "USD",           "time_basis": "Year 1", "source_doc": "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "07"},
-    {"partner_name": "Aglow Aqua",  "level": 1, "metric_label": "Beneficiaries",         "target_value": "1,200", "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026",  "source_page": ""},
-    {"partner_name": "Aglow Aqua",  "level": 1, "metric_label": "PWD reached",           "target_value": "45",    "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026",  "source_page": ""},
+    {"partner_name": "Aglow Farms",  "level": 1, "metric_label": "Beneficiaries",         "target_value": "1,200", "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Aglow Farms SAWA Year 1 Implementation Plan, Sep 2026",  "source_page": ""},
+    {"partner_name": "Aglow Farms",  "level": 1, "metric_label": "PWD reached",           "target_value": "45",    "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Aglow Farms SAWA Year 1 Implementation Plan, Sep 2026",  "source_page": ""},
     {"partner_name": "AFRIGEM",     "level": 1, "metric_label": "Young women",           "target_value": "1,000", "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",      "source_page": ""},
     {"partner_name": "AFRIGEM",     "level": 1, "metric_label": "PWD reached",           "target_value": "50",    "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",      "source_page": ""},
     # Additional reach targets from Sep 2026 partner implementation decks
     {"partner_name": "AgroKings",          "level": 1, "metric_label": "Cluster sites",         "target_value": "10",     "unit": "sites",         "time_basis": "Year 1", "source_doc": "AgroKings SAWA Year 1 Implementation Plan, Sep 2026",          "source_page": ""},
-    {"partner_name": "Aglow Aqua",         "level": 1, "metric_label": "Communities reached",   "target_value": "15",     "unit": "communities",   "time_basis": "Year 1", "source_doc": "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026",         "source_page": ""},
-    {"partner_name": "Aglow Aqua",         "level": 1, "metric_label": "Districts covered",     "target_value": "4",      "unit": "districts",     "time_basis": "Year 1", "source_doc": "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026",         "source_page": ""},
+    {"partner_name": "Aglow Farms",         "level": 1, "metric_label": "Communities reached",   "target_value": "15",     "unit": "communities",   "time_basis": "Year 1", "source_doc": "Aglow Farms SAWA Year 1 Implementation Plan, Sep 2026",         "source_page": ""},
+    {"partner_name": "Aglow Farms",         "level": 1, "metric_label": "Districts covered",     "target_value": "4",      "unit": "districts",     "time_basis": "Year 1", "source_doc": "Aglow Farms SAWA Year 1 Implementation Plan, Sep 2026",         "source_page": ""},
     {"partner_name": "AFRIGEM",            "level": 1, "metric_label": "Communities reached",   "target_value": "10",     "unit": "communities",   "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",            "source_page": ""},
     {"partner_name": "AFRIGEM",            "level": 1, "metric_label": "Districts covered",     "target_value": "6",      "unit": "districts",     "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",            "source_page": ""},
     {"partner_name": "AFRIGEM",            "level": 1, "metric_label": "Anchor operators",      "target_value": "10",     "unit": "operators",     "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",            "source_page": ""},
@@ -759,6 +759,35 @@ INDICATORS: list[dict] = []
 # Bi-annual  → first collection Nov 2026 (mid Year 1); cycles Nov→May→Nov→May…
 # Annual     → first collection Jun 2027 (end Year 1); cycles Jun→Jun→Jun…
 # Once       → Aug 2026 (programme start / enrolment baseline).
+# ── Module D: Raw Data Analysis — supplementary metadata ─────────────────────
+# progression_stage: WEO = in programme/trained, YIW = placed into work,
+#                    D&F = dignified & fulfilling work (highest MCF SM level).
+# pillar: SAWA's four intervention pillars; "Programme-wide" for cross-cutting.
+# dqa_stage: initial stage is "Raw" for all indicators (DQA not yet started).
+_RDA_META: dict[str, dict] = {
+    "LoP.1":   {"progression_stage": "D&F",  "pillar": "Programme-wide",                    "dqa_stage": "Raw"},
+    "PI.1":    {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.3":    {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.9":    {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.11":   {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.12":   {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.13":   {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.17":   {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.18":   {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.19":   {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.20":   {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.22":   {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PI.23":   {"progression_stage": "WEO",  "pillar": "Capacity Building & Inclusion",      "dqa_stage": "Raw"},
+    "PIV.5":   {"progression_stage": "WEO",  "pillar": "Ecosystem Strengthening",            "dqa_stage": "Raw"},
+    "PII.R5":  {"progression_stage": "YIW",  "pillar": "Production Expansion & Productivity","dqa_stage": "Raw"},
+    "PIII.R1": {"progression_stage": "YIW",  "pillar": "Value Addition & Market Systems",    "dqa_stage": "Raw"},
+    "PII.R6":  {"progression_stage": "D&F",  "pillar": "Production Expansion & Productivity","dqa_stage": "Raw"},
+    "PII.R7":  {"progression_stage": "D&F",  "pillar": "Production Expansion & Productivity","dqa_stage": "Raw"},
+    "PIII.R2": {"progression_stage": "D&F",  "pillar": "Value Addition & Market Systems",    "dqa_stage": "Raw"},
+    "PIII.R3": {"progression_stage": "D&F",  "pillar": "Value Addition & Market Systems",    "dqa_stage": "Raw"},
+    "PIII.6":  {"progression_stage": "WEO",  "pillar": "Value Addition & Market Systems",    "dqa_stage": "Raw"},
+}
+
 # ── Module D: Raw Data Analysis ───────────────────────────────────────────────
 # 21 rows — one per logframe indicator.  indicator_code is the link key;
 # seed_sawa.py resolves it to logframe_row_id.
@@ -1494,6 +1523,192 @@ REVIEW_PROTOCOLS: list[dict] = [
         "review_frequency":      "Annual",
         "reviewer_role":         "Programme Manager + External Evaluator",
         "next_scheduled_date":   "2027-05-01",
+    },
+    # ── Cross-cutting: Safeguarding (SG) ──────────────────────────────────────
+    # Required in every AIL quarterly narrative alongside VC results.
+    {
+        "data_type":             "Safeguarding (SG)",
+        "review_scope":          (
+            "All safeguarding and PSEA incidents, near-misses, complaints and "
+            "feedback received in the period — across all programme sites and "
+            "anchor partners.  Covers PI.20 (PSEA awareness training), PI.22 "
+            "(campaigns/roadshows), PI.23 (certified sites).  "
+            "Mandatory cross-cutting section per AIL reporting standard."
+        ),
+        "existing_info_source":  (
+            "Safeguarding incident log; CEL safeguarding officer monthly reports; "
+            "community complaints and feedback mechanism records; "
+            "PI.20/PI.22/PI.23 actuals in raw_data_analysis (Module E)"
+        ),
+        "actual_info_source":    (
+            "Kobo Safeguarding Monitoring Form (Module E sync — Form 6); "
+            "CEL-managed grievance mechanism register; "
+            "partner safeguarding focal-person reports; "
+            "site certification documentation (PI.23)"
+        ),
+        "issue_definition":      (
+            "Any reported safeguarding incident, PSEA allegation or complaint in the period; "
+            "or PI.20/PI.22 below quarterly target; "
+            "or any partner site without a named focal person; "
+            "or a certified site whose certification lapses"
+        ),
+        "review_frequency":      "Quarterly",
+        "reviewer_role":         "CEL Safeguarding Officer",
+        "next_scheduled_date":   "2026-10-07",  # 7 days after Q1 end
+    },
+    # ── Cross-cutting: Gender, Youth & Social Inclusion (GYSI) ────────────────
+    {
+        "data_type":             "Gender & Social Inclusion (GYSI)",
+        "review_scope":          (
+            "GYSI data across all six GYSI categories — Reach (applicants & enrolment), "
+            "Accommodation (support provided), Safety (feedback/complaints/incidents), "
+            "Participation (attendance/completion/dropout), "
+            "Outcomes (work/enterprise/earnings/retention), "
+            "Agency (control over income/decisions) — disaggregated by sex, age, "
+            "disability, location and pathway.  Covers PI.9 (GALS focal persons), "
+            "PI.13 (PWD peer mentors), PI.19 (gender-transformative training), "
+            "PII.R5 (PWDs accessing D&F)."
+        ),
+        "existing_info_source":  (
+            "GYSI data in raw_data_analysis (Module E); "
+            "previous GYSI narrative section from quarterly report; "
+            "partner GYSI officer monthly briefings"
+        ),
+        "actual_info_source":    (
+            "Training attendance registers disaggregated by sex/disability (Module E); "
+            "enrolment register with sex/age/disability flags (Form 1); "
+            "self-efficacy instrument actuals (Module C Bi-annual, Nov cycle); "
+            "dropout check-in actuals (Quarterly, Sep cycle)"
+        ),
+        "issue_definition":      (
+            "Women's share of any output indicator falls below 75%; "
+            "or PWD inclusion below 5% at any partner site; "
+            "or any GYSI focal person position unfilled for >30 days; "
+            "or self-efficacy scores show no improvement at 6-month follow-up"
+        ),
+        "review_frequency":      "Quarterly",
+        "reviewer_role":         "CEL GYSI Officer",
+        "next_scheduled_date":   "2026-10-07",
+    },
+    # ── Cross-cutting: Climate & Environmental Sustainability (CES) ───────────
+    {
+        "data_type":             "Climate & Environmental Sustainability (CES)",
+        "review_scope":          (
+            "Environmental and climate-related risks and practices across all "
+            "programme sites — water quality, pond management, biosecurity, "
+            "feed sourcing, energy use, waste management.  "
+            "SAWA's Good Aquaculture Practices (GAqP) compliance at anchor sites."
+        ),
+        "existing_info_source":  (
+            "GAqP compliance reports from Fisheries Commission; "
+            "CSIR water-quality and environmental assessment data; "
+            "anchor partner site-visit records on feed, waste and water management"
+        ),
+        "actual_info_source":    (
+            "FC technical audit reports; CSIR demonstration-farm monitoring data; "
+            "partner operational logs on water-quality and feed sourcing; "
+            "field officer observations during site visits"
+        ),
+        "issue_definition":      (
+            "Any GAqP non-compliance flagged by FC at a certified site; "
+            "or water-quality parameter outside acceptable range at >20% of "
+            "monitored ponds; or feed-sourcing practice flagged as environmentally "
+            "unsustainable by CSIR; or a climate event causing >10% production loss"
+        ),
+        "review_frequency":      "Quarterly",
+        "reviewer_role":         "Technical Lead + FC/CSIR Liaison",
+        "next_scheduled_date":   "2026-10-07",
+    },
+    # ── Cross-cutting: Financial Inclusion (FI) ───────────────────────────────
+    {
+        "data_type":             "Financial Inclusion (FI)",
+        "review_scope":          (
+            "Access to and uptake of financial products and services by programme "
+            "participants — micro-grants, catalytic grants, SME facility, savings "
+            "groups, mobile money, insurance.  Tracks burn rate against 70% "
+            "threshold and deliverables against 60% threshold per tranche."
+        ),
+        "existing_info_source":  (
+            "TechnoServe grant disbursement tracker; "
+            "Module A Level 1 TechnoServe grant targets (catalytic grantees, micro-grant businesses); "
+            "CEL programme budget records; previous FI section from quarterly report"
+        ),
+        "actual_info_source":    (
+            "TechnoServe quarterly finance disbursement report; "
+            "BDS financial literacy training completion records (Tool 2); "
+            "participant savings-group and mobile-money uptake data (Module C income tracking)"
+        ),
+        "issue_definition":      (
+            "Programme burn rate below 70% of annual budget by Q3; "
+            "or deliverables below 60% of annual workplan commitments at mid-year review; "
+            "or TechnoServe grant utilisation below 80% with no documented reason; "
+            "or <40% of BDS graduates accessing any formal financial product within 6 months"
+        ),
+        "review_frequency":      "Quarterly",
+        "reviewer_role":         "Programme Manager + TechnoServe Finance Lead",
+        "next_scheduled_date":   "2026-10-07",
+    },
+    # ── Cross-cutting: Women's & Youth Voice and Agency (VA) ─────────────────
+    {
+        "data_type":             "Voice & Agency (VA)",
+        "review_scope":          (
+            "Women's and youth control over income, business decisions, enterprise "
+            "ownership and participation in leadership forums.  Covers the WAN "
+            "(PI.11, PI.12), cooperative governance (PI.17, PI.18, PIII.6), "
+            "the self-efficacy and market-linkage instruments (Module C Bi-annual)."
+        ),
+        "existing_info_source":  (
+            "WAN event attendance and governance records; "
+            "cooperative governance framework adoption data (PI.18 actuals); "
+            "self-efficacy instrument actuals (Bi-annual); "
+            "income-tracking actuals (Module C Bi-annual)"
+        ),
+        "actual_info_source":    (
+            "WAN Leadership Events Log (Kobo Form 3 sync); "
+            "Cooperative & Governance Registry (Kobo Form 5 sync); "
+            "market-linkage tracking data; "
+            "6-month follow-up interview responses on agency and decision-making"
+        ),
+        "issue_definition":      (
+            "Fewer than 25% of cooperative/cluster leadership positions held by women; "
+            "or self-efficacy scores static or declining at Bi-annual follow-up; "
+            "or <50% of income reported by participants as independently controlled; "
+            "or WAN forum cancelled with no replacement in the same quarter"
+        ),
+        "review_frequency":      "Bi-annual",
+        "reviewer_role":         "CEL GYSI Officer + Programme Manager",
+        "next_scheduled_date":   "2026-11-01",  # Nov cycle (mid Year 1)
+    },
+    # ── Cross-cutting: Communications & Visibility (CV) ──────────────────────
+    {
+        "data_type":             "Communications & Visibility (CV)",
+        "review_scope":          (
+            "CEL and SAWA visibility obligations to Mastercard Foundation and "
+            "Agri-Impact Limited — branding compliance, SAWA Voices stories, "
+            "social media presence, programme documentation and media coverage.  "
+            "Covers PI.22 (awareness campaigns/roadshows)."
+        ),
+        "existing_info_source":  (
+            "Mastercard Foundation branding and communications guidelines; "
+            "CEL SAWA Voices story log; "
+            "partner progress report communications sections; "
+            "PI.22 actuals (awareness campaigns)"
+        ),
+        "actual_info_source":    (
+            "SAWA Voices documented success stories (KNUST/e-SAWA platform); "
+            "campaign and roadshow event records (Kobo Form 6); "
+            "social media engagement metrics; "
+            "AIL communications and visibility review checklist"
+        ),
+        "issue_definition":      (
+            "Any SAWA-branded material missing required Mastercard Foundation acknowledgement; "
+            "or PI.22 campaigns below quarterly target; "
+            "or no success story documented in the period; "
+            "or a communications breach flagged by AIL"
+        ),
+        "review_frequency":      "Quarterly",
+        "reviewer_role":         "Communications Officer",
+        "next_scheduled_date":   "2026-10-07",
     },
 ]
 

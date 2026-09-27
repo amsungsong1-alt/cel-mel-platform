@@ -117,6 +117,10 @@ def _run_migrations() -> bool:
             for stmt in (
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS reporting_year INTEGER",
                 "ALTER TABLE data_collection_plan ADD COLUMN IF NOT EXISTS last_collected_date TEXT",
+                "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS progression_stage TEXT",
+                "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS pillar TEXT",
+                "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS dqa_stage TEXT",
+                "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS disaggregation TEXT",
             ):
                 conn.execute(text(stmt))
             # Backfill rows written before reporting_year existed, so every
@@ -125,6 +129,41 @@ def _run_migrations() -> bool:
                 text("UPDATE raw_data_analysis SET reporting_year=:yr WHERE reporting_year IS NULL"),
                 {"yr": current_fiscal_year()},
             )
+            # Backfill progression_stage, pillar, dqa_stage for rows that
+            # predate these columns (joined via logframe_rows.indicator_code).
+            for _code, _ps, _pl in [
+                ("LoP.1",    "D&F",  "Programme-wide"),
+                ("PI.1",     "WEO",  "Capacity Building & Inclusion"),
+                ("PI.3",     "WEO",  "Capacity Building & Inclusion"),
+                ("PI.9",     "WEO",  "Capacity Building & Inclusion"),
+                ("PI.11",    "WEO",  "Capacity Building & Inclusion"),
+                ("PI.12",    "WEO",  "Capacity Building & Inclusion"),
+                ("PI.13",    "WEO",  "Capacity Building & Inclusion"),
+                ("PI.17",    "WEO",  "Capacity Building & Inclusion"),
+                ("PI.18",    "WEO",  "Capacity Building & Inclusion"),
+                ("PI.19",    "WEO",  "Capacity Building & Inclusion"),
+                ("PI.20",    "WEO",  "Capacity Building & Inclusion"),
+                ("PI.22",    "WEO",  "Capacity Building & Inclusion"),
+                ("PI.23",    "WEO",  "Capacity Building & Inclusion"),
+                ("PIV.5",    "WEO",  "Ecosystem Strengthening"),
+                ("PII.R5",   "YIW",  "Production Expansion & Productivity"),
+                ("PIII.R1",  "YIW",  "Value Addition & Market Systems"),
+                ("PII.R6",   "D&F",  "Production Expansion & Productivity"),
+                ("PII.R7",   "D&F",  "Production Expansion & Productivity"),
+                ("PIII.R2",  "D&F",  "Value Addition & Market Systems"),
+                ("PIII.R3",  "D&F",  "Value Addition & Market Systems"),
+                ("PIII.6",   "WEO",  "Value Addition & Market Systems"),
+            ]:
+                conn.execute(text("""
+                    UPDATE raw_data_analysis rda
+                    SET    progression_stage = :ps,
+                           pillar             = :pl,
+                           dqa_stage          = 'Raw'
+                    FROM   logframe_rows lr
+                    WHERE  rda.logframe_row_id  = lr.id
+                      AND  lr.indicator_code    = :code
+                      AND  rda.progression_stage IS NULL
+                """), {"ps": _ps, "pl": _pl, "code": _code})
             # Correct data_collection_plan dates to SAWA Jul 2026–Jun 2030
             # fiscal calendar.  Old seed had Feb/May 2026 (before programme
             # start); keyed on stakeholder+frequency which is unique per row.
@@ -151,8 +190,20 @@ def _run_migrations() -> bool:
             # partner_targets (left over from pre-Sep-2026-deck seed versions
             # that were never purged, causing _needs_seed to fire on every load
             # and concurrent reseeds to produce duplicate partner_target rows).
+            # Rename Aglow Aqua to its correct operating name before the
+            # retired-name purge so it survives the subsequent DELETE pass.
+            conn.execute(text("""
+                UPDATE partners SET name = 'Aglow Farms'
+                WHERE name = 'Aglow Aqua'
+            """))
+            # Also update any partner_targets source_doc references.
+            conn.execute(text("""
+                UPDATE partner_targets
+                SET source_doc = REPLACE(source_doc, 'Aglow Aqua', 'Aglow Farms')
+                WHERE source_doc LIKE '%Aglow Aqua%'
+            """))
             for _retired in (
-                "Aglow Farms", "Yedent/Naple Betta", "AFRIGEM Global LBG", "R&B Farms",
+                "Yedent/Naple Betta", "AFRIGEM Global LBG", "R&B Farms",
             ):
                 conn.execute(
                     text("DELETE FROM partners WHERE name = :n"), {"n": _retired}
@@ -186,6 +237,28 @@ def _run_migrations() -> bool:
                 WHERE logframe_row_id IS NOT NULL
                   AND logframe_row_id NOT IN (SELECT id FROM logframe_rows)
             """))
+            # Insert the 6 AIL cross-cutting review protocols added in Sep 2026.
+            # NOT EXISTS guard makes every INSERT idempotent across redeploys.
+            for _dt, _freq, _nsd in [
+                ("Safeguarding (SG)",                          "Quarterly", "2026-10-07"),
+                ("Gender & Social Inclusion (GYSI)",           "Quarterly", "2026-10-07"),
+                ("Climate & Environmental Sustainability (CES)", "Quarterly", "2026-10-07"),
+                ("Financial Inclusion (FI)",                   "Quarterly", "2026-10-07"),
+                ("Voice & Agency (VA)",                        "Bi-annual", "2026-11-01"),
+                ("Communications & Visibility (CV)",           "Quarterly", "2026-10-07"),
+            ]:
+                conn.execute(text("""
+                    INSERT INTO review_protocols
+                           (project_id, data_type, review_frequency, next_scheduled_date)
+                    SELECT pr.project_id, :dt, :freq, :nsd
+                    FROM   projects pr
+                    WHERE  pr.name = 'SAWA'
+                      AND NOT EXISTS (
+                          SELECT 1 FROM review_protocols rp2
+                          WHERE  rp2.project_id = pr.project_id
+                            AND  rp2.data_type   = :dt
+                      )
+                """), {"dt": _dt, "freq": _freq, "nsd": _nsd})
             # Remove the TBC placeholder row that was never confirmed.
             conn.execute(text("""
                 DELETE FROM partner_targets
@@ -249,8 +322,8 @@ def _run_migrations() -> bool:
                 ("NewAge Agric",         "PWD reached",           "290",    "beneficiaries", "Year 1", "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("NewAge Agric",         "Regions covered",       "7",      "regions",       "Year 1", "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("AgroKings",           "Cluster sites",          "10",     "sites",         "Year 1", "AgroKings SAWA Year 1 Implementation Plan, Sep 2026"),
-                ("Aglow Aqua",          "Communities reached",    "15",     "communities",   "Year 1", "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026"),
-                ("Aglow Aqua",          "Districts covered",      "4",      "districts",     "Year 1", "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Aglow Farms",         "Communities reached",    "15",     "communities",   "Year 1", "Aglow Farms SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Aglow Farms",         "Districts covered",      "4",      "districts",     "Year 1", "Aglow Farms SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("AFRIGEM",             "Communities reached",    "10",     "communities",   "Year 1", "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("AFRIGEM",             "Districts covered",      "6",      "districts",     "Year 1", "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("AFRIGEM",             "Anchor operators",       "10",     "operators",     "Year 1", "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026"),
@@ -290,6 +363,10 @@ def _run_migrations() -> bool:
         "ALTER TABLE toc_nodes ADD COLUMN source_note TEXT",
         "ALTER TABLE raw_data_analysis ADD COLUMN reporting_year INTEGER",
         "ALTER TABLE data_collection_plan ADD COLUMN last_collected_date TEXT",
+        "ALTER TABLE raw_data_analysis ADD COLUMN progression_stage TEXT",
+        "ALTER TABLE raw_data_analysis ADD COLUMN pillar TEXT",
+        "ALTER TABLE raw_data_analysis ADD COLUMN dqa_stage TEXT",
+        "ALTER TABLE raw_data_analysis ADD COLUMN disaggregation TEXT",
     ):
         try:
             conn.execute(stmt)
@@ -301,6 +378,42 @@ def _run_migrations() -> bool:
         "UPDATE raw_data_analysis SET reporting_year=? WHERE reporting_year IS NULL",
         (current_fiscal_year(),),
     )
+    # Backfill progression_stage, pillar, dqa_stage for rows that predate
+    # these columns (correlated subquery — SQLite doesn't support UPDATE...FROM).
+    for _code, _ps, _pl in [
+        ("LoP.1",    "D&F",  "Programme-wide"),
+        ("PI.1",     "WEO",  "Capacity Building & Inclusion"),
+        ("PI.3",     "WEO",  "Capacity Building & Inclusion"),
+        ("PI.9",     "WEO",  "Capacity Building & Inclusion"),
+        ("PI.11",    "WEO",  "Capacity Building & Inclusion"),
+        ("PI.12",    "WEO",  "Capacity Building & Inclusion"),
+        ("PI.13",    "WEO",  "Capacity Building & Inclusion"),
+        ("PI.17",    "WEO",  "Capacity Building & Inclusion"),
+        ("PI.18",    "WEO",  "Capacity Building & Inclusion"),
+        ("PI.19",    "WEO",  "Capacity Building & Inclusion"),
+        ("PI.20",    "WEO",  "Capacity Building & Inclusion"),
+        ("PI.22",    "WEO",  "Capacity Building & Inclusion"),
+        ("PI.23",    "WEO",  "Capacity Building & Inclusion"),
+        ("PIV.5",    "WEO",  "Ecosystem Strengthening"),
+        ("PII.R5",   "YIW",  "Production Expansion & Productivity"),
+        ("PIII.R1",  "YIW",  "Value Addition & Market Systems"),
+        ("PII.R6",   "D&F",  "Production Expansion & Productivity"),
+        ("PII.R7",   "D&F",  "Production Expansion & Productivity"),
+        ("PIII.R2",  "D&F",  "Value Addition & Market Systems"),
+        ("PIII.R3",  "D&F",  "Value Addition & Market Systems"),
+        ("PIII.6",   "WEO",  "Value Addition & Market Systems"),
+    ]:
+        conn.execute(
+            """UPDATE raw_data_analysis
+               SET progression_stage = ?,
+                   pillar             = ?,
+                   dqa_stage          = 'Raw'
+               WHERE logframe_row_id IN (
+                   SELECT id FROM logframe_rows WHERE indicator_code = ?
+               )
+                 AND progression_stage IS NULL""",
+            (_ps, _pl, _code),
+        )
     conn.commit()
     conn.close()
     return True

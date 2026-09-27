@@ -51,13 +51,19 @@ FREQ_MONTHS = {
 }
 
 DT_ICONS = {
-    "Performance":  "📊",
-    "Assumption":   "🔮",
-    "Stakeholder":  "🤝",
-    "Process":      "⚙️",
-    "Problem":      "⚠️",
-    "Solution":     "💡",
-    "Attribution":  "🔗",
+    "Performance":                    "📊",
+    "Assumption":                     "🔮",
+    "Stakeholder":                    "🤝",
+    "Process":                        "⚙️",
+    "Problem":                        "⚠️",
+    "Solution":                       "💡",
+    "Attribution":                    "🔗",
+    "Safeguarding (SG)":              "🛡️",
+    "Gender & Social Inclusion (GYSI)": "♀️",
+    "Climate & Environmental Sustainability (CES)": "🌿",
+    "Financial Inclusion (FI)":       "💰",
+    "Voice & Agency (VA)":            "🗣️",
+    "Communications & Visibility (CV)": "📣",
 }
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -131,7 +137,13 @@ def _load_protocols() -> list[dict]:
                WHEN 'Problem'      THEN 5
                WHEN 'Solution'     THEN 6
                WHEN 'Attribution'  THEN 7
-               ELSE 8 END""",
+               WHEN 'Safeguarding (SG)'                          THEN 8
+               WHEN 'Gender & Social Inclusion (GYSI)'           THEN 9
+               WHEN 'Climate & Environmental Sustainability (CES)' THEN 10
+               WHEN 'Financial Inclusion (FI)'                   THEN 11
+               WHEN 'Voice & Agency (VA)'                        THEN 12
+               WHEN 'Communications & Visibility (CV)'           THEN 13
+               ELSE 14 END""",
         {"pid": project_id},
     )
 

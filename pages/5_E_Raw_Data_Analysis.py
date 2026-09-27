@@ -108,6 +108,20 @@ DATA_TYPES = [
     "Process", "Performance", "Assumption",
     "Stakeholder", "Problem", "Solution", "Attribution",
 ]
+PROGRESSION_STAGE_OPTS = ["WEO", "YIW", "D&F"]
+PILLAR_OPTS = [
+    "Capacity Building & Inclusion",
+    "Production Expansion & Productivity",
+    "Value Addition & Market Systems",
+    "Ecosystem Strengthening",
+    "Programme-wide",
+]
+DQA_STAGE_OPTS = [
+    "Raw",
+    "Completeness Checked",
+    "Traceability Verified",
+    "Outcome Validated",
+]
 BASELINE_OPTS = ["Y", "N"]
 IND_STATUS_OPTS = [
     "Data not collected yet",
@@ -188,6 +202,7 @@ rda_rows = run_query(
               r.baseline_collected, r.baseline_value,
               r.actual_q1, r.actual_q2, r.actual_q3, r.actual_q4, r.actual_year,
               r.indicator_status, r.action_status, r.action_description,
+              r.progression_stage, r.pillar, r.dqa_stage, r.disaggregation,
               r.last_updated, r.updated_by
        FROM   raw_data_analysis r
        LEFT JOIN logframe_rows lf ON r.logframe_row_id = lf.id
@@ -342,11 +357,16 @@ _DISPLAY_COLS = {
     "Indicator Status":   "indicator_status",
     "Action Status":      "action_status",
     "Action Description": "action_description",
+    "Stage":              "progression_stage",
+    "Pillar":             "pillar",
+    "DQA Stage":          "dqa_stage",
+    "Disaggregation":     "disaggregation",
 }
 _EDITABLE = [
     "Type", "Trigger", "Problem Definition", "Baseline?", "Baseline Value",
     Q1_LABEL, Q2_LABEL, Q3_LABEL, Q4_LABEL, YEAR_LABEL,
     "Indicator Status", "Action Status", "Action Description",
+    "Stage", "Pillar", "DQA Stage", "Disaggregation",
 ]
 
 accepted = st.session_state.get("rda_accepted_suggestions", {})
@@ -389,6 +409,10 @@ col_config = {
     "Action Status":     st.column_config.SelectboxColumn(
                              "Action Status", options=ACTION_STATUS_OPTS, width="large"),
     "Action Description":st.column_config.TextColumn("Action Description", width="large"),
+    "Stage":             st.column_config.SelectboxColumn("Stage", options=PROGRESSION_STAGE_OPTS, width="small"),
+    "Pillar":            st.column_config.SelectboxColumn("Pillar", options=PILLAR_OPTS, width="medium"),
+    "DQA Stage":         st.column_config.SelectboxColumn("DQA Stage", options=DQA_STAGE_OPTS, width="medium"),
+    "Disaggregation":    st.column_config.TextColumn("Disaggregation (JSON)", width="large"),
 }
 
 if can_write_module("E"):

@@ -401,7 +401,7 @@ _cel_measures = pd.DataFrame([
         "CEL Year 1 Measure":     "Women receiving BDS",
         "Target":                 "500",
         "How Partners Feed This": (
-            "CEL coaches inside AgroKings, Aglow Aqua, AFRIGEM, Newage and "
+            "CEL coaches inside AgroKings, Aglow Farms, AFRIGEM, Newage and "
             "Naple Betta cohorts.  500 are the 'accelerator / enterprises in "
             "transition' cohort receiving direct BDS coaching.  "
             "TechnoServe reaches 320 young women through its grant mechanism — "
@@ -409,7 +409,7 @@ _cel_measures = pd.DataFrame([
         ),
         "Partner Sources": (
             "AgroKings 800 groups → coaching entry · "
-            "Aglow Aqua 1,200 → 300 Q1 entry · "
+            "Aglow Farms 1,200 → 300 Q1 entry · "
             "AFRIGEM 1,000 → Q1 350 · "
             "Newage & Naple Betta hub members · "
             "TechnoServe 320 (grant-pipeline enterprises)"
@@ -433,12 +433,12 @@ _cel_measures = pd.DataFrame([
         "CEL Year 1 Measure":     "Women-led cooperatives/clusters strengthened",
         "Target":                 "25",
         "How Partners Feed This": (
-            "Aglow Aqua cluster model (15 communities), "
+            "Aglow Farms cluster model (15 communities), "
             "AFRIGEM cooperatives (4+), "
             "AgroKings groups graduating to cooperative ownership."
         ),
         "Partner Sources": (
-            "Aglow Aqua community cluster model · "
+            "Aglow Farms community cluster model · "
             "AFRIGEM cooperative formation · "
             "AgroKings rent-to-own group exit"
         ),
@@ -448,7 +448,7 @@ _cel_measures = pd.DataFrame([
         "Target":                 "100",
         "How Partners Feed This": (
             "AgroKings 1909 processing & retail arm (190 women in roles); "
-            "Naple Betta women-led grill outlets; Aglow Aqua processing area.  "
+            "Naple Betta women-led grill outlets; Aglow Farms processing area.  "
             "TechnoServe targets 250 jobs through its micro-grant mechanism "
             "(10 catalytic grantees + 150 micro-grant businesses).  "
             "NewAge Agric targets 5,800 D&F jobs programme-wide; "
@@ -458,7 +458,7 @@ _cel_measures = pd.DataFrame([
             "AgroKings 1909 (190 roles) · "
             "TechnoServe 250 jobs (10 catalytic + 150 micro-grant businesses) · "
             "Naple Betta grill outlets · "
-            "Aglow Aqua HQ processing · "
+            "Aglow Farms HQ processing · "
             "NewAge Agric (5,800 D&F jobs, 7 regions)"
         ),
     },
@@ -684,7 +684,7 @@ for _tab, _qd in zip(_q_tabs, _QUARTERS):
         with _col2:
             st.markdown("**AgroKings**")
             st.markdown(_qd["agrokings"])
-            st.markdown("**Aglow Aqua**")
+            st.markdown("**Aglow Farms**")
             st.markdown(_qd["aglow"])
         _col3, _col4, _col5 = st.columns(3)
         with _col3:

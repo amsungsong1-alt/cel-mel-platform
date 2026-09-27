@@ -518,13 +518,46 @@ with tab_cal:
         if m not in pivot.columns:
             pivot[m] = 0
     pivot = pivot[sorted(pivot.columns)]
-    pivot.columns = [MONTH_ABR[m] for m in pivot.columns]
+
+    # Deadline months for AIL partner report submission (7 days after quarter end).
+    # Oct (Q1), Jan (Q2), Apr (Q3), Jul (Q4) — marked ★ in heatmap x-axis.
+    _DEADLINE_MONTHS = {10, 1, 4, 7}
+
+    pivot.columns = [
+        f"★{MONTH_ABR[m]}" if m in _DEADLINE_MONTHS else MONTH_ABR[m]
+        for m in pivot.columns
+    ]
     pivot.index.name = "Year"
+
+    # ── Submission deadline panel ─────────────────────────────────────────────
+    st.markdown("#### Partner Report Submission Deadlines")
+    st.caption(
+        "AIL requires partner reports **7 days after each quarter end**. "
+        "Deadline months are marked ★ on the heatmap."
+    )
+    _DEADLINE_COLS = st.columns(4)
+    for _col, (_q, _qend, _deadline) in zip(_DEADLINE_COLS, [
+        ("Q1", "30 Sep", "**7 Oct**"),
+        ("Q2", "31 Dec", "**7 Jan**"),
+        ("Q3", "31 Mar", "**7 Apr**"),
+        ("Q4", "30 Jun", "**7 Jul**"),
+    ]):
+        with _col:
+            st.markdown(
+                f'<div style="background:#FFF8E1;border-left:3px solid #F57F17;'
+                f'border-radius:6px;padding:8px 12px;text-align:center;">'
+                f'<p style="margin:0;font-size:0.75em;color:#6D4C00;">{_q} ends {_qend}</p>'
+                f'<p style="margin:4px 0 0;font-size:1em;color:#E65100;">{_deadline}</p>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
     st.markdown("#### 12-Month Collection Heatmap")
     st.caption(
         "Cell value = number of collection events scheduled in that month. "
         "Darker red = higher load. Hover a cell to see the exact count. "
+        "★ marks AIL partner report submission deadline months (Oct · Jan · Apr · Jul). "
         "Months reaching the threshold are flagged below."
     )
 
