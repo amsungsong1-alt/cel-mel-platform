@@ -492,6 +492,12 @@ _QUARTERS = [
             "**350 women** onboarded; 3 anchor operators (traders, producers, processors); "
             "community sensitisation & identification."
         ),
+        "naple_betta": (
+            "**1,850 YW mobilised** — SET UP & MOBILISE: sign contracts; "
+            "baseline + GYSI/PWD/safeguarding assessments; "
+            "community entry & youth mobilisation; "
+            "training in production; feed mill operations."
+        ),
         "newage": (
             "**1,456 D&F jobs** created (2,007 reached).  "
             "Adwenepa App deployed — digital backbone for data, monitoring & stock.  "
@@ -529,6 +535,12 @@ _QUARTERS = [
         "afrigem": (
             "**350 more women** onboarded (700 cumulative); "
             "3 more anchor operators; door-to-door & group mobilisation."
+        ),
+        "naple_betta": (
+            "**465 YiW** — STRUCTURE & BUILD CAPACITY: "
+            "mobilisation of youth in processing; "
+            "starter-pack support & fish production begins; "
+            "PWD/accessibility and safeguarding actions."
         ),
         "newage": (
             "**+1,884 D&F jobs** (3,340 cumulative — 61.7% of Year 1 delivered).  "
@@ -569,6 +581,12 @@ _QUARTERS = [
         "afrigem": (
             "**150 more women** (850 cumulative); 2 anchor operators; "
             "eligibility screening of new cohort."
+        ),
+        "naple_betta": (
+            "**542 YiW** (1,007 cumulative) — PRODUCE & CONNECT TO MARKET: "
+            "support participants into fish production; "
+            "value-add support; grill outlets live; "
+            "marketing activities."
         ),
         "newage": (
             "**+1,218 D&F jobs** (4,558 cumulative).  "
@@ -611,6 +629,13 @@ _QUARTERS = [
             "**150 more women** (1,000 total); 2 more anchor operators (10 total); "
             "follow up on licensing & certification."
         ),
+        "naple_betta": (
+            "**705 YiW** (1,712 total) — GROW, LEARN & ACCOUNT: "
+            "production & input systems scale; "
+            "575 participants supported into value addition; "
+            "branding/certification + MEL/KPI review.  "
+            "Year 1: 110 MT value-added trade · $841,500 revenue · 13 grill outlets."
+        ),
         "newage": (
             "**+1,242 D&F jobs** (5,800 cumulative — Year 1 complete).  "
             "Year 1 cohort complete. Repeat cycles running.  "
@@ -645,17 +670,21 @@ for _tab, _qd in zip(_q_tabs, _QUARTERS):
             st.markdown(_qd["agrokings"])
             st.markdown("**Aglow Aqua**")
             st.markdown(_qd["aglow"])
-        _col3, _col4, _col5, _col6 = st.columns(4)
+        _col3, _col4, _col5 = st.columns(3)
         with _col3:
             st.markdown("**AFRIGEM**")
             st.markdown(_qd["afrigem"])
         with _col4:
+            st.markdown("**Naple Betta**")
+            st.markdown(_qd["naple_betta"])
+        with _col5:
             st.markdown("**NewAge Agric**")
             st.markdown(_qd["newage"])
-        with _col5:
+        _col6, _col7 = st.columns(2)
+        with _col6:
             st.markdown("**TechnoServe**")
             st.markdown(_qd["technoserve"])
-        with _col6:
+        with _col7:
             st.markdown("**FC & CSIR**")
             st.markdown(_qd["fc_csir"])
 

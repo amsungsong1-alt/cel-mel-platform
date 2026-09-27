@@ -204,6 +204,11 @@ def _run_migrations() -> bool:
             # anchor operators, FC & CSIR Year 1 targets).  NOT EXISTS guard
             # makes every INSERT idempotent across redeploys.
             for _pname, _label, _val, _unit, _basis, _doc in [
+                ("Naple Betta",          "D&F jobs",                     "1,284",   "jobs",         "Year 1", "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Naple Betta",          "Participants in value addition","575",     "participants", "Year 1", "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Naple Betta",          "Women-led grill outlets",       "13",      "outlets",      "Year 1", "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Naple Betta",          "Value-added fish trade",        "110",     "MT",           "Year 1", "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Naple Betta",          "Value-added revenue",           "841,500", "USD",          "Year 1", "Naple Betta SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("TechnoServe",          "Young women reached",   "320",    "beneficiaries", "Year 1", "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("TechnoServe",          "PWD reached",           "10",     "beneficiaries", "Year 1", "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("TechnoServe",          "Catalytic grantees",    "10",     "grantees",      "Year 1", "TechnoServe SAWA Year 1 Implementation Plan, Sep 2026"),
