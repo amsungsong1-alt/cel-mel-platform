@@ -12,6 +12,7 @@ Includes a time-basis reconciliation warning, inline editing for
 Admin/Editor roles, and a one-page PDF export for donor decks.
 """
 import io
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -319,6 +320,22 @@ fig.update_layout(
     font=dict(family="IBM Plex Mono, monospace", size=11, color="#5E6A6A"),
 )
 st.plotly_chart(fig, use_container_width=True)
+
+st.divider()
+
+# ── SAWA Partners on the Map ──────────────────────────────────────────────────
+st.subheader("SAWA Partners on the Map")
+st.caption(
+    "5 implementing partners · 40 communities · 10 of 16 regions  |  "
+    "Every pair shares a region · 4 shared districts · "
+    "5 hotspots where partners sit ≤15 km apart.  "
+    "Source: SAWA Partner Mapping & Alignment (GPS validated), Sep 2026."
+)
+_map_path = Path(__file__).parent.parent / "assets" / "sawa_partner_map.webp"
+if _map_path.exists():
+    st.image(str(_map_path), use_container_width=True)
+else:
+    st.info("Map image not found — ensure assets/sawa_partner_map.webp is present in the repo.")
 
 st.divider()
 
