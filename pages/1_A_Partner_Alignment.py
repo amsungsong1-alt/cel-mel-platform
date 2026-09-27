@@ -115,24 +115,23 @@ l23_yr1 = any(t["time_basis"] == "Year 1" for t in by_level[2] + by_level[3])
 
 if l1_lop and l23_yr1:
     st.warning(
-        "⚠️ **Time-Basis Mismatch — do not sum these numbers together.**  \n"
-        "**Level 1** (Anchor Partner) commitments are *Life of Programme* totals "
-        "(2026–2030).  \n"
-        "**Levels 2 & 3** targets are *Year 1 only* (CEL Consolidated Workplan).  \n"
-        "These figures operate on different time horizons. Never aggregate them or "
-        "use them as numerator/denominator in the same ratio without first converting "
-        "both to the same basis (e.g. a pro-rata Year 1 share of the LoP total)."
+        "⚠️ **Do not sum Level 1 LoP totals with Level 2 & 3 Year 1 figures.**  \n"
+        "**Level 1 LoP** rows are *Life of Programme* totals (2026–2030) from the "
+        "original SAWA proposal.  \n"
+        "**Levels 2 & 3** targets are *Year 1 only* (CEL Consolidated Workplan, "
+        "Jul 2026 – Jun 2027).  \n"
+        "To compare across levels, switch Level 1 to the **Year 1 tab** — those "
+        "figures come directly from each partner's Sep 2026 implementation plan "
+        "and sit on the same time basis as Levels 2 & 3."
     )
 
 if l1_lop and l1_yr1:
-    st.warning(
-        "⚠️ **Level 1 itself mixes two time bases — read each card's badge.**  \n"
-        "Some Level 1 cards are *Life of Programme* totals from the original SAWA "
-        "proposal (**LOP** badge); others are a partner's own confirmed *Year 1* "
-        "target from their Year 1 implementation plan (**YR 1** badge). A partner's "
-        "LOP and Year 1 figures are not the same metric on different scales — the "
-        "Year 1 figure is that partner's own near-term plan, not necessarily 1/5th "
-        "of the LOP total. Compare within a badge, not across badges."
+    st.info(
+        "ℹ️ **Level 1 has two tabs: LoP totals and confirmed Year 1 targets.**  \n"
+        "**LOP badge** — Life of Programme totals from the original SAWA proposal.  \n"
+        "**YR 1 badge** — confirmed from each partner's own Sep 2026 implementation "
+        "plan. These are not a 1/5 estimate of the LoP — they are the partner's "
+        "actual Year 1 commitment. Compare within a badge, not across badges."
     )
 
 # ── Header ────────────────────────────────────────────────────────────────────
