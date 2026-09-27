@@ -30,6 +30,21 @@ _STAGES = [
 # Only used for sidebar colour bands — no sticky/fixed rules needed here.
 _CSS = """
 <style>
+/* ── Suppress Material Symbols ligatures that render as plain text when the
+       Material Symbols font fails to load on Streamlit Cloud. Targets both
+       the page_link forward-arrow and the expander toggle arrow. ── */
+.material-symbols-rounded,
+.material-symbols-outlined,
+.material-symbols-sharp {
+    font-size: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+}
+/* page_link arrow icon (svg fallback path) */
+[data-testid="stPageLink"] svg { display: none !important; }
+/* expander toggle arrow (svg) */
+[data-testid="stExpander"] summary svg { display: none !important; }
+
 [data-testid="stMarkdown"]:has(span#_nav_marker) {
     display: none !important;
 }
