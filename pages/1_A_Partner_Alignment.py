@@ -429,12 +429,15 @@ _cel_measures = pd.DataFrame([
         "Target":                 "100",
         "How Partners Feed This": (
             "AgroKings 1909 processing & retail arm (190 women in roles); "
-            "Naple Betta women-led grill outlets; Aglow Aqua processing area."
+            "Naple Betta women-led grill outlets; Aglow Aqua processing area.  "
+            "NewAge Agric targets 5,800 D&F jobs programme-wide (≥90% young women, 290 PWD); "
+            "CEL's 100 tracks the value-addition slice only."
         ),
         "Partner Sources": (
             "AgroKings 1909 (190 roles) · "
             "Naple Betta grill outlets · "
-            "Aglow Aqua HQ processing (500 HQ-based opportunities)"
+            "Aglow Aqua HQ processing (500 HQ-based opportunities) · "
+            "NewAge Agric (5,800 D&F jobs Year 1 total, 7 regions)"
         ),
     },
 ])
@@ -483,6 +486,11 @@ _QUARTERS = [
             "**350 women** onboarded; 3 anchor operators (traders, producers, processors); "
             "community sensitisation & identification."
         ),
+        "newage": (
+            "**1,456 D&F jobs** created (2,007 reached).  "
+            "Adwenepa App deployed — digital backbone for data, monitoring & stock.  "
+            "e-Learning Centre live.  Recruitment & first onboarding."
+        ),
         "fc_csir": (
             "**FC:** Inception & stakeholder coordination; aquaculture regulation/licensing "
             "orientation; GAqP planning; broodstock linkages.  "
@@ -510,6 +518,11 @@ _QUARTERS = [
         "afrigem": (
             "**350 more women** onboarded (700 cumulative); "
             "3 more anchor operators; door-to-door & group mobilisation."
+        ),
+        "newage": (
+            "**+1,884 D&F jobs** (3,340 cumulative — 61.7% of Year 1 delivered).  "
+            "Peak intake. Production infrastructure scaled.  "
+            "First ~3-month cycles underway."
         ),
         "fc_csir": (
             "**FC:** GAqP & SOP training; licensing guidance; facility/farm compliance "
@@ -541,6 +554,11 @@ _QUARTERS = [
             "**150 more women** (850 cumulative); 2 anchor operators; "
             "eligibility screening of new cohort."
         ),
+        "newage": (
+            "**+1,218 D&F jobs** (4,558 cumulative).  "
+            "Consolidation. First harvests as ~3-month cycles complete.  "
+            "Market linkages active. Systems generating live M&E data."
+        ),
         "fc_csir": (
             "**FC:** Continue technical support & compliance monitoring; "
             "two-tier certification pathway; quality-control & record-keeping support.  "
@@ -571,6 +589,11 @@ _QUARTERS = [
             "**150 more women** (1,000 total); 2 more anchor operators (10 total); "
             "follow up on licensing & certification."
         ),
+        "newage": (
+            "**+1,242 D&F jobs** (5,800 cumulative — Year 1 complete).  "
+            "Year 1 cohort complete. Repeat cycles running.  "
+            "Full-year data & review. Year 2 scale-up prepared."
+        ),
         "fc_csir": (
             "**FC:** Technical audits; review GAqP/SOP gaps; policy/ecosystem-strengthening "
             "discussions; consolidate lessons for Year 2.  "
@@ -594,11 +617,14 @@ for _tab, _qd in zip(_q_tabs, _QUARTERS):
             st.markdown(_qd["agrokings"])
             st.markdown("**Aglow Aqua**")
             st.markdown(_qd["aglow"])
-        _col3, _col4 = st.columns(2)
+        _col3, _col4, _col5 = st.columns(3)
         with _col3:
             st.markdown("**AFRIGEM**")
             st.markdown(_qd["afrigem"])
         with _col4:
+            st.markdown("**NewAge Agric**")
+            st.markdown(_qd["newage"])
+        with _col5:
             st.markdown("**FC & CSIR**")
             st.markdown(_qd["fc_csir"])
 

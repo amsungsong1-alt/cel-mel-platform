@@ -204,6 +204,10 @@ def _run_migrations() -> bool:
             # anchor operators, FC & CSIR Year 1 targets).  NOT EXISTS guard
             # makes every INSERT idempotent across redeploys.
             for _pname, _label, _val, _unit, _basis, _doc in [
+                ("NewAge Agric",         "D&F jobs",              "5,800",  "jobs",          "Year 1", "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("NewAge Agric",         "Young women in jobs",   "≥90%",   "% of D&F jobs", "Year 1", "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("NewAge Agric",         "PWD reached",           "290",    "beneficiaries", "Year 1", "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("NewAge Agric",         "Regions covered",       "7",      "regions",       "Year 1", "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("AgroKings",           "Cluster sites",          "10",     "sites",         "Year 1", "AgroKings SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("Aglow Aqua",          "Communities reached",    "15",     "communities",   "Year 1", "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026"),
                 ("Aglow Aqua",          "Districts covered",      "4",      "districts",     "Year 1", "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026"),

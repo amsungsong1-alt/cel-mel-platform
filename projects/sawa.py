@@ -83,6 +83,13 @@ PARTNER_TARGETS = [
     {"partner_name": "AFRIGEM",            "level": 1, "metric_label": "Communities reached",   "target_value": "10",     "unit": "communities",   "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",            "source_page": ""},
     {"partner_name": "AFRIGEM",            "level": 1, "metric_label": "Districts covered",     "target_value": "6",      "unit": "districts",     "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",            "source_page": ""},
     {"partner_name": "AFRIGEM",            "level": 1, "metric_label": "Anchor operators",      "target_value": "10",     "unit": "operators",     "time_basis": "Year 1", "source_doc": "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026",            "source_page": ""},
+    # NewAge Agric Year 1 targets (source: NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026)
+    # Quarterly D&F job creation: Q1 1,456 (reach 2,007) → Q2 +1,884 (cum. 3,340) →
+    #   Q3 +1,218 (cum. 4,558) → Q4 +1,242 (cum. 5,800 = Year 1 total)
+    {"partner_name": "NewAge Agric", "level": 1, "metric_label": "D&F jobs",           "target_value": "5,800",  "unit": "jobs",          "time_basis": "Year 1", "source_doc": "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
+    {"partner_name": "NewAge Agric", "level": 1, "metric_label": "Young women in jobs","target_value": "≥90%",   "unit": "% of D&F jobs", "time_basis": "Year 1", "source_doc": "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
+    {"partner_name": "NewAge Agric", "level": 1, "metric_label": "PWD reached",        "target_value": "290",    "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
+    {"partner_name": "NewAge Agric", "level": 1, "metric_label": "Regions covered",    "target_value": "7",      "unit": "regions",       "time_basis": "Year 1", "source_doc": "NewAge Agric SAWA Year 1 Implementation Plan, Sep 2026", "source_page": "03"},
     # Fisheries Commission and CSIR Year 1 targets (FC figures are illustrative 25% phasing of LoP)
     {"partner_name": "Fisheries Commission", "level": 1, "metric_label": "Participants reached",  "target_value": "15,000", "unit": "participants",  "time_basis": "Year 1", "source_doc": "Fisheries Commission SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
     {"partner_name": "Fisheries Commission", "level": 1, "metric_label": "PWD reached",           "target_value": "750",    "unit": "beneficiaries", "time_basis": "Year 1", "source_doc": "Fisheries Commission SAWA Year 1 Implementation Plan, Sep 2026", "source_page": ""},
