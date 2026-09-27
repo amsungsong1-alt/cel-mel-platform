@@ -115,7 +115,7 @@ l1_yr1  = any(t["time_basis"] == "Year 1" for t in by_level[1])
 l23_yr1 = any(t["time_basis"] == "Year 1" for t in by_level[2] + by_level[3])
 
 if l1_lop and l23_yr1:
-    with st.expander("ℹ️ Time-basis note — LoP vs Year 1 figures", expanded=False):
+    with st.expander("Time-basis note — LoP vs Year 1 figures", expanded=False):
         st.markdown(
             "**Do not sum Level 1 LoP totals with Level 2 & 3 Year 1 figures.**  \n"
             "**Level 1 LoP** rows are *Life of Programme* totals (2026–2030) from the "
@@ -128,7 +128,7 @@ if l1_lop and l23_yr1:
         )
 
 if l1_lop and l1_yr1:
-    with st.expander("ℹ️ Level 1 tabs — LoP totals vs confirmed Year 1 targets", expanded=False):
+    with st.expander("Level 1 tabs — LoP totals vs confirmed Year 1 targets", expanded=False):
         st.markdown(
             "**LOP badge** — Life of Programme totals from the original SAWA proposal.  \n"
             "**YR 1 badge** — confirmed from each partner's own Sep 2026 implementation "
