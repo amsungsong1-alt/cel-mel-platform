@@ -199,6 +199,42 @@ def _run_migrations() -> bool:
                   AND level = 2 AND time_basis = 'Year 1'
                   AND unit <> 'cooperatives/clusters, focal persons'
             """))
+            # Insert new Level 1 Year 1 partner targets from the Sep 2026 partner
+            # implementation decks (cluster sites, communities, districts,
+            # anchor operators, FC & CSIR Year 1 targets).  NOT EXISTS guard
+            # makes every INSERT idempotent across redeploys.
+            for _pname, _label, _val, _unit, _basis, _doc in [
+                ("AgroKings",           "Cluster sites",          "10",     "sites",         "Year 1", "AgroKings SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Aglow Aqua",          "Communities reached",    "15",     "communities",   "Year 1", "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Aglow Aqua",          "Districts covered",      "4",      "districts",     "Year 1", "Aglow Aqua SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("AFRIGEM",             "Communities reached",    "10",     "communities",   "Year 1", "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("AFRIGEM",             "Districts covered",      "6",      "districts",     "Year 1", "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("AFRIGEM",             "Anchor operators",       "10",     "operators",     "Year 1", "AFRIGEM SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Fisheries Commission","Participants reached",   "15,000", "participants",  "Year 1", "Fisheries Commission SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Fisheries Commission","PWD reached",            "750",    "beneficiaries", "Year 1", "Fisheries Commission SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("Fisheries Commission","Enterprises supported",  "500",    "enterprises",   "Year 1", "Fisheries Commission SAWA Year 1 Implementation Plan, Sep 2026"),
+                ("CSIR",                "Young women coached",    "100",    "beneficiaries", "Year 1", "CSIR SAWA Year 1 Implementation Plan, Sep 2026"),
+            ]:
+                conn.execute(text("""
+                    INSERT INTO partner_targets
+                           (partner_id, project_id, level, metric_label,
+                            target_value, unit, time_basis, source_doc, source_page)
+                    SELECT p.partner_id, p.project_id, 1, :label,
+                           :val, :unit, :basis, :doc, ''
+                    FROM partners p
+                    JOIN projects pr ON p.project_id = pr.project_id
+                    WHERE pr.name = 'SAWA' AND p.name = :pname
+                      AND NOT EXISTS (
+                          SELECT 1 FROM partner_targets pt2
+                          WHERE pt2.project_id = p.project_id
+                            AND pt2.partner_id  = p.partner_id
+                            AND pt2.metric_label = :label
+                            AND pt2.time_basis   = :basis
+                      )
+                """), {
+                    "pname": _pname, "label": _label, "val": _val,
+                    "unit": _unit, "basis": _basis, "doc": _doc,
+                })
         return True
 
     schema = SCHEMA_PATH.read_text()
