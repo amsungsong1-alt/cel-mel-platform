@@ -259,6 +259,140 @@ def _run_migrations() -> bool:
                             AND  rp2.data_type   = :dt
                       )
                 """), {"dt": _dt, "freq": _freq, "nsd": _nsd})
+            # Populate full text fields for the 6 cross-cutting review protocols.
+            # review_scope IS NULL guard makes each UPDATE idempotent.
+            for _dt, _scope, _existing, _actual, _issue, _role in [
+                (
+                    "Safeguarding (SG)",
+                    ("All safeguarding and PSEA incidents, near-misses, complaints and "
+                     "feedback received in the period — across all programme sites and "
+                     "anchor partners.  Covers PI.20 (PSEA awareness training), PI.22 "
+                     "(campaigns/roadshows), PI.23 (certified sites).  "
+                     "Mandatory cross-cutting section per AIL reporting standard."),
+                    ("Safeguarding incident log; CEL safeguarding officer monthly reports; "
+                     "community complaints and feedback mechanism records; "
+                     "PI.20/PI.22/PI.23 actuals in raw_data_analysis (Module E)"),
+                    ("Kobo Safeguarding Monitoring Form (Module E sync — Form 6); "
+                     "CEL-managed grievance mechanism register; "
+                     "partner safeguarding focal-person reports; "
+                     "site certification documentation (PI.23)"),
+                    ("Any reported safeguarding incident, PSEA allegation or complaint in the period; "
+                     "or PI.20/PI.22 below quarterly target; "
+                     "or any partner site without a named focal person; "
+                     "or a certified site whose certification lapses"),
+                    "CEL Safeguarding Officer",
+                ),
+                (
+                    "Gender & Social Inclusion (GYSI)",
+                    ("GYSI data across all six GYSI categories — Reach (applicants & enrolment), "
+                     "Accommodation (support provided), Safety (feedback/complaints/incidents), "
+                     "Participation (attendance/completion/dropout), "
+                     "Outcomes (work/enterprise/earnings/retention), "
+                     "Agency (control over income/decisions) — disaggregated by sex, age, "
+                     "disability, location and pathway.  Covers PI.9, PI.13, PI.19, PII.R5."),
+                    ("GYSI data in raw_data_analysis (Module E); "
+                     "previous GYSI narrative section from quarterly report; "
+                     "partner GYSI officer monthly briefings"),
+                    ("Training attendance registers disaggregated by sex/disability (Module E); "
+                     "enrolment register with sex/age/disability flags (Form 1); "
+                     "self-efficacy instrument actuals (Module C Bi-annual, Nov cycle); "
+                     "dropout check-in actuals (Quarterly, Sep cycle)"),
+                    ("Women's share of any output indicator falls below 75%; "
+                     "or PWD inclusion below 5% at any partner site; "
+                     "or any GYSI focal person position unfilled for >30 days; "
+                     "or self-efficacy scores show no improvement at 6-month follow-up"),
+                    "CEL GYSI Officer",
+                ),
+                (
+                    "Climate & Environmental Sustainability (CES)",
+                    ("Environmental and climate-related risks and practices across all "
+                     "programme sites — water quality, pond management, biosecurity, "
+                     "feed sourcing, energy use, waste management.  "
+                     "SAWA's Good Aquaculture Practices (GAqP) compliance at anchor sites."),
+                    ("GAqP compliance reports from Fisheries Commission; "
+                     "CSIR water-quality and environmental assessment data; "
+                     "anchor partner site-visit records on feed, waste and water management"),
+                    ("FC technical audit reports; CSIR demonstration-farm monitoring data; "
+                     "partner operational logs on water-quality and feed sourcing; "
+                     "field officer observations during site visits"),
+                    ("Any GAqP non-compliance flagged by FC at a certified site; "
+                     "or water-quality parameter outside acceptable range at >20% of "
+                     "monitored ponds; or feed-sourcing practice flagged as environmentally "
+                     "unsustainable by CSIR; or a climate event causing >10% production loss"),
+                    "Technical Lead + FC/CSIR Liaison",
+                ),
+                (
+                    "Financial Inclusion (FI)",
+                    ("Access to and uptake of financial products and services by programme "
+                     "participants — micro-grants, catalytic grants, SME facility, savings "
+                     "groups, mobile money, insurance.  Tracks burn rate against 70% "
+                     "threshold and deliverables against 60% threshold per tranche."),
+                    ("TechnoServe grant disbursement tracker; "
+                     "Module A Level 1 TechnoServe grant targets (catalytic grantees, micro-grant businesses); "
+                     "CEL programme budget records; previous FI section from quarterly report"),
+                    ("TechnoServe quarterly finance disbursement report; "
+                     "BDS financial literacy training completion records (Tool 2); "
+                     "participant savings-group and mobile-money uptake data (Module C income tracking)"),
+                    ("Programme burn rate below 70% of annual budget by Q3; "
+                     "or deliverables below 60% of annual workplan commitments at mid-year review; "
+                     "or TechnoServe grant utilisation below 80% with no documented reason; "
+                     "or <40% of BDS graduates accessing any formal financial product within 6 months"),
+                    "Programme Manager + TechnoServe Finance Lead",
+                ),
+                (
+                    "Voice & Agency (VA)",
+                    ("Women's and youth control over income, business decisions, enterprise "
+                     "ownership and participation in leadership forums.  Covers the WAN "
+                     "(PI.11, PI.12), cooperative governance (PI.17, PI.18, PIII.6), "
+                     "the self-efficacy and market-linkage instruments (Module C Bi-annual)."),
+                    ("WAN event attendance and governance records; "
+                     "cooperative governance framework adoption data (PI.18 actuals); "
+                     "self-efficacy instrument actuals (Bi-annual); "
+                     "income-tracking actuals (Module C Bi-annual)"),
+                    ("WAN Leadership Events Log (Kobo Form 3 sync); "
+                     "Cooperative & Governance Registry (Kobo Form 5 sync); "
+                     "market-linkage tracking data; "
+                     "6-month follow-up interview responses on agency and decision-making"),
+                    ("Fewer than 25% of cooperative/cluster leadership positions held by women; "
+                     "or self-efficacy scores static or declining at Bi-annual follow-up; "
+                     "or <50% of income reported by participants as independently controlled; "
+                     "or WAN forum cancelled with no replacement in the same quarter"),
+                    "CEL GYSI Officer + Programme Manager",
+                ),
+                (
+                    "Communications & Visibility (CV)",
+                    ("CEL and SAWA visibility obligations to Mastercard Foundation and "
+                     "Agri-Impact Limited — branding compliance, SAWA Voices stories, "
+                     "social media presence, programme documentation and media coverage.  "
+                     "Covers PI.22 (awareness campaigns/roadshows)."),
+                    ("Mastercard Foundation branding and communications guidelines; "
+                     "CEL SAWA Voices story log; "
+                     "partner progress report communications sections; "
+                     "PI.22 actuals (awareness campaigns)"),
+                    ("SAWA Voices documented success stories (KNUST/e-SAWA platform); "
+                     "campaign and roadshow event records (Kobo Form 6); "
+                     "social media engagement metrics; "
+                     "AIL communications and visibility review checklist"),
+                    ("Any SAWA-branded material missing required Mastercard Foundation acknowledgement; "
+                     "or PI.22 campaigns below quarterly target; "
+                     "or no success story documented in the period; "
+                     "or a communications breach flagged by AIL"),
+                    "Communications Officer",
+                ),
+            ]:
+                conn.execute(text("""
+                    UPDATE review_protocols
+                    SET review_scope          = :scope,
+                        existing_info_source  = :existing,
+                        actual_info_source    = :actual,
+                        issue_definition      = :issue,
+                        reviewer_role         = :role
+                    WHERE data_type = :dt
+                      AND review_scope IS NULL
+                """), {
+                    "dt": _dt, "scope": _scope, "existing": _existing,
+                    "actual": _actual, "issue": _issue, "role": _role,
+                })
             # Remove the TBC placeholder row that was never confirmed.
             conn.execute(text("""
                 DELETE FROM partner_targets

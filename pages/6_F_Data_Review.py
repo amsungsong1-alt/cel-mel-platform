@@ -230,21 +230,38 @@ for proto in protocols:
                     "1. Review scope — what is being reviewed?",
                     value=proto.get("review_scope") or "",
                     height=80,
+                    placeholder=(
+                        "Describe what data, events or activities are reviewed each cycle "
+                        "— which indicators, sites, forms and thematic areas are in scope."
+                    ),
                 )
                 q2 = st.text_area(
                     "2. Existing information source",
                     value=proto.get("existing_info_source") or "",
                     height=70,
+                    placeholder=(
+                        "Where does the team currently look for this data? "
+                        "(e.g. incident log, Module E actuals, partner reports, registers…)"
+                    ),
                 )
                 q3 = st.text_area(
                     "3. Actual / current information source",
                     value=proto.get("actual_info_source") or "",
                     height=70,
+                    placeholder=(
+                        "Which specific source will be consulted this cycle? "
+                        "(e.g. Kobo form link, officer name, registry location, AIL checklist…)"
+                    ),
                 )
                 q4 = st.text_area(
                     "4. Issue / red-flag definition",
                     value=proto.get("issue_definition") or "",
                     height=70,
+                    placeholder=(
+                        "What count, pattern or absence triggers an issue flag? "
+                        "(e.g. 'any incident reported', 'actual < 80% of target', "
+                        "'position unfilled >30 days'…)"
+                    ),
                 )
                 fc1, fc2, fc3 = st.columns(3)
                 with fc1:
