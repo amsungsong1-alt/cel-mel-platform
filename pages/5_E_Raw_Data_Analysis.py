@@ -20,11 +20,12 @@ from datetime import datetime, timezone
 import streamlit as st
 import pandas as pd
 
-from database.db import init_db, run_query, run_write, insert_returning_id
+from database.db import init_db, run_query, run_write, insert_returning_id, recompute_actual_year, auto_advance_dqa
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
 from utils.fiscal_calendar import current_fiscal_year
+from utils.num_parse import num as _num, parse_quarterly_targets
 
 _NUM_RE = re.compile(r"-?\d+\.?\d*")
 
@@ -280,14 +281,37 @@ if flagged_rows:
                     use_container_width=True,
                     help="Queue this indicator for a decision report in Module G",
                 ):
-                    queue = st.session_state.get("g_indicator_ids", [])
-                    if r["id"] not in queue:
-                        queue.append(r["id"])
-                    st.session_state["g_indicator_ids"] = queue
+                    from datetime import date
+                    creator = st.session_state.get("name", st.session_state.get("username", "unknown"))
+                    # E4: persist draft decision_report so linkage survives navigation
+                    existing = run_query(
+                        """SELECT id FROM decision_reports
+                           WHERE project_id=:pid AND logframe_row_id=:lf AND status='Draft'""",
+                        {"pid": project_id, "lf": r.get("logframe_row_id")},
+                    )
+                    if existing:
+                        dr_id = existing[0]["id"]
+                    else:
+                        dr_id = insert_returning_id(
+                            """INSERT INTO decision_reports
+                               (project_id, logframe_row_id, created_date, created_by,
+                                target_value, actual_value, status)
+                               VALUES (:pid, :lf, :dt, :by, :tv, :av, 'Draft')""",
+                            {
+                                "pid": project_id,
+                                "lf":  r.get("logframe_row_id"),
+                                "dt":  date.today().isoformat(),
+                                "by":  creator,
+                                "tv":  r.get("target_value") or "",
+                                "av":  r.get("actual_year") or "",
+                            },
+                        )
+                    st.session_state["g_open_report_id"] = dr_id
+                    st.session_state["g_indicator_ids"] = [r["id"]]
                     st.session_state["g_source"] = "raw_data_analysis"
                     st.success(
-                        f"{r.get('indicator_code')} queued for Module G. "
-                        "Navigate to Module G to draft the report."
+                        f"{r.get('indicator_code')} draft report created. "
+                        "Navigate to Module G to complete it."
                     )
 
 st.divider()
@@ -467,6 +491,9 @@ if can_write_module("E"):
             editor       = st.session_state.get("name", st.session_state.get("username", "unknown"))
             changes      = 0
 
+            _quarterly_fields = {"actual_q1", "actual_q2", "actual_q3", "actual_q4"}
+            rows_needing_recompute: set[int] = set()
+
             for _, edit_row in edited_df.iterrows():
                 row_id   = int(edit_row["_id"])
                 orig_row = orig_indexed.get(row_id)
@@ -489,6 +516,14 @@ if can_write_module("E"):
                         {"v": new_val, "ts": now_iso, "by": editor, "id": row_id},
                     )
                     changes += 1
+                    if db_field in _quarterly_fields:
+                        rows_needing_recompute.add(row_id)
+
+            # E1: recompute actual_year so Module H always has a current total.
+            # E3: auto-advance DQA stage (Raw → Completeness Checked → Traceability Verified).
+            for rid in rows_needing_recompute:
+                recompute_actual_year(rid)
+                auto_advance_dqa(rid)
 
             # Clear accepted suggestions after save
             st.session_state["rda_accepted_suggestions"] = {}
@@ -520,6 +555,44 @@ else:
         hide_index=True,
         use_container_width=True,
     )
+
+st.divider()
+
+# ── E2: Per-quarter target vs actual comparison ───────────────────────────────
+_q_track_rows = []
+for r in filtered:
+    qtargets = parse_quarterly_targets(r.get("target_value") or "")
+    if not qtargets:
+        continue
+    for _qk, _ql in [("q1", Q1_LABEL), ("q2", Q2_LABEL), ("q3", Q3_LABEL), ("q4", Q4_LABEL)]:
+        qt = qtargets.get(_qk)
+        if qt is None:
+            continue
+        qa = _num(r.get(f"actual_{_qk}"), default=None)
+        if qa is None:
+            _status = "—"
+            _colour = "#9E9E9E"
+        elif qa >= qt:
+            _status = f"✅ {qa:,.0f} / {qt:,.0f}"
+            _colour = "#2E7D32"
+        else:
+            _status = f"⚠️ {qa:,.0f} / {qt:,.0f}"
+            _colour = "#E65100"
+        _q_track_rows.append({
+            "Code": r.get("indicator_code", ""),
+            "Quarter": _ql,
+            "Actual / Target": _status,
+            "_colour": _colour,
+        })
+
+if _q_track_rows:
+    with st.expander("📐 Quarterly Target vs Actual (auto-parsed from target_value)", expanded=False):
+        st.caption(
+            "Parsed from inline Q-targets in target_value strings "
+            "(e.g. 'Q1: 95; Q2: 135'). ✅ = on/above target · ⚠️ = below target · — = no data yet."
+        )
+        _q_track_df = pd.DataFrame(_q_track_rows).drop(columns=["_colour"])
+        st.dataframe(_q_track_df, hide_index=True, use_container_width=True)
 
 st.divider()
 

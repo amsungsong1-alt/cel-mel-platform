@@ -314,6 +314,14 @@ with tab_lf:
                         f"UPDATE logframe_rows SET {db_field}=:v WHERE id=:id",
                         {"v": new_val, "id": row_id},
                     )
+                    # B1: keep raw_data_analysis.target_value in sync
+                    if db_field == "target_annual":
+                        run_write(
+                            """UPDATE raw_data_analysis
+                               SET target_value = :v
+                               WHERE logframe_row_id = :lf_id""",
+                            {"v": new_val, "lf_id": row_id},
+                        )
                     # Write changelog entry
                     run_write(
                         """INSERT INTO logframe_changelog

@@ -25,7 +25,7 @@ from collections import defaultdict
 import streamlit as st
 import pandas as pd
 
-from database.db import init_db, run_query, run_write, insert_returning_id, DB_PATH, IS_POSTGRES
+from database.db import init_db, run_query, run_write, insert_returning_id, recompute_actual_year as _recompute_actual_year_db, DB_PATH, IS_POSTGRES
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
@@ -116,27 +116,10 @@ def _num_or_none(val) -> float | None:
 
 
 def _recompute_actual_year(row_id: int) -> None:
-    """Sum actual_q1..q4 into actual_year so Module H (which reads actual_year
-    only) reflects quarterly data written here, whether from live Kobo sync
-    or the manual upload tab. Leaves actual_year untouched if no quarter has
-    a parseable numeric value yet (e.g. annual-frequency indicators entered
-    directly in Module E)."""
-    row = run_query(
-        "SELECT actual_q1, actual_q2, actual_q3, actual_q4 FROM raw_data_analysis WHERE id=:id",
-        {"id": row_id},
-    )
-    if not row:
-        return
-    quarters = [_num_or_none(row[0][f"actual_q{n}"]) for n in (1, 2, 3, 4)]
-    parsed = [q for q in quarters if q is not None]
-    if not parsed:
-        return
-    total = sum(parsed)
-    year_str = str(int(total)) if total == int(total) else f"{total:.4g}"
-    run_write(
-        "UPDATE raw_data_analysis SET actual_year=:y WHERE id=:id",
-        {"y": year_str, "id": row_id},
-    )
+    _recompute_actual_year_db(row_id)
+
+
+_PLACEHOLDER_UID_RE = re.compile(r"[Xx]{2,}|placeholder", re.IGNORECASE)
 
 
 # ── Sample data generator (testing only) ─────────────────────────────────────
@@ -355,8 +338,13 @@ def _do_sync(
     project_id: int,
     token: str,
     server: str,
+    replace_existing: bool = True,
 ) -> tuple[int, str, str]:
     """Pull new submissions, apply transforms, write to raw_data_analysis.
+
+    replace_existing=False skips the UPDATE when the target quarter cell
+    already has a non-empty value — prevents partial mid-quarter re-syncs
+    from silently overwriting a previously confirmed count (D2).
     Returns (records_pulled, status, error_message).
     """
     try:
@@ -384,6 +372,8 @@ def _do_sync(
         year    = current_fiscal_year()
         now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
         by      = f"Kobo sync ({st.session_state.get('name', st.session_state.get('username', 'unknown'))})"
+        today   = _date.today().isoformat()
+        skipped = 0
 
         for m in mappings:
             field    = m["kobo_field_name"]
@@ -396,6 +386,17 @@ def _do_sync(
                 value = "0"
 
             row_id = get_or_create_year_row(project_id, lf_id, year)
+
+            # D2: skip overwrite if existing value is non-empty and replace_existing is False
+            if not replace_existing:
+                existing_row = run_query(
+                    f"SELECT {q_col} FROM raw_data_analysis WHERE id=:id",
+                    {"id": row_id},
+                )
+                if existing_row and str(existing_row[0].get(q_col) or "").strip():
+                    skipped += 1
+                    continue
+
             run_write(
                 f"""UPDATE raw_data_analysis
                     SET    {q_col}=:v,
@@ -407,7 +408,19 @@ def _do_sync(
             )
             _recompute_actual_year(row_id)
 
-        return len(df), "success", ""
+            # C1: stamp last_collected_date in data_collection_plan for matching rows
+            run_write(
+                """UPDATE data_collection_plan
+                   SET last_collected_date = :today
+                   WHERE project_id = :pid
+                     AND indicator_statement IN (
+                         SELECT indicator_statement FROM logframe_rows WHERE id = :lf_id
+                     )""",
+                {"today": today, "pid": project_id, "lf_id": lf_id},
+            )
+
+        msg = f"skipped {skipped} already-filled cell(s)" if skipped else ""
+        return len(df), "success", msg
 
     except Exception as exc:  # noqa: BLE001
         return 0, "error", str(exc)
@@ -604,32 +617,51 @@ with tab_sync:
             else:
                 sync_line = "Never synced"
 
-            hdr_c, sync_btn_c = st.columns([5, 1])
+            hdr_c, replace_c, sync_btn_c = st.columns([4, 2, 1])
             with hdr_c:
                 st.markdown(f"**{form_name}**  `{uid}`  \n{sync_line}")
+            with replace_c:
+                replace_mode = st.checkbox(
+                    "Replace existing values",
+                    value=False,
+                    key=f"replace_{uid}",
+                    help="Uncheck to skip cells that already have data — protects confirmed counts from being overwritten by a partial mid-quarter re-sync.",
+                )
             with sync_btn_c:
+                # D1: Block sync on placeholder UIDs that were never configured
+                _is_placeholder_uid = bool(_PLACEHOLDER_UID_RE.search(uid))
                 if st.button("🔄 Sync now", key=f"sync_{uid}", use_container_width=True, type="primary"):
-                    token = st.session_state.get("kobo_token", "")
-                    srv   = st.session_state.get("kobo_server", "global")
-                    if not token:
-                        st.error("No API token. Configure it in the API Configuration section above.")
-                    else:
-                        with st.spinner("Syncing…"):
-                            n, status, err = _do_sync(uid, form_name, project_id, token, srv)
-                        now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
-                        insert_returning_id(
-                            """INSERT INTO kobo_sync_log
-                               (project_id, asset_uid, synced_at, records_pulled,
-                                status, error_message)
-                               VALUES (:pid, :uid, :at, :n, :status, :err)""",
-                            {"pid": project_id, "uid": uid, "at": now_iso,
-                             "n": n, "status": status, "err": err},
+                    if _is_placeholder_uid:
+                        st.error(
+                            f"⛔ `{uid}` looks like a placeholder — replace it with a real "
+                            "KoboToolbox asset UID in the Field Mapping table before syncing.",
+                            icon="⛔",
                         )
-                        if status == "success":
-                            st.success(f"Synced {n} new submission(s). Module E updated.")
+                    else:
+                        token = st.session_state.get("kobo_token", "")
+                        srv   = st.session_state.get("kobo_server", "global")
+                        if not token:
+                            st.error("No API token. Configure it in the API Configuration section above.")
                         else:
-                            st.error(f"Sync failed: {err}")
-                        st.rerun()
+                            with st.spinner("Syncing…"):
+                                n, status, err = _do_sync(uid, form_name, project_id, token, srv, replace_existing=replace_mode)
+                            now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                            insert_returning_id(
+                                """INSERT INTO kobo_sync_log
+                                   (project_id, asset_uid, synced_at, records_pulled,
+                                    status, error_message)
+                                   VALUES (:pid, :uid, :at, :n, :status, :err)""",
+                                {"pid": project_id, "uid": uid, "at": now_iso,
+                                 "n": n, "status": status, "err": err},
+                            )
+                            if status == "success":
+                                msg = f"Synced {n} new submission(s). Module E updated."
+                                if err:
+                                    msg += f" ({err})"
+                                st.success(msg)
+                            else:
+                                st.error(f"Sync failed: {err}")
+                            st.rerun()
 
             # ── Fetch live field names if connected ───────────────────────────────
             live_fields: list[str] = []
@@ -1007,6 +1039,18 @@ with tab_upload:
                                         {"v": value, "ts": now_iso, "by": by, "id": row_id},
                                     )
                                     _recompute_actual_year(row_id)
+                                    # C1: stamp last_collected_date in DCP
+                                    run_write(
+                                        """UPDATE data_collection_plan
+                                           SET last_collected_date = :today
+                                           WHERE project_id = :pid
+                                             AND indicator_statement IN (
+                                                 SELECT indicator_statement
+                                                 FROM logframe_rows WHERE id = :lf_id
+                                             )""",
+                                        {"today": _date.today().isoformat(),
+                                         "pid": project_id, "lf_id": m["logframe_row_id"]},
+                                    )
                                     written += 1
                             insert_returning_id(
                                 """INSERT INTO kobo_sync_log

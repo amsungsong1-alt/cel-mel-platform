@@ -103,8 +103,35 @@ def _countdown(date_str: str | None) -> tuple[str, str]:
     return f"Due in {delta} day(s)", "#FFFFFF"
 
 
-def _is_overdue(protocol: dict) -> bool:
-    """True if next_scheduled_date has passed with no log entry covering it."""
+def _load_overdue_protocol_ids(project_id: int) -> set[int]:
+    """Return the set of protocol IDs that are overdue — one batched query
+    instead of one query per protocol (F2: replaces 13 individual lookups)."""
+    today = date.today().isoformat()
+    rows = run_query(
+        """SELECT rp.id
+           FROM   review_protocols rp
+           WHERE  rp.project_id        = :pid
+             AND  rp.next_scheduled_date < :today
+             AND  NOT EXISTS (
+                 SELECT 1 FROM review_log rl
+                 WHERE  rl.protocol_id    = rp.id
+                   AND  rl.conducted_date >= rp.next_scheduled_date
+             )""",
+        {"pid": project_id, "today": today},
+    )
+    return {r["id"] for r in rows}
+
+
+def _is_overdue(protocol: dict, _overdue_ids: set[int] | None = None) -> bool:
+    """True if next_scheduled_date has passed with no log entry covering it.
+
+    Accepts a pre-computed set from _load_overdue_protocol_ids() to avoid
+    making one DB round-trip per protocol when iterating over many rows.
+    Falls back to a single query when the set is not provided.
+    """
+    if _overdue_ids is not None:
+        return protocol.get("id") in _overdue_ids
+    # Legacy single-query path (only used outside the main render loop)
     nsd = protocol.get("next_scheduled_date")
     if not nsd:
         return False
@@ -195,6 +222,8 @@ st.caption(
 )
 
 protocols = _load_protocols()
+# F2: one batched query instead of one per protocol in the render loop below.
+_overdue_ids = _load_overdue_protocol_ids(project_id)
 
 if not protocols:
     st.info(
@@ -217,7 +246,7 @@ for proto in protocols:
     dt      = proto["data_type"]
     icon    = DT_ICONS.get(dt, "📌")
     label, _bg = _countdown(proto.get("next_scheduled_date"))
-    overdue = _is_overdue(proto)
+    overdue = _is_overdue(proto, _overdue_ids)
     od_tag  = "  ⛔ OVERDUE" if overdue else ""
 
     with st.expander(
@@ -366,7 +395,7 @@ except Exception:
 
 st.dataframe(styled_cal, hide_index=True, use_container_width=True)
 
-overdue_types = [p["data_type"] for p in protocols if _is_overdue(p)]
+overdue_types = [p["data_type"] for p in protocols if _is_overdue(p, _overdue_ids)]
 if overdue_types:
     st.error(
         f"⛔ **{len(overdue_types)} overdue review(s):** "

@@ -23,7 +23,7 @@ Session state keys consumed
 from __future__ import annotations
 
 import io
-from datetime import date
+from datetime import date, timedelta
 
 import pandas as pd
 import streamlit as st
@@ -32,6 +32,7 @@ from database.db import init_db, run_query, run_write, insert_returning_id
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
 from utils.nav_strip import render_nav_strip
+from utils.fiscal_calendar import current_quarter, current_fiscal_year
 
 st.set_page_config(page_title="Decision Reports — CEL MEL", layout="wide")
 init_db()
@@ -157,6 +158,25 @@ def _load_reports() -> list[dict]:
            ORDER  BY created_date DESC""",
         {"pid": project_id},
     )
+
+
+_QUARTER_DEADLINES = {1: (10, 7), 2: (1, 7), 3: (4, 7), 4: (7, 7)}
+
+
+def _next_quarterly_deadline() -> date:
+    """Return the next AIL quarterly report deadline (7 days after quarter end)."""
+    q = current_quarter()
+    fy = current_fiscal_year()
+    month, day = _QUARTER_DEADLINES[q]
+    year = fy + (1 if month <= 6 else 0)
+    d = date(year, month, day)
+    if d < date.today():
+        # Already past — return the next quarter's deadline
+        nq = (q % 4) + 1
+        nm, nd = _QUARTER_DEADLINES[nq]
+        ny = fy + (1 if nq in (1, 2) and q in (3, 4) else 0) + (1 if nm <= 6 else 0)
+        d = date(ny, nm, nd)
+    return d
 
 
 def _parse_date(s) -> "date | None":
@@ -301,6 +321,10 @@ st.caption(
     "to minimise re-typing."
 )
 
+# E4: if a draft report was pre-created in Module E, open it directly in editor
+if st.session_state.get("g_open_report_id") is not None:
+    st.session_state["g_edit_report_id"] = st.session_state.pop("g_open_report_id")
+
 # Pre-seed banner
 incoming_ids = list(st.session_state.get("g_indicator_ids") or [])
 incoming_src = st.session_state.get("g_source", "")
@@ -318,6 +342,36 @@ tab_dash, tab_edit = st.tabs(["📊 Dashboard", "📝 Report Editor"])
 # TAB 1 — DASHBOARD
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab_dash:
+    # ── G2: Actions due within the next 7 days ────────────────────────────────
+    _in7 = (date.today() + timedelta(days=7)).isoformat()
+    upcoming_actions = run_query(
+        """SELECT da.id, da.decision_maker, da.action, da.action_due_date,
+                  da.action_status, dr.id AS report_id, dr.review_category,
+                  lf.indicator_code
+           FROM   decision_actions da
+           JOIN   decision_reports dr ON dr.id = da.report_id
+           LEFT   JOIN logframe_rows lf ON lf.id = dr.logframe_row_id
+           WHERE  dr.project_id = :pid
+             AND  da.action_due_date >= :today
+             AND  da.action_due_date <= :in7
+             AND  da.action_status  != 'Resolved'
+           ORDER  BY da.action_due_date ASC""",
+        {"pid": project_id, "today": date.today().isoformat(), "in7": _in7},
+    )
+    if upcoming_actions:
+        st.warning(
+            f"⏰ **{len(upcoming_actions)} action(s) due within 7 days** — "
+            "review and resolve before the deadline."
+        )
+        up_df = pd.DataFrame(upcoming_actions).rename(columns={
+            "report_id": "Report", "indicator_code": "Indicator",
+            "review_category": "Type", "decision_maker": "Owner",
+            "action": "Action", "action_due_date": "Due date", "action_status": "Status",
+        }).drop(columns=["id"])
+        up_df["Report"] = up_df["Report"].apply(lambda x: f"RPT-{x}")
+        st.dataframe(up_df, hide_index=True, use_container_width=True)
+        st.divider()
+
     # ── Overdue actions — most visible element ────────────────────────────────
     overdue_actions = run_query(
         """SELECT da.id, da.decision_maker, da.action, da.action_due_date,
@@ -487,10 +541,25 @@ with tab_edit:
             value=active.get("target_value") or pf.get("target_value") or "",
         )
     with s1c2:
-        actual_value = st.text_input(
-            "Actual value (at time of investigation)",
-            value=active.get("actual_value") or pf.get("actual_value") or "",
-        )
+        # G1: auto-refresh actual_value from current Module E data
+        _refresh_key = f"g_refresh_actual_{active_id or 'new'}"
+        if st.session_state.get(_refresh_key):
+            _fresh = _prefill_from_lf(chosen_lf_id) if chosen_lf_id else {}
+            _actual_default = _fresh.get("actual_value") or ""
+            st.session_state.pop(_refresh_key, None)
+        else:
+            _actual_default = active.get("actual_value") or pf.get("actual_value") or ""
+        _av_col, _rv_col = st.columns([4, 1])
+        with _av_col:
+            actual_value = st.text_input(
+                "Actual value (at time of investigation)",
+                value=_actual_default,
+            )
+        with _rv_col:
+            st.markdown("&nbsp;", unsafe_allow_html=True)
+            if st.button("🔄", key=f"refresh_av_{active_id or 'new'}", help="Refresh from Module E"):
+                st.session_state[_refresh_key] = True
+                st.rerun()
     indicator_definition = st.text_area(
         "Indicator definition",
         value=active.get("indicator_definition") or pf.get("indicator_definition") or "",
@@ -587,6 +656,7 @@ with tab_edit:
         "a single finding often produces parallel actions owned by different people."
     )
 
+    _default_deadline = _next_quarterly_deadline()
     actions_df = pd.DataFrame([
         {
             "_id":            a.get("id"),
@@ -596,7 +666,12 @@ with tab_edit:
             "Status":         a.get("action_status") or ACTION_STATUSES[0],
         }
         for a in existing_actions
-    ] if existing_actions else [])
+    ] if existing_actions else [
+        # X2: pre-populate one blank action row with the next quarterly deadline
+        # so the PM doesn't have to hunt for the date.
+        {"_id": None, "Decision Maker": "", "Action": "",
+         "Due Date": _default_deadline, "Status": ACTION_STATUSES[0]}
+    ])
 
     edited_actions = st.data_editor(
         actions_df,

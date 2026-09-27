@@ -569,6 +569,80 @@ def run_write(sql: str, params: dict | None = None):
         conn.execute(text(sql), params or {})
 
 
+def recompute_actual_year(row_id: int) -> None:
+    """Sum actual_q1..q4 into actual_year for a raw_data_analysis row.
+
+    Called by Module D (Kobo sync), Module D (file upload), and Module E
+    (manual data-editor save) whenever a quarterly actual changes, so that
+    Module H (which reads only actual_year) always sees a current total.
+    Leaves actual_year untouched if no quarter has a parseable numeric value
+    yet (annual-frequency indicators entered directly in Module E).
+    """
+    from utils.num_parse import num_or_none
+    row = run_query(
+        "SELECT actual_q1, actual_q2, actual_q3, actual_q4 FROM raw_data_analysis WHERE id=:id",
+        {"id": row_id},
+    )
+    if not row:
+        return
+    quarters = [num_or_none(row[0][f"actual_q{n}"]) for n in (1, 2, 3, 4)]
+    parsed = [q for q in quarters if q is not None]
+    if not parsed:
+        return
+    total = sum(parsed)
+    year_str = str(int(total)) if total == int(total) else f"{total:.4g}"
+    run_write(
+        "UPDATE raw_data_analysis SET actual_year=:y WHERE id=:id",
+        {"y": year_str, "id": row_id},
+    )
+
+
+def auto_advance_dqa(row_id: int) -> None:
+    """Advance dqa_stage from Raw to Completeness Checked when all 4 quarters
+    have data; to Traceability Verified when at least one evidence row exists.
+
+    Guards: never demotes a stage that's already ahead; never touches
+    Outcome Validated (that requires explicit human sign-off).
+    """
+    row = run_query(
+        """SELECT actual_q1, actual_q2, actual_q3, actual_q4,
+                  dqa_stage
+           FROM raw_data_analysis WHERE id=:id""",
+        {"id": row_id},
+    )
+    if not row:
+        return
+    r = row[0]
+    current = r["dqa_stage"] or "Raw"
+    if current == "Outcome Validated":
+        return
+
+    all_quarters_filled = all(
+        str(r.get(f"actual_q{n}") or "").strip()
+        for n in (1, 2, 3, 4)
+    )
+    evidence_exists = bool(run_query(
+        "SELECT id FROM evidence WHERE logframe_row_id = "
+        "(SELECT logframe_row_id FROM raw_data_analysis WHERE id=:id) LIMIT 1",
+        {"id": row_id},
+    ))
+
+    stage_order = ["Raw", "Completeness Checked", "Traceability Verified", "Outcome Validated"]
+    current_idx = stage_order.index(current) if current in stage_order else 0
+    new_idx = current_idx
+
+    if all_quarters_filled and new_idx < 1:
+        new_idx = 1
+    if evidence_exists and new_idx < 2:
+        new_idx = 2
+
+    if new_idx > current_idx:
+        run_write(
+            "UPDATE raw_data_analysis SET dqa_stage=:s WHERE id=:id",
+            {"s": stage_order[new_idx], "id": row_id},
+        )
+
+
 def insert_returning_id(sql: str, params: dict | None = None) -> int:
     """Execute an INSERT and return the new row's primary key.
 
