@@ -257,7 +257,7 @@ for col, (label, value, fg, bg) in zip(sm_cols, _sm_data):
 # ── Flagged action panel ──────────────────────────────────────────────────────
 if flagged_rows:
     n_flag = len(flagged_rows)
-    with st.expander(f"⚠️ {n_flag} indicator{'s' if n_flag > 1 else ''} require action", expanded=True):
+    with st.expander(f"{n_flag} indicator{'s' if n_flag > 1 else ''} require action", expanded=True):
         for r in flagged_rows:
             fg, bg = ACTION_STATUS_STYLE.get(r["action_status"], ("#333", "#fff"))
             adesc = r.get("action_description") or ""
@@ -593,7 +593,7 @@ for r in filtered:
         })
 
 if _q_track_rows:
-    with st.expander("📐 Quarterly Target vs Actual (auto-parsed from target_value)", expanded=False):
+    with st.expander("Quarterly Target vs Actual (auto-parsed from target_value)", expanded=False):
         st.caption(
             "Parsed from inline Q-targets in target_value strings "
             "(e.g. 'Q1: 95; Q2: 135'). ✅ = on/above target · ⚠️ = below target · — = no data yet."
@@ -660,7 +660,7 @@ if suggestions:
                     st.rerun()
 
 # ── Data completeness expander ────────────────────────────────────────────────
-with st.expander("📊 Data completeness summary"):
+with st.expander("Data completeness summary"):
     st.caption(
         f"CEL FY{selected_year} ({Q1_LABEL} · {Q2_LABEL} · {Q3_LABEL} · {Q4_LABEL}). "
         "Shows which cells have data entered across all indicators (unfiltered)."
@@ -817,7 +817,7 @@ else:
 
     # ── Upload / add evidence form ────────────────────────────────────────────
     if can_write_module("E"):
-        with st.expander("➕ Add evidence for this indicator", expanded=False):
+        with st.expander("Add evidence for this indicator", expanded=False):
             up_c1, up_c2, up_c3 = st.columns([3, 1, 1])
             with up_c1:
                 up_label = st.text_input(

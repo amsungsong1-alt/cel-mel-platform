@@ -523,7 +523,7 @@ with tab_sync:
     # ═══════════════════════════════════════════════════════════════════════════════
     cached_forms: list[dict] = st.session_state.get("kobo_forms_cache", [])
     if cached_forms:
-        with st.expander(f"📋 Forms accessible with this token ({len(cached_forms)} total)"):
+        with st.expander(f"Forms accessible with this token ({len(cached_forms)} total)"):
             st.caption(
                 "Toggle **Activate** to enable sync for a form. "
                 "Activating registers the form in Field Mapping so you can map its fields."
@@ -751,7 +751,7 @@ with tab_sync:
 
     # ── Add new form (manual entry) ───────────────────────────────────────────────
     if can_write_module("D"):
-        with st.expander("➕ Register a new form manually"):
+        with st.expander("Register a new form manually"):
             nc1, nc2, nc3 = st.columns(3)
             with nc1:
                 new_uid  = st.text_input("Asset UID", placeholder="e.g. aXXXXXXXXXXXXXXXXXXXX")
@@ -811,7 +811,7 @@ with tab_sync:
     # ═══════════════════════════════════════════════════════════════════════════════
     # SECTION 5 — Schedule Information
     # ═══════════════════════════════════════════════════════════════════════════════
-    with st.expander("⏰ Background / Scheduled Sync"):
+    with st.expander("Background / Scheduled Sync"):
         st.markdown("""
     **Streamlit free tier does not support true background tasks.** The "Sync now"
     button above only runs while the browser tab is open. For unattended nightly
@@ -866,7 +866,7 @@ with tab_upload:
         "Field mappings configured in the Sync & Mapping tab are applied automatically."
     )
 
-    with st.expander("📂 Download data entry templates (Y1 — all 4 quarters)", expanded=False):
+    with st.expander("Download data entry templates (Y1 — all 4 quarters)", expanded=False):
         st.caption(
             "Each file contains **4 sheets** (Q1–Q4) pre-filled with workplan-faithful "
             "target values. Upload the file as-is below — each sheet is written to its "

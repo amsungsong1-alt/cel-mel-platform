@@ -151,7 +151,7 @@ if is_admin:
     projects = run_query("SELECT project_id, name FROM projects ORDER BY name")
     project_options = ["Org-wide (not tied to one programme)"] + [p["name"] for p in projects]
 
-    with st.expander("➕ Add a manual entry"):
+    with st.expander("Add a manual entry"):
         with st.form("add_manual_entry"):
             mc1, mc2 = st.columns(2)
             with mc1:

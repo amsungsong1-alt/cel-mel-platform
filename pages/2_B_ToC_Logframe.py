@@ -345,7 +345,7 @@ with tab_lf:
                 st.info("No changes detected.")
 
         # ── Changelog viewer ─────────────────────────────────────────────────
-        with st.expander("📜 Edit history (logframe changelog)"):
+        with st.expander("Edit history (logframe changelog)"):
             changelog = run_query(
                 """SELECT cl.changed_at, cl.changed_by, lr.indicator_code,
                           cl.field_changed, cl.old_value, cl.new_value
@@ -605,7 +605,7 @@ with tab_map:
     )
 
     # ── Refined Finding ──────────────────────────────────────────────────────
-    with st.expander("🔍 Refined Finding — The Picture Is Better Than First Thought, But One Structural Gap Is Real"):
+    with st.expander("Refined Finding — The Picture Is Better Than First Thought, But One Structural Gap Is Real"):
         st.markdown("""
 **Checked against the authoritative SAWA proposal source (28 Nov 2025):**
 

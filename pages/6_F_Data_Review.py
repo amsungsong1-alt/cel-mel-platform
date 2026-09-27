@@ -578,7 +578,7 @@ else:
     # Resurface Y follow-up entries with a quick link to Module G
     y_entries = [e for e in log_entries if e.get("follow_up_required") == "Y"]
     if y_entries and can_write_module("F"):
-        with st.expander(f"⚡ {len(y_entries)} review(s) with outstanding follow-up"):
+        with st.expander(f"{len(y_entries)} review(s) with outstanding follow-up"):
             for e in y_entries:
                 raw_ids   = (e.get("linked_indicator_ids") or "").split(",")
                 g_ids     = [int(x.strip()) for x in raw_ids if x.strip().isdigit()]

@@ -1101,7 +1101,7 @@ with col_btn:
 st.divider()
 
 # ── A2: Year 1 Target Consistency Check ──────────────────────────────────────
-with st.expander("📋 Year 1 Target Consistency Check", expanded=False):
+with st.expander("Year 1 Target Consistency Check", expanded=False):
     st.caption(
         "Compares three copies of Year 1 targets: "
         "**Module A** (partner_targets Level 2), "

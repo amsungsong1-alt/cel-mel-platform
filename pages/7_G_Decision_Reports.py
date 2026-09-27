@@ -842,7 +842,7 @@ with tab_edit:
 
     # ── PRINT PREVIEW ─────────────────────────────────────────────────────────
     if active_id:
-        with st.expander("🖨️ Print preview (read-only)", expanded=False):
+        with st.expander("Print preview (read-only)", expanded=False):
             saved_report  = run_query(
                 "SELECT * FROM decision_reports WHERE id=:id", {"id": active_id}
             )[0]

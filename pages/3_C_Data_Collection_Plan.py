@@ -341,7 +341,7 @@ with tab_plan:
         )
 
     # ── Instrument detail expander ────────────────────────────────────────────
-    with st.expander("📋 Full rationale & data points for each instrument"):
+    with st.expander("Full rationale & data points for each instrument"):
         for row in plan_rows:
             step  = row.get("journey_step", "")
             color = JOURNEY_COLORS.get(step, "#607D8B")
@@ -618,7 +618,7 @@ with tab_cal:
             )
 
     # ── Detailed schedule breakdown ───────────────────────────────────────────
-    with st.expander("📋 Detailed schedule — all events by month"):
+    with st.expander("Detailed schedule — all events by month"):
         detail = df_events.copy().sort_values(["year", "month"])
         detail["Period"] = (
             detail["year"].astype(str)
