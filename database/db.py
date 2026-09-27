@@ -121,6 +121,7 @@ def _run_migrations() -> bool:
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS pillar TEXT",
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS dqa_stage TEXT",
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS disaggregation TEXT",
+                "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS partner_id INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL",
             ):
                 conn.execute(text(stmt))
             # Backfill rows written before reporting_year existed, so every
@@ -237,6 +238,42 @@ def _run_migrations() -> bool:
                 WHERE logframe_row_id IS NOT NULL
                   AND logframe_row_id NOT IN (SELECT id FROM logframe_rows)
             """))
+            # A1: seed partner-specific Q1 actual rows (idempotent NOT EXISTS guard).
+            _fy = current_fiscal_year()
+            for _pname, _code, _q1, _ps, _pl in [
+                ("Aglow Farms",  "PI.1",   "461",  "WEO", "Capacity Building & Inclusion"),
+                ("NewAge Agric", "LoP.1",  "1456", "D&F", "Programme-wide"),
+                ("AgroKings",    "PI.1",   "900",  "WEO", "Capacity Building & Inclusion"),
+                ("AFRIGEM",      "PI.1",   "350",  "WEO", "Capacity Building & Inclusion"),
+                ("Naple Betta",  "PII.R5", "1850", "YIW", "Production Expansion & Productivity"),
+            ]:
+                conn.execute(text("""
+                    INSERT INTO raw_data_analysis
+                           (project_id, logframe_row_id, reporting_year, data_type, partner_id,
+                            actual_q1, indicator_status, action_status,
+                            progression_stage, pillar, dqa_stage)
+                    SELECT pr.project_id,
+                           (SELECT id FROM logframe_rows
+                            WHERE project_id=pr.project_id AND indicator_code=:code),
+                           :fy, 'Performance',
+                           (SELECT partner_id FROM partners
+                            WHERE project_id=pr.project_id AND name=:pname),
+                           :q1,
+                           'Data currently being collected/analysed',
+                           'No action needed - data reporting only',
+                           :ps, :pl, 'Raw'
+                    FROM projects pr
+                    WHERE pr.name = 'SAWA'
+                      AND NOT EXISTS (
+                          SELECT 1 FROM raw_data_analysis rda
+                          JOIN  logframe_rows lr ON lr.id = rda.logframe_row_id
+                          JOIN  partners p        ON p.partner_id = rda.partner_id
+                          WHERE rda.project_id = pr.project_id
+                            AND lr.indicator_code = :code
+                            AND p.name = :pname
+                      )
+                """), {"pname": _pname, "code": _code, "fy": _fy,
+                       "q1": _q1, "ps": _ps, "pl": _pl})
             # Insert the 6 AIL cross-cutting review protocols added in Sep 2026.
             # NOT EXISTS guard makes every INSERT idempotent across redeploys.
             for _dt, _freq, _nsd in [
@@ -501,6 +538,7 @@ def _run_migrations() -> bool:
         "ALTER TABLE raw_data_analysis ADD COLUMN pillar TEXT",
         "ALTER TABLE raw_data_analysis ADD COLUMN dqa_stage TEXT",
         "ALTER TABLE raw_data_analysis ADD COLUMN disaggregation TEXT",
+        "ALTER TABLE raw_data_analysis ADD COLUMN partner_id INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL",
     ):
         try:
             conn.execute(stmt)
@@ -547,6 +585,42 @@ def _run_migrations() -> bool:
                )
                  AND progression_stage IS NULL""",
             (_ps, _pl, _code),
+        )
+    # A1: seed partner-specific Q1 actual rows (idempotent NOT EXISTS guard).
+    for _pname, _code, _q1, _ps, _pl in [
+        ("Aglow Farms",  "PI.1",   "461",  "WEO", "Capacity Building & Inclusion"),
+        ("NewAge Agric", "LoP.1",  "1456", "D&F", "Programme-wide"),
+        ("AgroKings",    "PI.1",   "900",  "WEO", "Capacity Building & Inclusion"),
+        ("AFRIGEM",      "PI.1",   "350",  "WEO", "Capacity Building & Inclusion"),
+        ("Naple Betta",  "PII.R5", "1850", "YIW", "Production Expansion & Productivity"),
+    ]:
+        conn.execute(
+            """INSERT INTO raw_data_analysis
+               (project_id, logframe_row_id, reporting_year, data_type, partner_id,
+                actual_q1, indicator_status, action_status,
+                progression_stage, pillar, dqa_stage)
+               SELECT pr.project_id,
+                      (SELECT id FROM logframe_rows
+                       WHERE project_id=pr.project_id AND indicator_code=?),
+                      ?,
+                      'Performance',
+                      (SELECT partner_id FROM partners
+                       WHERE project_id=pr.project_id AND name=?),
+                      ?,
+                      'Data currently being collected/analysed',
+                      'No action needed - data reporting only',
+                      ?, ?, 'Raw'
+               FROM projects pr
+               WHERE pr.name = 'SAWA'
+                 AND NOT EXISTS (
+                     SELECT 1 FROM raw_data_analysis rda
+                     JOIN  logframe_rows lr ON lr.id = rda.logframe_row_id
+                     JOIN  partners p        ON p.partner_id = rda.partner_id
+                     WHERE rda.project_id = pr.project_id
+                       AND lr.indicator_code = ?
+                       AND p.name = ?
+                 )""",
+            (_code, current_fiscal_year(), _pname, _q1, _ps, _pl, _code, _pname),
         )
     conn.commit()
     conn.close()

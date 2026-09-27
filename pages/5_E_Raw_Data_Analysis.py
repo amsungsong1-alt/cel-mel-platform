@@ -197,16 +197,18 @@ def _suggest_status(actual: str, trigger: str) -> str | None:
 
 # ── Load data ─────────────────────────────────────────────────────────────────
 rda_rows = run_query(
-    """SELECT r.id, r.logframe_row_id,
+    """SELECT r.id, r.logframe_row_id, r.partner_id,
               lf.indicator_code, lf.result_level, lf.indicator_statement, lf.target_annual,
               r.data_type, r.target_value, r.trigger_value, r.problem_definition,
               r.baseline_collected, r.baseline_value,
               r.actual_q1, r.actual_q2, r.actual_q3, r.actual_q4, r.actual_year,
               r.indicator_status, r.action_status, r.action_description,
               r.progression_stage, r.pillar, r.dqa_stage, r.disaggregation,
-              r.last_updated, r.updated_by
+              r.last_updated, r.updated_by,
+              COALESCE(p.name, 'Programme-wide') AS partner_name
        FROM   raw_data_analysis r
        LEFT JOIN logframe_rows lf ON r.logframe_row_id = lf.id
+       LEFT JOIN partners p       ON p.partner_id = r.partner_id
        WHERE  r.project_id = :pid AND r.reporting_year = :yr
        ORDER  BY r.id""",
     {"pid": project_id, "yr": selected_year},
@@ -317,7 +319,8 @@ if flagged_rows:
 st.divider()
 
 # ── Filter bar ────────────────────────────────────────────────────────────────
-preset_c, f1, f2, f3 = st.columns([1.2, 2, 2, 2])
+_all_partners = sorted({r.get("partner_name", "Programme-wide") for r in rda_rows})
+preset_c, f1, f2, f3, f4 = st.columns([1.2, 1.8, 1.8, 1.8, 1.8])
 
 with preset_c:
     st.markdown("&nbsp;", unsafe_allow_html=True)
@@ -344,6 +347,8 @@ with f3:
         default=st.session_state["rda_action_filter"],
         key="rda_action_widget",
     )
+with f4:
+    sel_partner = st.multiselect("Partner", _all_partners, key="rda_partner_widget")
 st.session_state["rda_action_filter"] = sel_action
 
 # ── Apply filters ─────────────────────────────────────────────────────────────
@@ -352,6 +357,7 @@ filtered = [
     if (not sel_type       or r.get("data_type")         in sel_type)
     and (not sel_ind_status or r.get("indicator_status")  in sel_ind_status)
     and (not sel_action     or r.get("action_status")     in sel_action)
+    and (not sel_partner    or r.get("partner_name")      in sel_partner)
 ]
 st.caption(f"Showing **{len(filtered)}** of **{len(rda_rows)}** indicators.")
 
@@ -365,6 +371,7 @@ Q4_LABEL   = f"Q4 Apr–Jun {_ey:02d}"
 YEAR_LABEL = f"FY{selected_year} Total"
 _DISPLAY_COLS = {
     "Code":               "indicator_code",
+    "Partner":            "partner_name",
     "Level":              "result_level",
     "Indicator":          "indicator_statement",
     "Type":               "data_type",

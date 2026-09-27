@@ -13,7 +13,7 @@ from utils.fiscal_calendar import current_fiscal_year
 from projects.sawa import (
     PROJECT, PARTNERS, PARTNER_TARGETS, INDICATORS,
     TOC_NODES, LOGFRAME_ROWS, DATA_COLLECTION_PLAN,
-    RAW_DATA_ANALYSIS, _RDA_META, KOBO_FORM_MAPPINGS, REVIEW_PROTOCOLS,
+    RAW_DATA_ANALYSIS, _RDA_META, _Q1_KNOWN_ACTUALS, KOBO_FORM_MAPPINGS, REVIEW_PROTOCOLS,
     DECISION_REPORTS,
 )
 
@@ -156,13 +156,13 @@ def seed():
                 problem_definition, baseline_collected, baseline_value,
                 actual_q1, actual_q2, actual_q3, actual_q4, actual_year,
                 indicator_status, action_status, action_description,
-                progression_stage, pillar, dqa_stage, disaggregation)
+                progression_stage, pillar, dqa_stage, disaggregation, partner_id)
                VALUES (:project_id, :logframe_row_id, :reporting_year, :data_type, :target_value,
                        :trigger_value,
                        :problem_definition, :baseline_collected, :baseline_value,
                        :actual_q1, :actual_q2, :actual_q3, :actual_q4, :actual_year,
                        :indicator_status, :action_status, :action_description,
-                       :progression_stage, :pillar, :dqa_stage, :disaggregation)""",
+                       :progression_stage, :pillar, :dqa_stage, :disaggregation, :partner_id)""",
             {
                 "project_id":       project_id,
                 "logframe_row_id":  lf_id,
@@ -185,9 +185,56 @@ def seed():
                 "pillar":            meta.get("pillar"),
                 "dqa_stage":         meta.get("dqa_stage"),
                 "disaggregation":    row.get("disaggregation", ""),
+                "partner_id":        partner_id_map.get(row.get("partner_name")),
             },
         )
     print(f"Raw data analysis: {len(RAW_DATA_ANALYSIS)} rows inserted.")
+
+    # ── A1: Partner-specific Q1 actual rows ──────────────────────────────────
+    # One row per (partner, indicator) for partners with confirmed Q1 actuals
+    # from Module A narrative strings.  Distinct from programme-wide rows above.
+    q1_inserted = 0
+    for entry in _Q1_KNOWN_ACTUALS:
+        pid_val = partner_id_map.get(entry["partner_name"])
+        lf_id   = lf_lookup.get(entry["indicator_code"])
+        if not pid_val or not lf_id:
+            continue
+        existing = run_query(
+            """SELECT id FROM raw_data_analysis
+               WHERE project_id=:pid AND logframe_row_id=:lf AND partner_id=:partner""",
+            {"pid": project_id, "lf": lf_id, "partner": pid_val},
+        )
+        if existing:
+            run_write(
+                """UPDATE raw_data_analysis
+                   SET actual_q1=:q1, indicator_status='Data currently being collected/analysed'
+                   WHERE id=:id AND (actual_q1 IS NULL OR actual_q1='')""",
+                {"q1": entry["actual_q1"], "id": existing[0]["id"]},
+            )
+        else:
+            meta = _RDA_META.get(entry["indicator_code"], {})
+            insert_returning_id(
+                """INSERT INTO raw_data_analysis
+                   (project_id, logframe_row_id, reporting_year, data_type, partner_id,
+                    actual_q1, indicator_status, action_status,
+                    progression_stage, pillar, dqa_stage)
+                   VALUES (:pid, :lf, :yr, 'Performance', :partner,
+                           :q1, 'Data currently being collected/analysed',
+                           'No action needed - data reporting only',
+                           :ps, :pl, :dqa)""",
+                {
+                    "pid":     project_id,
+                    "lf":      lf_id,
+                    "yr":      seed_fy,
+                    "partner": pid_val,
+                    "q1":      entry["actual_q1"],
+                    "ps":      meta.get("progression_stage"),
+                    "pl":      meta.get("pillar"),
+                    "dqa":     meta.get("dqa_stage", "Raw"),
+                },
+            )
+            q1_inserted += 1
+    print(f"Partner Q1 actuals: {q1_inserted} rows seeded.")
 
     # ── Kobo form mappings (Module E) ────────────────────────────────────────
     run_write("DELETE FROM kobo_form_mapping WHERE project_id = :pid", {"pid": project_id})

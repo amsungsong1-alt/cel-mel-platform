@@ -176,7 +176,10 @@ CREATE TABLE IF NOT EXISTS raw_data_analysis (
                         )),
     -- AIL disaggregation (JSON): {"q1":{"f":"","m":"","youth":"","pwd":""},...}
     -- Breakdowns for Total/Female/Male/Youth/PWD per quarter per reporting standard.
-    disaggregation      TEXT
+    disaggregation      TEXT,
+    -- NULL = programme-wide aggregate row; set to a partners.partner_id for
+    -- partner-disaggregated rows (X1 — partner-level reporting).
+    partner_id          INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL
 );
 
 -- Module E: Kobo form field-to-indicator mapping.
@@ -247,6 +250,7 @@ CREATE INDEX IF NOT EXISTS idx_dcp_journey        ON data_collection_plan(journe
 CREATE INDEX IF NOT EXISTS idx_rda_project        ON raw_data_analysis(project_id);
 CREATE INDEX IF NOT EXISTS idx_rda_lf_row         ON raw_data_analysis(logframe_row_id);
 CREATE INDEX IF NOT EXISTS idx_rda_action         ON raw_data_analysis(action_status);
+CREATE INDEX IF NOT EXISTS idx_rda_partner        ON raw_data_analysis(partner_id);
 CREATE INDEX IF NOT EXISTS idx_kfm_project        ON kobo_form_mapping(project_id);
 CREATE INDEX IF NOT EXISTS idx_kfm_uid            ON kobo_form_mapping(asset_uid);
 CREATE INDEX IF NOT EXISTS idx_ksl_project        ON kobo_sync_log(project_id);

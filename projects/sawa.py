@@ -788,6 +788,24 @@ _RDA_META: dict[str, dict] = {
     "PIII.6":  {"progression_stage": "WEO",  "pillar": "Value Addition & Market Systems",    "dqa_stage": "Raw"},
 }
 
+# ── A1: Known Q1 actuals from Module A partner narrative (Jul–Sep 2026) ───────
+# Each entry maps (partner_name, indicator_code) → actual_q1 value string.
+# Source: partner Q1 narrative descriptions in 1_A_Partner_Alignment.py.
+# Seeded by db.py migration into partner-specific raw_data_analysis rows.
+# Only entries with explicit "actual" attribution are included; plan figures are excluded.
+_Q1_KNOWN_ACTUALS: list[dict] = [
+    # Aglow Farms Q1: "Q1 actual = 461 onboarded, 11 PWD, 9 communities"
+    {"partner_name": "Aglow Farms",  "indicator_code": "PI.1",   "actual_q1": "461"},
+    # NewAge Agric Q1: "1,456 D&F jobs created" — primary D&F delivery partner
+    {"partner_name": "NewAge Agric", "indicator_code": "LoP.1",  "actual_q1": "1456"},
+    # AgroKings Q1: "900 women recruited" — Wave 1 mobilisation
+    {"partner_name": "AgroKings",    "indicator_code": "PI.1",   "actual_q1": "900"},
+    # AFRIGEM Q1: "350 women onboarded" — mobilisation
+    {"partner_name": "AFRIGEM",      "indicator_code": "PI.1",   "actual_q1": "350"},
+    # Naple Betta Q1: "1,850 YW mobilised" — primary YiW delivery partner
+    {"partner_name": "Naple Betta",  "indicator_code": "PII.R5", "actual_q1": "1850"},
+]
+
 # ── Module D: Raw Data Analysis ───────────────────────────────────────────────
 # 21 rows — one per logframe indicator.  indicator_code is the link key;
 # seed_sawa.py resolves it to logframe_row_id.

@@ -892,3 +892,69 @@ with col_btn:
                 )
             except ImportError:
                 st.error("Install reportlab: `pip install reportlab`")
+
+st.divider()
+
+# ── A2: Year 1 Target Consistency Check ──────────────────────────────────────
+with st.expander("🔍 Year 1 Target Consistency Check", expanded=False):
+    st.caption(
+        "Compares three copies of Year 1 targets: "
+        "**Module A** (partner_targets Level 2), "
+        "**Module B** (logframe target_annual), and "
+        "**Module E** (raw_data_analysis target_value).  "
+        "Flags mismatches so they can be reconciled before reporting."
+    )
+    _lf_targets = run_query(
+        """SELECT lr.indicator_code, lr.indicator_statement, lr.target_annual
+           FROM   logframe_rows lr
+           JOIN   projects pr ON pr.project_id = lr.project_id
+           WHERE  pr.name = 'SAWA' AND lr.indicator_code IS NOT NULL""",
+        {},
+    )
+    _rda_targets = run_query(
+        """SELECT lf.indicator_code, r.target_value AS rda_target
+           FROM   raw_data_analysis r
+           JOIN   logframe_rows lf ON lf.id = r.logframe_row_id
+           JOIN   projects pr ON pr.project_id = r.project_id
+           WHERE  pr.name = 'SAWA' AND r.partner_id IS NULL""",
+        {},
+    )
+    _rda_map = {r["indicator_code"]: r["rda_target"] for r in _rda_targets}
+    _pt_lvl2 = run_query(
+        """SELECT pt.metric_label, pt.target_value
+           FROM   partner_targets pt
+           JOIN   projects pr ON pr.project_id = pt.project_id
+           WHERE  pr.name = 'SAWA' AND pt.level = 2 AND pt.time_basis = 'Year 1'""",
+        {},
+    )
+
+    _mismatches = []
+    for row in _lf_targets:
+        code   = row["indicator_code"]
+        lf_val = str(row.get("target_annual") or "").strip()
+        rda_val = str(_rda_map.get(code) or "").strip()
+        if lf_val and rda_val and lf_val != rda_val:
+            _mismatches.append({
+                "Indicator": code,
+                "Statement": (row.get("indicator_statement") or "")[:60],
+                "Module B (logframe)": lf_val,
+                "Module E (RDA)": rda_val,
+                "Source": "B vs E",
+            })
+
+    if _mismatches:
+        st.warning(f"**{len(_mismatches)} mismatch(es) detected** between Module B and Module E targets.")
+        st.dataframe(pd.DataFrame(_mismatches), hide_index=True, use_container_width=True)
+    else:
+        st.success("✅ Module B and Module E Year 1 targets are consistent.")
+
+    if _pt_lvl2:
+        st.markdown("**Module A — Level 2 Year 1 targets (CEL Delivery)**")
+        st.dataframe(
+            pd.DataFrame(_pt_lvl2).rename(columns={"metric_label": "Metric", "target_value": "Target"}),
+            hide_index=True, use_container_width=True,
+        )
+        st.caption(
+            "Module A Level 2 targets use narrative labels — match to indicator codes manually. "
+            "Edit in Module A above if targets have been revised."
+        )
