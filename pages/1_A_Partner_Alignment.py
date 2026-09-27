@@ -674,6 +674,21 @@ _QUARTERS = [
 
 import re as _re_md
 
+_Q_MONTH_SETS = [
+    {(7, 2026), (8, 2026), (9, 2026)},
+    {(10, 2026), (11, 2026), (12, 2026)},
+    {(1, 2027), (2, 2027), (3, 2027)},
+    {(4, 2027), (5, 2027), (6, 2027)},
+]
+
+_dcp_rows = run_query(
+    "SELECT stakeholder, indicator_statement, frequency, collection_month, "
+    "collection_year, responsible_party, last_collected_date "
+    "FROM data_collection_plan WHERE project_id = :pid "
+    "ORDER BY collection_year, collection_month",
+    {"pid": project_id},
+)
+
 
 def _bold(text: str) -> str:
     return _re_md.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
@@ -693,6 +708,67 @@ def _card(label: str, text: str, color: str) -> str:
     )
 
 
+def _dcp_in_q(row: dict, q_set: set) -> bool:
+    freq = row.get("frequency") or "Once"
+    cm, cy = row.get("collection_month"), row.get("collection_year")
+    if not cm or not cy:
+        return False
+    if freq == "Quarterly":
+        return True
+    if (cm, cy) in q_set:
+        return True
+    if freq == "Bi-annual":
+        m2, y2 = cm + 6, cy
+        if m2 > 12:
+            m2 -= 12
+            y2 += 1
+        if (m2, y2) in q_set:
+            return True
+    return False
+
+
+def _dcp_section(q_set: set) -> str:
+    active = [r for r in _dcp_rows if _dcp_in_q(r, q_set)]
+    if not active:
+        return ""
+    rows_html = ""
+    for i, r in enumerate(active):
+        collected = r.get("last_collected_date")
+        dot   = "#1E7E76" if collected else "#D97706"
+        badge_bg = "#E6F4F1" if collected else "#FEF3CD"
+        badge_fg = "#0D6B60" if collected else "#92400E"
+        status = f"Collected {collected}" if collected else f"Due — {r.get('frequency','')}"
+        short = (r.get("indicator_statement") or "")[:68]
+        if len(r.get("indicator_statement") or "") > 68:
+            short += "…"
+        border = "" if i == len(active) - 1 else "border-bottom:1px solid #F0EDE6;"
+        rows_html += (
+            f'<div style="display:flex;align-items:flex-start;gap:10px;'
+            f'padding:6px 2px;{border}">'
+            f'<span style="flex-shrink:0;width:7px;height:7px;border-radius:50%;'
+            f'background:{dot};margin-top:4px;"></span>'
+            f'<div style="flex:1;min-width:0;">'
+            f'<span style="font-weight:600;font-size:0.80em;color:#16262E;">'
+            f'{r.get("stakeholder","")}</span>'
+            f'<span style="font-size:0.77em;color:#5E6A6A;"> · {short}</span>'
+            f'</div>'
+            f'<span style="flex-shrink:0;font-size:0.74em;color:#5E6A6A;'
+            f'white-space:nowrap;padding-right:8px;">{r.get("responsible_party","")}</span>'
+            f'<span style="flex-shrink:0;font-size:0.72em;padding:2px 9px;border-radius:10px;'
+            f'background:{badge_bg};color:{badge_fg};white-space:nowrap;">{status}</span>'
+            f'</div>'
+        )
+    return (
+        '<div style="margin-top:14px;border:1px solid #DED7C6;border-radius:8px;overflow:hidden;">'
+        '<div style="background:#F6F3EC;padding:5px 14px;border-bottom:1px solid #DED7C6;">'
+        '<p style="margin:0;font-size:0.70em;font-weight:700;letter-spacing:.07em;color:#1E7E76;'
+        'font-family:\'IBM Plex Mono\',monospace;">DATA COLLECTION DUE THIS QUARTER</p>'
+        '</div>'
+        f'<div style="padding:6px 14px 4px;">{rows_html}</div>'
+        '</div>'
+    )
+
+
 _Q_COLORS = {
     "cel_bds":     "#1E7E76",
     "cel_wan":     "#1E7E76",
@@ -706,7 +782,7 @@ _Q_COLORS = {
 }
 
 _q_tabs = st.tabs(["Q1 Jul–Sep 2026", "Q2 Oct–Dec 2026", "Q3 Jan–Mar 2027", "Q4 Apr–Jun 2027"])
-for _tab, _qd in zip(_q_tabs, _QUARTERS):
+for _tab, _qd, _qms in zip(_q_tabs, _QUARTERS, _Q_MONTH_SETS):
     with _tab:
         _gap = '<div style="height:10px"></div>'
         c1, c2 = st.columns(2)
@@ -743,6 +819,9 @@ for _tab, _qd in zip(_q_tabs, _QUARTERS):
         with c9:
             st.markdown(_card("FC & CSIR", _qd["fc_csir"], _Q_COLORS["fc_csir"]),
                         unsafe_allow_html=True)
+        _dcp_html = _dcp_section(_qms)
+        if _dcp_html:
+            st.markdown(_dcp_html, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
