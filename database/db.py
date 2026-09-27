@@ -164,6 +164,12 @@ def _run_migrations() -> bool:
                 WHERE logframe_row_id IS NOT NULL
                   AND logframe_row_id NOT IN (SELECT id FROM logframe_rows)
             """))
+            # Remove the TBC placeholder row that was never confirmed.
+            conn.execute(text("""
+                DELETE FROM partner_targets
+                WHERE metric_label = 'Women mentored (peer circles)'
+                  AND target_value  = 'TBC'
+            """))
             # Correct Year 1 target: ~2,000 was the LoP figure; Year 1 is 500.
             conn.execute(text("""
                 UPDATE partner_targets
