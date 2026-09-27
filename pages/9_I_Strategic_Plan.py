@@ -22,7 +22,7 @@ from database.db import init_db, run_query, run_write, insert_returning_id
 from utils.auth import can, can_view_module
 from utils.strategic_outcomes import STRATEGIC_OUTCOMES, get_outcome_progress
 
-st.set_page_config(page_title="Strategic Plan · CEL MEL", page_icon="🎯", layout="wide")
+st.set_page_config(page_title="Strategic Plan — CEL MEL", page_icon="🎯", layout="wide")
 init_db()
 
 if not st.session_state.get("authentication_status"):
@@ -62,8 +62,8 @@ def _fmt(value: float, unit: str) -> str:
 
 progress = get_outcome_progress()
 
-st.markdown("---")
-st.markdown("#### Progress toward 2030 targets")
+st.divider()
+st.subheader("Progress toward 2030 targets")
 
 for outcome in STRATEGIC_OUTCOMES:
     code = outcome["code"]
@@ -103,12 +103,15 @@ for outcome in STRATEGIC_OUTCOMES:
                     hide_index=True, use_container_width=True,
                 )
         else:
-            st.caption("No programme data linked or manually entered yet for this outcome.")
+            st.markdown(
+                '<p style="font-size:0.78em;color:#9CA3AF;margin:4px 0 0 2px;">No data linked yet</p>',
+                unsafe_allow_html=True,
+            )
 
 # ── Admin: manage manual entries (CEO/Exec Director are view-only) ────────────
 if is_admin:
-    st.markdown("---")
-    st.markdown("#### Manage manual entries")
+    st.divider()
+    st.subheader("Manage manual entries")
     st.caption(
         "Use this for outcomes with no automatic indicator link (e.g. finance mobilised "
         "outside the logframe, enterprise pilots tracked by a separate team). Each row is "

@@ -96,7 +96,7 @@ with yr_c1:
 with yr_c2:
     next_year = max(available_years) + 1
     if can("admin"):
-        st.write("")  # vertical alignment with the selectbox
+        st.markdown("&nbsp;", unsafe_allow_html=True)
         if st.button(f"➕ Start FY{next_year}", use_container_width=True):
             from utils.raw_data_years import start_fiscal_year
             n = start_fiscal_year(project_id, next_year)
@@ -217,8 +217,8 @@ rda_rows = run_query(
 if not rda_rows:
     st.title("Module E — Raw Data Analysis")
     st.info(
-        f"No data found for FY{selected_year} — run `python -m database.seed_sawa` to load "
-        "SAWA data, or pick a different fiscal year above."
+        f"No data found for FY{selected_year}. "
+        "Select a different fiscal year above, or contact the MEAL Lead to initialise programme data."
     )
     st.stop()
 

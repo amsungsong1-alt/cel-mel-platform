@@ -12,6 +12,7 @@ Includes a time-basis reconciliation warning, inline editing for
 Admin/Editor roles, and a one-page PDF export for donor decks.
 """
 import io
+import re as _re_md
 from pathlib import Path
 import streamlit as st
 import pandas as pd
@@ -114,25 +115,26 @@ l1_yr1  = any(t["time_basis"] == "Year 1" for t in by_level[1])
 l23_yr1 = any(t["time_basis"] == "Year 1" for t in by_level[2] + by_level[3])
 
 if l1_lop and l23_yr1:
-    st.warning(
-        "⚠️ **Do not sum Level 1 LoP totals with Level 2 & 3 Year 1 figures.**  \n"
-        "**Level 1 LoP** rows are *Life of Programme* totals (2026–2030) from the "
-        "original SAWA proposal.  \n"
-        "**Levels 2 & 3** targets are *Year 1 only* (CEL Consolidated Workplan, "
-        "Jul 2026 – Jun 2027).  \n"
-        "To compare across levels, switch Level 1 to the **Year 1 tab** — those "
-        "figures come directly from each partner's Sep 2026 implementation plan "
-        "and sit on the same time basis as Levels 2 & 3."
-    )
+    with st.expander("ℹ️ Time-basis note — LoP vs Year 1 figures", expanded=False):
+        st.markdown(
+            "**Do not sum Level 1 LoP totals with Level 2 & 3 Year 1 figures.**  \n"
+            "**Level 1 LoP** rows are *Life of Programme* totals (2026–2030) from the "
+            "original SAWA proposal.  \n"
+            "**Levels 2 & 3** targets are *Year 1 only* (CEL Consolidated Workplan, "
+            "Jul 2026 – Jun 2027).  \n"
+            "To compare across levels, switch Level 1 to the **Year 1 tab** — those "
+            "figures come directly from each partner's Sep 2026 implementation plan "
+            "and sit on the same time basis as Levels 2 & 3."
+        )
 
 if l1_lop and l1_yr1:
-    st.info(
-        "ℹ️ **Level 1 has two tabs: LoP totals and confirmed Year 1 targets.**  \n"
-        "**LOP badge** — Life of Programme totals from the original SAWA proposal.  \n"
-        "**YR 1 badge** — confirmed from each partner's own Sep 2026 implementation "
-        "plan. These are not a 1/5 estimate of the LoP — they are the partner's "
-        "actual Year 1 commitment. Compare within a badge, not across badges."
-    )
+    with st.expander("ℹ️ Level 1 tabs — LoP totals vs confirmed Year 1 targets", expanded=False):
+        st.markdown(
+            "**LOP badge** — Life of Programme totals from the original SAWA proposal.  \n"
+            "**YR 1 badge** — confirmed from each partner's own Sep 2026 implementation "
+            "plan. These are not a 1/5 estimate of the LoP — they are the partner's "
+            "actual Year 1 commitment. Compare within a badge, not across badges."
+        )
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title("Module A — Partner Alignment")
@@ -238,7 +240,7 @@ for lvl in (1, 2, 3, 4):
             rows = [r for r in rows if r["time_basis"] == basis_filter]
 
     if not rows:
-        st.caption("No data — run `python -m database.seed_sawa` to load SAWA data.")
+        st.caption("No programme data loaded yet. Contact the MEAL Lead to initialise SAWA data.")
         continue
 
     show_partner = lvl == 1
@@ -334,7 +336,7 @@ _map_path = Path(__file__).parent.parent / "assets" / "sawa_partner_map.webp"
 if _map_path.exists():
     st.image(str(_map_path), use_container_width=True)
 else:
-    st.info("Map image not found — ensure assets/sawa_partner_map.webp is present in the repo.")
+    pass
 
 st.divider()
 
@@ -669,8 +671,6 @@ _QUARTERS = [
         ),
     },
 ]
-
-import re as _re_md
 
 _Q_MONTH_SETS = [
     {(7, 2026), (8, 2026), (9, 2026)},

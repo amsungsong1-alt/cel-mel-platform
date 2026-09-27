@@ -226,10 +226,7 @@ protocols = _load_protocols()
 _overdue_ids = _load_overdue_protocol_ids(project_id)
 
 if not protocols:
-    st.info(
-        "No review protocols found. "
-        "Run `python -m database.seed_sawa` to load the SAWA review protocols."
-    )
+    st.info("No review protocols found. Contact the MEAL Lead to initialise programme data.")
     st.stop()
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -356,7 +353,7 @@ for proto in protocols:
             ]
             for f_label, val in fields:
                 st.markdown(f"**{f_label}**")
-                st.write(val or "—")
+                st.markdown(val or "—")
 
 st.divider()
 
@@ -374,9 +371,9 @@ for p in sorted(protocols, key=lambda x: x.get("next_scheduled_date") or "9999")
     cnt_label, bg = _countdown(p.get("next_scheduled_date"))
     cal_rows.append({
         "Type":            f"{DT_ICONS.get(p['data_type'], '')} {p['data_type']}",
-        "Reviewer":        p.get("reviewer_role") or "—",
-        "Frequency":       p.get("review_frequency") or "—",
-        "Scheduled":       p.get("next_scheduled_date") or "—",
+        "Reviewer":        p.get("reviewer_role") or "(role not set)",
+        "Frequency":       p.get("review_frequency") or "Not scheduled",
+        "Scheduled":       p.get("next_scheduled_date") or "Not scheduled",
         "Status":          cnt_label,
         "_bg":             bg,
     })

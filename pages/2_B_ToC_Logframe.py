@@ -117,7 +117,7 @@ with tab_toc:
     )
 
     if not toc_nodes:
-        st.info("No ToC nodes found — run `python -m database.seed_sawa` to load SAWA data.")
+        st.info("No Theory of Change data found. Contact the MEAL Lead to initialise programme data.")
         st.stop()
 
     st.graphviz_chart(_build_dot(toc_nodes), use_container_width=True)
@@ -200,7 +200,7 @@ with tab_lf:
     )
 
     if not lf_rows:
-        st.info("No logframe rows found — run `python -m database.seed_sawa` to load SAWA data.")
+        st.info("No logframe rows found. Contact the MEAL Lead to initialise programme data.")
         st.stop()
 
     # ── Filter row ────────────────────────────────────────────────────────────

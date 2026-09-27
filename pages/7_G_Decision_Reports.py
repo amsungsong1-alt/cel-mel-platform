@@ -423,11 +423,7 @@ with tab_dash:
     all_reports = _load_reports()
 
     if not all_reports:
-        st.info(
-            "No decision reports yet. "
-            "Run `python -m database.seed_sawa` to load the SAWA example report, "
-            "or create one in the Report Editor tab."
-        )
+        st.info("No decision reports yet. Use the Report Editor tab to create the first report.")
     else:
         for status in REPORT_STATUSES:
             status_reports = [r for r in all_reports if r.get("status") == status]

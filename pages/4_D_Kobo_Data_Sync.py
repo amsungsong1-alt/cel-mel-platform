@@ -585,8 +585,8 @@ with tab_sync:
 
     if not all_mappings:
         st.info(
-            "No mappings configured. Run `python -m database.seed_sawa` to load SAWA "
-            "placeholder mappings, or activate a form above (requires API token)."
+            "No field mappings configured yet. "
+            "Activate a KoboToolbox form above (requires API token) to set up mappings."
         )
     else:
         # Group by form
@@ -820,13 +820,13 @@ with tab_sync:
     **Option A — cron (Linux / macOS)**
     ```bash
     # Run once daily at 06:00
-    0 6 * * * cd /path/to/cel_mel_platform && python -m scripts.kobo_sync --project SAWA
+    0 6 * * * cd /path/to/cel-mel-platform && python -m scripts.kobo_sync --project SAWA
     ```
 
     **Option B — Windows Task Scheduler**
     Create a daily task that runs:
     ```
-    python C:\\path\\to\\cel_mel_platform\\scripts\\kobo_sync.py --project SAWA
+    python C:\\path\\to\\cel-mel-platform\\scripts\\kobo_sync.py --project SAWA
     ```
 
     **Option C — GitHub Actions nightly workflow**
@@ -866,7 +866,7 @@ with tab_upload:
         "Field mappings configured in the Sync & Mapping tab are applied automatically."
     )
 
-    with st.expander("🧪 Download sample test data (Y1 — all 4 quarters)", expanded=False):
+    with st.expander("📂 Download data entry templates (Y1 — all 4 quarters)", expanded=False):
         st.caption(
             "Each file contains **4 sheets** (Q1–Q4) pre-filled with workplan-faithful "
             "target values. Upload the file as-is below — each sheet is written to its "
@@ -1087,7 +1087,7 @@ with tab_storage:
     )
 
     # ── Per-form storage summary ──────────────────────────────────────────────
-    st.markdown("#### Per-Form Storage Summary")
+    st.subheader("Per-Form Storage Summary")
 
     form_storage = run_query(
         """SELECT kfm.kobo_form_name, kfm.asset_uid,
@@ -1140,8 +1140,8 @@ with tab_storage:
         st.info("No forms registered yet — activate a form in the Sync & Mapping tab.")
 
     # ── Database info ─────────────────────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("#### Database Info")
+    st.divider()
+    st.subheader("Database Info")
 
     total_rows = run_query(
         "SELECT COUNT(*) AS n FROM raw_data_analysis WHERE project_id=:pid",
@@ -1161,8 +1161,8 @@ with tab_storage:
         di3.metric("RDA rows", rda_n)
 
     # ── Export / Backup ───────────────────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("#### Export / Backup")
+    st.divider()
+    st.subheader("Export / Backup")
     if IS_POSTGRES:
         st.info(
             "Data lives in Supabase Postgres, not a local file — use the Supabase "

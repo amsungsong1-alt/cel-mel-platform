@@ -21,7 +21,7 @@ from utils.fiscal_calendar import current_fiscal_year
 from utils.num_parse import num as _num
 
 st.set_page_config(
-    page_title="Impact Dashboard · CEL MEL",
+    page_title="Impact Dashboard — CEL MEL",
     page_icon="🌟",
     layout="wide",
 )
@@ -154,8 +154,8 @@ if not actuals_rows:
 df = pd.DataFrame(actuals_rows)
 
 # ── Section 1: Headline KPI Cards ─────────────────────────────────────────────
-st.markdown("---")
-st.markdown("#### Programme Highlights")
+st.divider()
+st.subheader("Programme Highlights")
 
 output_df  = df[df["result_level"] == "Output"].head(4)
 outcome_df = df[df["result_level"] == "Outcome"].head(2)
@@ -185,8 +185,8 @@ for col, (_, row) in zip(kpi_cols, highlight.iterrows()):
     )
 
 # ── Section 2: Results Chain Progress ────────────────────────────────────────
-st.markdown("---")
-st.markdown("#### Results Chain: Progress Against Targets")
+st.divider()
+st.subheader("Results Chain: Progress Against Targets")
 
 col_chart, col_table = st.columns([1, 1])
 
@@ -262,8 +262,8 @@ with col_table:
             )
 
 # ── Section 3: Quarterly Delivery Trend ───────────────────────────────────────
-st.markdown("---")
-st.markdown("#### Quarterly Delivery Trend")
+st.divider()
+st.subheader("Quarterly Delivery Trend")
 
 output_rows = df[df["result_level"] == "Output"]
 if not output_rows.empty:
@@ -291,8 +291,8 @@ if not output_rows.empty:
     st.plotly_chart(fig2, use_container_width=True)
 
 # ── Section 4: Partner Contribution ───────────────────────────────────────────
-st.markdown("---")
-st.markdown("#### Partner Commitment Funnel")
+st.divider()
+st.subheader("Partner Commitment Funnel")
 
 if partner_targets:
     pt_df = pd.DataFrame(partner_targets)
@@ -344,8 +344,8 @@ if partner_targets:
             )
 
 # ── Section 5: Key Findings from Decision Reports ─────────────────────────────
-st.markdown("---")
-st.markdown("#### Key Findings from Evidence Reviews (Module G)")
+st.divider()
+st.subheader("Key Findings from Evidence Reviews (Module G)")
 
 CATEGORY_COLOUR = {
     "Performance":  BLUE,
@@ -387,7 +387,7 @@ else:
     st.info("No decision reports yet — create them in Module G.")
 
 # ── Section 6: MIS Framework Footer ──────────────────────────────────────────
-st.markdown("---")
+st.divider()
 st.markdown(
     f'<div style="background:{NAVY}0A;border:1px solid {NAVY}20;'
     f'border-radius:6px;padding:10px 16px;font-size:0.75em;color:#444;">'

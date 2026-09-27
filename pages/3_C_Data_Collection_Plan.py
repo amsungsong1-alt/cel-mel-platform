@@ -52,9 +52,7 @@ plan_rows = run_query(
 )
 
 if not plan_rows:
-    st.info(
-        "No data collection plan found — run `python -m database.seed_sawa` to load SAWA data."
-    )
+    st.info("No data collection plan found. Contact the MEAL Lead to initialise programme data.")
     st.stop()
 
 # ── Constants ─────────────────────────────────────────────────────────────────
@@ -530,7 +528,7 @@ with tab_cal:
     pivot.index.name = "Year"
 
     # ── Submission deadline panel ─────────────────────────────────────────────
-    st.markdown("#### Partner Report Submission Deadlines")
+    st.subheader("Partner Report Submission Deadlines")
     st.caption(
         "AIL requires partner reports **7 days after each quarter end**. "
         "Deadline months are marked ★ on the heatmap."
@@ -553,7 +551,7 @@ with tab_cal:
             )
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-    st.markdown("#### 12-Month Collection Heatmap")
+    st.subheader("12-Month Collection Heatmap")
     st.caption(
         "Cell value = number of collection events scheduled in that month. "
         "Darker red = higher load. Hover a cell to see the exact count. "
@@ -588,7 +586,7 @@ with tab_cal:
     st.plotly_chart(fig_cal, use_container_width=True)
 
     # ── Overload detection ────────────────────────────────────────────────────
-    st.markdown("#### Overload Alerts")
+    st.subheader("Overload Alerts")
 
     monthly_counts = (
         df_events
