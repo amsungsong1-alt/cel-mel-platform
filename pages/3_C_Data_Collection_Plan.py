@@ -258,13 +258,23 @@ with tab_plan:
             return None
 
     df = pd.DataFrame([
-        {"_id": r["id"]}
-        | {disp: r[db] for disp, db in _DISPLAY_COLS.items() if disp != "Last Collected"}
-        | {
-            "New Instrument":    r.get("instrument_name", "") if r.get("instrument_status") == "New" else "",
-            "Existing Instrument": r.get("instrument_name", "") if r.get("instrument_status") == "Existing" else "",
-            "Last Collected":    _parse_date(r.get("last_collected_date")),
-            "Collection Status": "⛔ Overdue" if _is_collection_overdue(r) else "✅ On track",
+        {
+            "_id":                   r["id"],
+            "Stakeholder":           r["stakeholder"],
+            "Indicator / Statement": r["indicator_statement"],
+            "Data Points":           r["data_points"],
+            "Rationale":             r["rationale"],
+            "New Instrument":        r.get("instrument_name", "") if r.get("instrument_status") == "New" else "",
+            "Existing Instrument":   r.get("instrument_name", "") if r.get("instrument_status") == "Existing" else "",
+            "Instrument Link":       r["instrument_link"],
+            "Journey Step":          r["journey_step"],
+            "Integration Mechanism": r["integration_mechanism"],
+            "Frequency":             r["frequency"],
+            "Month":                 r["collection_month"],
+            "Year":                  r["collection_year"],
+            "Responsible":           r["responsible_party"],
+            "Last Collected":        _parse_date(r.get("last_collected_date")),
+            "Collection Status":     "⛔ Overdue" if _is_collection_overdue(r) else "✅ On track",
         }
         for r in plan_rows
     ])
