@@ -101,8 +101,12 @@ MONTH_OPTIONS       = list(range(1, 13))
 
 
 # ── Expand collection schedule to individual events ───────────────────────────
-def _expand_events(rows: list[dict], years_ahead: int = 2) -> list[dict]:
-    """Generate every collection event from frequency + start month/year."""
+_PROGRAMME_END = (2030, 6)  # Jun 2030 — SAWA end date
+
+
+def _expand_events(rows: list[dict], years_ahead: int = 4) -> list[dict]:
+    """Generate every collection event from frequency + start month/year,
+    capped at the programme end (Jun 2030) regardless of years_ahead."""
     events: list[dict] = []
     for row in rows:
         start_m  = row.get("collection_month") or 1
@@ -119,8 +123,8 @@ def _expand_events(rows: list[dict], years_ahead: int = 2) -> list[dict]:
             events.append({"year": start_y, "month": start_m, **base})
         else:
             m, y = start_m, start_y
-            cutoff = start_y + years_ahead
-            while y <= cutoff:
+            cutoff = min(start_y + years_ahead, _PROGRAMME_END[0])
+            while (y, m) <= _PROGRAMME_END and y <= cutoff:
                 events.append({"year": y, "month": m, **base})
                 m += interval
                 while m > 12:
@@ -497,7 +501,7 @@ with tab_cal:
             ),
         )
     with ctrl_c2:
-        years_ahead = st.selectbox("Show years ahead", options=[1, 2, 3], index=1)
+        years_ahead = st.selectbox("Show years ahead", options=[1, 2, 3, 4], index=3)
 
     # ── Expand schedule ───────────────────────────────────────────────────────
     events = _expand_events(plan_rows, years_ahead=int(years_ahead))
