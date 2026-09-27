@@ -4,8 +4,8 @@ PROJECT = {
     "name":         "SAWA",
     "donor":        "Mastercard Foundation",
     "budget_total": 39_810_000,   # USD 39.81M
-    "start_date":   "2026-01-01",
-    "end_date":     "2030-12-31",
+    "start_date":   "2026-07-01",
+    "end_date":     "2030-06-30",
 }
 
 # ── Partners ──────────────────────────────────────────────────────────────────
@@ -752,11 +752,13 @@ LOGFRAME_ROWS = [
 INDICATORS: list[dict] = []
 
 # ── Module C: Data Collection Plan ────────────────────────────────────────────
-# 11 SAWA baseline instruments.  collection_month/year = first scheduled event;
-# the calendar view expands frequency → all events over a rolling 2-year window.
-# Quarterly instruments start Feb → cycle hits May, Aug, Nov, Feb …
-# Bi-annual instruments start May → cycle hits Nov, May, Nov, May …
-# This produces 8 instruments landing in May 2027, demonstrating the overload.
+# 11 SAWA data collection instruments.
+# SAWA fiscal year: Jul–Jun (Year 1 = Jul 2026–Jun 2027, …, Year 4 = Jul 2029–Jun 2030).
+# collection_month/year = first scheduled event; calendar view expands by frequency.
+# Quarterly  → first collection Sep 2026 (end Q1); cycles Sep→Dec→Mar→Jun→Sep…
+# Bi-annual  → first collection Nov 2026 (mid Year 1); cycles Nov→May→Nov→May…
+# Annual     → first collection Jun 2027 (end Year 1); cycles Jun→Jun→Jun…
+# Once       → Aug 2026 (programme start / enrolment baseline).
 # ── Module D: Raw Data Analysis ───────────────────────────────────────────────
 # 21 rows — one per logframe indicator.  indicator_code is the link key;
 # seed_sawa.py resolves it to logframe_row_id.
@@ -1572,7 +1574,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "Enrolment",
         "integration_mechanism": "Enrolment screening form administered by mobilisation agent",
         "frequency": "Once",
-        "collection_month": 2,
+        "collection_month": 8,
         "collection_year": 2026,
         "responsible_party": "Programme Team",
     },
@@ -1593,7 +1595,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "Training",
         "integration_mechanism": "Paper register scanned and uploaded to KoboToolbox",
         "frequency": "Quarterly",
-        "collection_month": 2,
+        "collection_month": 9,
         "collection_year": 2026,
         "responsible_party": "Programme Team",
     },
@@ -1613,8 +1615,8 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "Annual review",
         "integration_mechanism": "Field verification visit and partner financial record review",
         "frequency": "Annual",
-        "collection_month": 11,
-        "collection_year": 2026,
+        "collection_month": 6,
+        "collection_year": 2027,
         "responsible_party": "Partner MEAL",
     },
     {
@@ -1633,7 +1635,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "Enrolment",
         "integration_mechanism": "Face-to-face structured interview by trained CEL enumerator",
         "frequency": "Bi-annual",
-        "collection_month": 5,
+        "collection_month": 11,
         "collection_year": 2026,
         "responsible_party": "CEL MEAL",
     },
@@ -1653,7 +1655,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "6-month follow-up",
         "integration_mechanism": "Partner report verified by CEL field officer",
         "frequency": "Bi-annual",
-        "collection_month": 5,
+        "collection_month": 11,
         "collection_year": 2026,
         "responsible_party": "Programme Team",
     },
@@ -1673,7 +1675,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "3-month check-in",
         "integration_mechanism": "Phone follow-up interview by Programme Team",
         "frequency": "Quarterly",
-        "collection_month": 2,
+        "collection_month": 9,
         "collection_year": 2026,
         "responsible_party": "Programme Team",
     },
@@ -1693,8 +1695,8 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "6-month follow-up",
         "integration_mechanism": "Structured interview at 6-month follow-up field visit",
         "frequency": "Annual",
-        "collection_month": 5,
-        "collection_year": 2026,
+        "collection_month": 6,
+        "collection_year": 2027,
         "responsible_party": "CEL MEAL",
     },
     {
@@ -1713,7 +1715,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "6-month follow-up",
         "integration_mechanism": "Phone follow-up or field visit by CEL enumerator",
         "frequency": "Bi-annual",
-        "collection_month": 5,
+        "collection_month": 11,
         "collection_year": 2026,
         "responsible_party": "CEL MEAL",
     },
@@ -1733,7 +1735,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "Annual review",
         "integration_mechanism": "Field verification visit and financial record review",
         "frequency": "Annual",
-        "collection_month": 5,
+        "collection_month": 6,
         "collection_year": 2027,
         "responsible_party": "Partner MEAL",
     },
@@ -1753,7 +1755,7 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "3-month check-in",
         "integration_mechanism": "Partner production record review by Partner MEAL officer",
         "frequency": "Quarterly",
-        "collection_month": 2,
+        "collection_month": 9,
         "collection_year": 2026,
         "responsible_party": "Partner MEAL",
     },
@@ -1773,8 +1775,8 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "journey_step": "Annual review",
         "integration_mechanism": "Internal management review meeting (annual retreat)",
         "frequency": "Annual",
-        "collection_month": 12,
-        "collection_year": 2026,
+        "collection_month": 6,
+        "collection_year": 2027,
         "responsible_party": "CEL MEAL",
     },
 ]
