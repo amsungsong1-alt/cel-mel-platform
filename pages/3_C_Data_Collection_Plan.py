@@ -40,14 +40,19 @@ st.title("Module C — Data Collection Plan")
 
 # ── Load data ─────────────────────────────────────────────────────────────────
 plan_rows = run_query(
-    """SELECT id, stakeholder, indicator_statement, data_points, rationale,
-              instrument_name, instrument_status, instrument_link, journey_step,
-              integration_mechanism, frequency,
-              collection_month, collection_year, responsible_party,
-              last_collected_date
-       FROM   data_collection_plan
-       WHERE  project_id = :pid
-       ORDER  BY id""",
+    """SELECT dcp.id, dcp.stakeholder,
+              COALESCE(lr.indicator_code, '')         AS lf_code,
+              COALESCE(lr.indicator_statement,
+                       dcp.indicator_statement)       AS indicator_statement,
+              dcp.data_points, dcp.rationale,
+              dcp.instrument_name, dcp.instrument_status, dcp.instrument_link,
+              dcp.journey_step, dcp.integration_mechanism, dcp.frequency,
+              dcp.collection_month, dcp.collection_year, dcp.responsible_party,
+              dcp.last_collected_date
+       FROM   data_collection_plan dcp
+       LEFT JOIN logframe_rows lr ON lr.id = dcp.logframe_row_id
+       WHERE  dcp.project_id = :pid
+       ORDER  BY dcp.id""",
     {"pid": project_id},
 )
 
@@ -261,7 +266,10 @@ with tab_plan:
         {
             "_id":                   r["id"],
             "Stakeholder":           r["stakeholder"],
-            "Indicator / Statement": r["indicator_statement"],
+            "Indicator / Statement": (
+                f"[{r['lf_code']}] {r['indicator_statement']}"
+                if r.get("lf_code") else r["indicator_statement"]
+            ),
             "Data Points":           r["data_points"],
             "Rationale":             r["rationale"],
             "New Instrument":        r.get("instrument_name", "") if r.get("instrument_status") == "New" else "",

@@ -323,17 +323,18 @@ def seed():
     # ── Data collection plan (Module C) ──────────────────────────────────────
     run_write("DELETE FROM data_collection_plan WHERE project_id = :pid", {"pid": project_id})
     for row in DATA_COLLECTION_PLAN:
+        lf_row_id = lf_lookup.get(row.get("logframe_indicator_code")) if row.get("logframe_indicator_code") else None
         insert_returning_id(
             """INSERT INTO data_collection_plan
-               (project_id, stakeholder, indicator_statement, data_points,
+               (project_id, logframe_row_id, stakeholder, indicator_statement, data_points,
                 rationale, instrument_name, instrument_status, instrument_link, journey_step,
                 integration_mechanism, frequency, collection_month,
                 collection_year, responsible_party)
-               VALUES (:project_id, :stakeholder, :indicator_statement, :data_points,
+               VALUES (:project_id, :logframe_row_id, :stakeholder, :indicator_statement, :data_points,
                        :rationale, :instrument_name, :instrument_status, :instrument_link, :journey_step,
                        :integration_mechanism, :frequency, :collection_month,
                        :collection_year, :responsible_party)""",
-            {**row, "project_id": project_id},
+            {**row, "project_id": project_id, "logframe_row_id": lf_row_id},
         )
     print(f"Data collection plan: {len(DATA_COLLECTION_PLAN)} instruments inserted.")
 
