@@ -121,9 +121,13 @@ def _run_migrations() -> bool:
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS pillar TEXT",
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS dqa_stage TEXT",
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS disaggregation TEXT",
-                "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS partner_id INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL",
+                "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS partner_id INTEGER",
             ):
                 conn.execute(text(stmt))
+            # Index must come after ADD COLUMN (schema.sql can't do it safely on existing DBs).
+            conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS idx_rda_partner ON raw_data_analysis(partner_id)"
+            ))
             # Backfill rows written before reporting_year existed, so every
             # query can filter on it directly without a NULL special case.
             conn.execute(
@@ -538,12 +542,19 @@ def _run_migrations() -> bool:
         "ALTER TABLE raw_data_analysis ADD COLUMN pillar TEXT",
         "ALTER TABLE raw_data_analysis ADD COLUMN dqa_stage TEXT",
         "ALTER TABLE raw_data_analysis ADD COLUMN disaggregation TEXT",
-        "ALTER TABLE raw_data_analysis ADD COLUMN partner_id INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL",
+        "ALTER TABLE raw_data_analysis ADD COLUMN partner_id INTEGER",
     ):
         try:
             conn.execute(stmt)
         except Exception:
             pass  # column already exists
+    # Index after ADD COLUMN (schema.sql can't do it safely on existing DBs).
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_rda_partner ON raw_data_analysis(partner_id)"
+        )
+    except Exception:
+        pass
     # Backfill rows written before reporting_year existed, so every query
     # can filter on it directly without a NULL special case.
     conn.execute(

@@ -250,7 +250,7 @@ CREATE INDEX IF NOT EXISTS idx_dcp_journey        ON data_collection_plan(journe
 CREATE INDEX IF NOT EXISTS idx_rda_project        ON raw_data_analysis(project_id);
 CREATE INDEX IF NOT EXISTS idx_rda_lf_row         ON raw_data_analysis(logframe_row_id);
 CREATE INDEX IF NOT EXISTS idx_rda_action         ON raw_data_analysis(action_status);
-CREATE INDEX IF NOT EXISTS idx_rda_partner        ON raw_data_analysis(partner_id);
+-- idx_rda_partner is created in _run_migrations() after ADD COLUMN partner_id
 CREATE INDEX IF NOT EXISTS idx_kfm_project        ON kobo_form_mapping(project_id);
 CREATE INDEX IF NOT EXISTS idx_kfm_uid            ON kobo_form_mapping(asset_uid);
 CREATE INDEX IF NOT EXISTS idx_ksl_project        ON kobo_sync_log(project_id);
