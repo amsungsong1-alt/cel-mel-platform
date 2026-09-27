@@ -372,6 +372,238 @@ with rc3:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+# ── CEL Year 1 Measures — Partner Contributions ──────────────────────────────
+st.subheader("CEL Year 1 Measures — Partner Contributions")
+st.caption(
+    "How each anchor and technical partner feeds into CEL's four Year 1 delivery "
+    "measures.  Source: CEL's contribution to SAWA (Sep 2026) pp. 05–16 + "
+    "partner Year 1 implementation decks, Sep 2026."
+)
+
+_cel_measures = pd.DataFrame([
+    {
+        "CEL Year 1 Measure":     "Women receiving BDS",
+        "Target":                 "500",
+        "How Partners Feed This": (
+            "CEL coaches inside AgroKings, Aglow Aqua, AFRIGEM, Newage and "
+            "Naple Betta cohorts.  500 are the 'accelerator / enterprises in "
+            "transition' cohort receiving direct BDS coaching."
+        ),
+        "Partner Sources": (
+            "AgroKings 800 groups → coaching entry · "
+            "Aglow Aqua 1,200 → 300 Q1 entry · "
+            "AFRIGEM 1,000 → Q1 350 · "
+            "Newage & Naple Betta hub members"
+        ),
+    },
+    {
+        "CEL Year 1 Measure":     "WAN forum engagements",
+        "Target":                 "500",
+        "How Partners Feed This": (
+            "WAN draws members from all partner cohorts; engagements = "
+            "forums, bootcamp/exchange, market activities, road shows, "
+            "institutionalise occupational health."
+        ),
+        "Partner Sources": (
+            "CEL facilitates · All anchors supply members · "
+            "FC provides Regulatory Day · "
+            "CSIR contributes value-addition & product market inputs"
+        ),
+    },
+    {
+        "CEL Year 1 Measure":     "Women-led cooperatives/clusters strengthened",
+        "Target":                 "25",
+        "How Partners Feed This": (
+            "Aglow Aqua cluster model (15 communities), "
+            "AFRIGEM cooperatives (4+), "
+            "AgroKings groups graduating to cooperative ownership."
+        ),
+        "Partner Sources": (
+            "Aglow Aqua community cluster model · "
+            "AFRIGEM cooperative formation · "
+            "AgroKings rent-to-own group exit"
+        ),
+    },
+    {
+        "CEL Year 1 Measure":     "D&F jobs in value addition",
+        "Target":                 "100",
+        "How Partners Feed This": (
+            "AgroKings 1909 processing & retail arm (190 women in roles); "
+            "Naple Betta women-led grill outlets; Aglow Aqua processing area."
+        ),
+        "Partner Sources": (
+            "AgroKings 1909 (190 roles) · "
+            "Naple Betta grill outlets · "
+            "Aglow Aqua HQ processing (500 HQ-based opportunities)"
+        ),
+    },
+])
+
+st.dataframe(
+    _cel_measures,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "CEL Year 1 Measure": st.column_config.TextColumn("CEL Year 1 Measure", width="medium"),
+        "Target":             st.column_config.TextColumn("Target",             width="small"),
+        "How Partners Feed This": st.column_config.TextColumn("How Partners Feed This", width="large"),
+        "Partner Sources":    st.column_config.TextColumn("Partner Sources",    width="large"),
+    },
+)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ── Year 1 Quarterly Delivery Calendar ───────────────────────────────────────
+st.subheader("Year 1 Quarterly Delivery Calendar")
+st.caption(
+    "CEL and partner activities by quarter, Jul 2026 – Jun 2027.  "
+    "Source: CEL's contribution to SAWA (Sep 2026) + partner Year 1 implementation decks."
+)
+
+_QUARTERS = [
+    {
+        "cel_bds": (
+            "Review needs & existing training; mobilise women for BDS; "
+            "co-design modules with AFRIGEM, Aglow and AgroKings trainers."
+        ),
+        "cel_wan": (
+            "Map groups and mentors; agree WAN priorities and participation; "
+            "identify experienced women for peer mentorship."
+        ),
+        "agrokings": (
+            "**Wave 1 – Greater Accra:** 3 cluster sites commissioned; 900 women recruited; "
+            "300 tanks stocked July; first 120 hatchery roles filled; first harvest August."
+        ),
+        "aglow": (
+            "**Foundation & Mobilisation:** confirm communities & sites; stakeholder engagement; "
+            "beneficiary mobilisation & screening.  "
+            "Q1 actual = 461 onboarded, 11 PWD, 9 communities."
+        ),
+        "afrigem": (
+            "**350 women** onboarded; 3 anchor operators (traders, producers, processors); "
+            "community sensitisation & identification."
+        ),
+        "fc_csir": (
+            "**FC:** Inception & stakeholder coordination; aquaculture regulation/licensing "
+            "orientation; GAqP planning; broodstock linkages.  "
+            "**CSIR:** Community entry; gender & needs assessment; policy review; research setup."
+        ),
+    },
+    {
+        "cel_bds": (
+            "Co-create BDS modules; Training of Trainers (ToT); start coaching and thematic "
+            "workshops — Regulatory Day w/ FC, Financial Literacy, Finance Readiness w/ TechnoServe."
+        ),
+        "cel_wan": (
+            "Prepare WAN membership, representation, market and leadership activities; "
+            "connect women's groups to buyer feedback and peer learning."
+        ),
+        "agrokings": (
+            "**Wave 2 – Volta & Oti:** 4 cluster sites live; 1,000 women onboarded; "
+            "300 tanks stocked Oct; 1909 intake opens; Wave 1 self-funds Cycle 2."
+        ),
+        "aglow": (
+            "**Infrastructure & Production Readiness:** construct ponds & tarpaulin systems; "
+            "ToT; full beneficiary training; safeguarding & GYSI orientation; "
+            "stock certified production units."
+        ),
+        "afrigem": (
+            "**350 more women** onboarded (700 cumulative); "
+            "3 more anchor operators; door-to-door & group mobilisation."
+        ),
+        "fc_csir": (
+            "**FC:** GAqP & SOP training; licensing guidance; facility/farm compliance "
+            "assessments begin.  "
+            "**CSIR:** GESI/shared decision-making; BDS & food-processing mentorship; "
+            "feed/BSFL & hatchery training; water assessments."
+        ),
+    },
+    {
+        "cel_bds": (
+            "Coaching, finance preparation and value-addition support; "
+            "TechnoServe finance referrals for prepared enterprises; D&F jobs tracking."
+        ),
+        "cel_wan": (
+            "WAN forums, bootcamp/exchange events, women-led group support; "
+            "CEL + CSIR joint value-addition & markets workshop."
+        ),
+        "agrokings": (
+            "**Wave 3 – Northern:** 3 cluster sites live; 350 women onboarded; "
+            "200 tanks stocked Jan; mid-year survival & competency audit across all 10 clusters; "
+            "graduate-mentor scheme opens."
+        ),
+        "aglow": (
+            "**Production & Value-Chain Development:** intensive production mentoring; "
+            "water-quality & fish-health monitoring; develop/commission processing facilities; "
+            "establish aggregation; packaging & product specs."
+        ),
+        "afrigem": (
+            "**150 more women** (850 cumulative); 2 anchor operators; "
+            "eligibility screening of new cohort."
+        ),
+        "fc_csir": (
+            "**FC:** Continue technical support & compliance monitoring; "
+            "two-tier certification pathway; quality-control & record-keeping support.  "
+            "**CSIR:** Demonstration farms/RAS/water-saving practices; tech-transfer workshops; "
+            "product development; certification support; adoption monitoring."
+        ),
+    },
+    {
+        "cel_bds": (
+            "Follow sales, finance decisions and work outcomes; continue mentoring; "
+            "review Year 1 BDS results; develop Year 2 modules."
+        ),
+        "cel_wan": (
+            "WAN forums and group support; review member services and Year 2 priorities; "
+            "SAWA Voices documents success stories."
+        ),
+        "agrokings": (
+            "**Full cohort operational:** all 800 groups farming; all 400 operational roles filled; "
+            "Wave 1 completes Cycle 6 and graduates — 300 tanks transferred to 900 owners; "
+            "Year 2 pipeline opened."
+        ),
+        "aglow": (
+            "**Harvest, Market & Consolidation:** harvest market-ready cycles; "
+            "aggregate & process fish; supply confirmed markets; "
+            "analyse income & job outcomes; Year 1 learning assessment; develop Year 2 scale-up plan."
+        ),
+        "afrigem": (
+            "**150 more women** (1,000 total); 2 more anchor operators (10 total); "
+            "follow up on licensing & certification."
+        ),
+        "fc_csir": (
+            "**FC:** Technical audits; review GAqP/SOP gaps; policy/ecosystem-strengthening "
+            "discussions; consolidate lessons for Year 2.  "
+            "**CSIR:** Follow-up coaching; quality/certification; market/route-to-market support; "
+            "Year 1 implementation review; next-year priorities."
+        ),
+    },
+]
+
+_q_tabs = st.tabs(["Q1 Jul–Sep 2026", "Q2 Oct–Dec 2026", "Q3 Jan–Mar 2027", "Q4 Apr–Jun 2027"])
+for _tab, _qd in zip(_q_tabs, _QUARTERS):
+    with _tab:
+        _col1, _col2 = st.columns(2)
+        with _col1:
+            st.markdown("**CEL — BDS Delivery**")
+            st.markdown(_qd["cel_bds"])
+            st.markdown("**CEL — WAN & Partner Engagement**")
+            st.markdown(_qd["cel_wan"])
+        with _col2:
+            st.markdown("**AgroKings**")
+            st.markdown(_qd["agrokings"])
+            st.markdown("**Aglow Aqua**")
+            st.markdown(_qd["aglow"])
+        _col3, _col4 = st.columns(2)
+        with _col3:
+            st.markdown("**AFRIGEM**")
+            st.markdown(_qd["afrigem"])
+        with _col4:
+            st.markdown("**FC & CSIR**")
+            st.markdown(_qd["fc_csir"])
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # ── Partner Roles & Expectations ─────────────────────────────────────────────
 st.subheader("Partner Roles & Expectations")
 st.caption("Source: SAWA Partner Roles & Expectations slide — defines the mutual accountability framework.")
