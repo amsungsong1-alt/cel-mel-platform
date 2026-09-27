@@ -362,3 +362,26 @@ CREATE INDEX IF NOT EXISTS idx_dr_project         ON decision_reports(project_id
 CREATE INDEX IF NOT EXISTS idx_dr_lf_row          ON decision_reports(logframe_row_id);
 CREATE INDEX IF NOT EXISTS idx_da_report          ON decision_actions(report_id);
 CREATE INDEX IF NOT EXISTS idx_da_status          ON decision_actions(action_status);
+
+-- Module A: Workplan Activities — one row per partner deliverable per quarter.
+-- partner_id NULL = programme-wide / CEL-led activity.
+-- fiscal_year is the start year of the fiscal year (e.g. 2026 = FY 2026/27).
+CREATE TABLE IF NOT EXISTS workplan_activities (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    partner_id      INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+    quarter         INTEGER NOT NULL CHECK(quarter IN (1,2,3,4)),
+    fiscal_year     INTEGER NOT NULL,
+    activity        TEXT    NOT NULL,
+    deliverable     TEXT,
+    due_date        TEXT,
+    responsible     TEXT,
+    status          TEXT    DEFAULT 'Not Started'
+                    CHECK(status IN ('Not Started','In Progress','Complete','Delayed')),
+    logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+    notes           TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_wa_project ON workplan_activities(project_id);
+CREATE INDEX IF NOT EXISTS idx_wa_partner ON workplan_activities(partner_id);
+CREATE INDEX IF NOT EXISTS idx_wa_quarter ON workplan_activities(quarter, fiscal_year);

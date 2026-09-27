@@ -361,11 +361,9 @@ with rc2:
         'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
         '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#B96A2E;">CEL Delivers</p>'
         '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#3A2E24;">'
-        '<li>BDS support at Grow-Out stage</li>'
-        '<li>Training delivery at Hatchery stage</li>'
-        '<li>Entrepreneurship &amp; business skills training (Fry→Juvenile)</li>'
-        '<li>Business development for grow-out enterprises</li>'
-        '<li>Mentorship &amp; enterprise coaching</li>'
+        '<li>Business development services, training and mentorship to young women entrepreneurs</li>'
+        '<li>Tiers and tracks enterprises from foundational training to bankable status</li>'
+        '<li>Refers grant-ready entrepreneurs to TechnoServe and mentors promising businesses beyond the core cohort</li>'
         '</ul>'
         '</div>',
         unsafe_allow_html=True,
@@ -681,6 +679,36 @@ _Q_MONTH_SETS = [
     {(4, 2027), (5, 2027), (6, 2027)},
 ]
 
+_wp_all = run_query(
+    "SELECT wa.id, wa.quarter, wa.activity, wa.deliverable, wa.due_date, "
+    "wa.responsible, wa.status, wa.notes, "
+    "COALESCE(p.name, wa.responsible) AS partner_display "
+    "FROM workplan_activities wa "
+    "LEFT JOIN partners p ON p.partner_id = wa.partner_id "
+    "WHERE wa.project_id = :pid AND wa.fiscal_year = 2026 "
+    "ORDER BY wa.quarter, COALESCE(p.name, wa.responsible), wa.due_date",
+    {"pid": project_id},
+)
+
+_WP_STATUS_OPTIONS = ["Not Started", "In Progress", "Complete", "Delayed"]
+_WP_STATUS_COLORS  = {
+    "Not Started": ("#F3F4F6", "#374151"),
+    "In Progress": ("#DBEAFE", "#1E40AF"),
+    "Complete":    ("#D1FAE5", "#065F46"),
+    "Delayed":     ("#FEE2E2", "#991B1B"),
+}
+
+
+def _save_wp(row_id: int) -> None:
+    key = f"wp_{row_id}"
+    new_status = st.session_state.get(key)
+    if new_status:
+        run_write(
+            "UPDATE workplan_activities SET status = :s WHERE id = :id",
+            {"s": new_status, "id": row_id},
+        )
+
+
 _dcp_rows = run_query(
     "SELECT stakeholder, indicator_statement, frequency, collection_month, "
     "collection_year, responsible_party, last_collected_date "
@@ -822,6 +850,64 @@ for _tab, _qd, _qms in zip(_q_tabs, _QUARTERS, _Q_MONTH_SETS):
         _dcp_html = _dcp_section(_qms)
         if _dcp_html:
             st.markdown(_dcp_html, unsafe_allow_html=True)
+
+        # ── Workplan activities ──────────────────────────────────────────────
+        _q_num = _Q_MONTH_SETS.index(_qms) + 1
+        _q_wp = [r for r in _wp_all if r["quarter"] == _q_num]
+        if _q_wp:
+            _done = sum(1 for r in _q_wp if r["status"] == "Complete")
+            _delayed = sum(1 for r in _q_wp if r["status"] == "Delayed")
+            _badge_bg = "#D1FAE5" if _done == len(_q_wp) else ("#FEE2E2" if _delayed else "#F3F4F6")
+            _badge_fg = "#065F46" if _done == len(_q_wp) else ("#991B1B" if _delayed else "#374151")
+            st.markdown(
+                f'<div style="margin-top:14px;border:1px solid #DED7C6;border-radius:8px;overflow:hidden;">'
+                f'<div style="background:#F6F3EC;padding:5px 14px 5px 14px;border-bottom:1px solid #DED7C6;'
+                f'display:flex;align-items:center;justify-content:space-between;">'
+                f'<p style="margin:0;font-size:0.70em;font-weight:700;letter-spacing:.07em;color:#16262E;'
+                f'font-family:\'IBM Plex Mono\',monospace;">WORKPLAN ACTIVITIES</p>'
+                f'<span style="font-size:0.71em;padding:2px 10px;border-radius:10px;'
+                f'background:{_badge_bg};color:{_badge_fg};">{_done}/{len(_q_wp)} complete</span>'
+                f'</div></div>',
+                unsafe_allow_html=True,
+            )
+            _by_partner: dict = {}
+            for _wr in _q_wp:
+                _by_partner.setdefault(_wr["partner_display"], []).append(_wr)
+            for _pname, _prows in _by_partner.items():
+                st.markdown(
+                    f'<p style="margin:6px 0 2px 2px;font-size:0.74em;font-weight:700;'
+                    f'letter-spacing:.05em;color:#5E6A6A;">{_pname.upper()}</p>',
+                    unsafe_allow_html=True,
+                )
+                for _wr in _prows:
+                    _s = _wr["status"] or "Not Started"
+                    _sbg, _sfg = _WP_STATUS_COLORS.get(_s, ("#F3F4F6", "#374151"))
+                    _ca, _cd, _cs = st.columns([5, 1.2, 1.6])
+                    with _ca:
+                        _deliv = _wr.get("deliverable") or ""
+                        st.markdown(
+                            f'<p style="margin:0;font-size:0.82em;color:#16262E;">{_wr["activity"]}</p>'
+                            + (f'<p style="margin:0;font-size:0.74em;color:#5E6A6A;">{_deliv}</p>' if _deliv else ""),
+                            unsafe_allow_html=True,
+                        )
+                    with _cd:
+                        _due = _wr.get("due_date") or ""
+                        st.markdown(
+                            f'<p style="margin:4px 0 0 0;font-size:0.74em;color:#5E6A6A;'
+                            f'white-space:nowrap;">{_due[5:] if _due else ""}</p>',
+                            unsafe_allow_html=True,
+                        )
+                    with _cs:
+                        st.selectbox(
+                            "status",
+                            _WP_STATUS_OPTIONS,
+                            index=_WP_STATUS_OPTIONS.index(_s) if _s in _WP_STATUS_OPTIONS else 0,
+                            key=f"wp_{_wr['id']}",
+                            on_change=_save_wp,
+                            args=(_wr["id"],),
+                            label_visibility="collapsed",
+                        )
+                st.markdown('<div style="height:2px"></div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 

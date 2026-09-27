@@ -14,7 +14,7 @@ from projects.sawa import (
     PROJECT, PARTNERS, PARTNER_TARGETS, INDICATORS,
     TOC_NODES, LOGFRAME_ROWS, DATA_COLLECTION_PLAN,
     RAW_DATA_ANALYSIS, _RDA_META, _Q1_KNOWN_ACTUALS, KOBO_FORM_MAPPINGS, REVIEW_PROTOCOLS,
-    DECISION_REPORTS,
+    DECISION_REPORTS, WORKPLAN_ACTIVITIES,
 )
 
 
@@ -336,6 +336,32 @@ def seed():
             {**row, "project_id": project_id},
         )
     print(f"Data collection plan: {len(DATA_COLLECTION_PLAN)} instruments inserted.")
+
+    # ── Workplan activities (Module A) ────────────────────────────────────────
+    run_write("DELETE FROM workplan_activities WHERE project_id = :pid", {"pid": project_id})
+    _inserted_wa = 0
+    for row in WORKPLAN_ACTIVITIES:
+        _pid_val = partner_id_map.get(row.get("partner_name"))
+        insert_returning_id(
+            """INSERT INTO workplan_activities
+               (project_id, partner_id, quarter, fiscal_year, activity,
+                deliverable, due_date, responsible, status)
+               VALUES (:project_id, :partner_id, :quarter, :fiscal_year, :activity,
+                       :deliverable, :due_date, :responsible, :status)""",
+            {
+                "project_id":  project_id,
+                "partner_id":  _pid_val,
+                "quarter":     row["quarter"],
+                "fiscal_year": row["fiscal_year"],
+                "activity":    row["activity"],
+                "deliverable": row.get("deliverable"),
+                "due_date":    row.get("due_date"),
+                "responsible": row.get("responsible"),
+                "status":      row.get("status", "Not Started"),
+            },
+        )
+        _inserted_wa += 1
+    print(f"Workplan activities: {_inserted_wa} rows inserted.")
 
     # ── Strategic outcome links (Module I) ────────────────────────────────────
     # Wires SAWA's logframe indicators into CEL's six 2025-2030 strategic
