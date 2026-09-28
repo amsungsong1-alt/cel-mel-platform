@@ -752,7 +752,8 @@ LOGFRAME_ROWS = [
 INDICATORS: list[dict] = []
 
 # ── Module C: Data Collection Plan ────────────────────────────────────────────
-# 11 SAWA data collection instruments.
+# 24 SAWA data collection instruments — one per logframe indicator (21 linked)
+# plus 3 cross-cutting instruments (gender empowerment, dropout, programme quality).
 # SAWA fiscal year: Jul–Jun (Year 1 = Jul 2026–Jun 2027, …, Year 4 = Jul 2029–Jun 2030).
 # collection_month/year = first scheduled event; calendar view expands by frequency.
 # Quarterly  → first collection Sep 2026 (end Q1); cycles Sep→Dec→Mar→Jun→Sep…
@@ -2033,6 +2034,305 @@ DATA_COLLECTION_PLAN: list[dict] = [
         "collection_month": 6,
         "collection_year": 2027,
         "responsible_party": "CEL MEAL",
+    },
+    # ── PI.9 — GYSI focal persons ─────────────────────────────────────────────
+    {
+        "stakeholder": "Partner implementing organisations",
+        "indicator_statement": (
+            "Number of GYSI focal persons trained in GALS and EMAP "
+            "(Training of Trainers model, per implementing partner)"
+        ),
+        "data_points": "Name; partner organisation; training module (GALS/EMAP); date; region; sex",
+        "rationale": (
+            "Tracks ToT capacity building; ensures each partner has trained GYSI champions "
+            "before Phase 2 community-level delivery begins"
+        ),
+        "instrument_name": "GYSI Focal Person Training Certificate & Registry",
+        "logframe_indicator_code": "PI.9",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Training",
+        "integration_mechanism": "Partner-submitted completion certificates and registry reviewed by CEL MEAL",
+        "frequency": "Quarterly",
+        "collection_month": 9,
+        "collection_year": 2026,
+        "responsible_party": "Programme Team",
+    },
+    # ── PI.11 — WAN forum participation ──────────────────────────────────────
+    {
+        "stakeholder": "Women in Aquaculture Network (WAN) members",
+        "indicator_statement": (
+            "Number of women engaged in leadership and mentorship forums "
+            "under the Women in Aquaculture Network (WAN)"
+        ),
+        "data_points": "Name; region; forum type; session date; PWD status; membership status",
+        "rationale": (
+            "WAN attendance is the primary evidence of women's collective agency activation; "
+            "register disaggregation by PWD status flags inclusion within the network"
+        ),
+        "instrument_name": "WAN Forum Attendance Register",
+        "logframe_indicator_code": "PI.11",
+        "instrument_status": "Existing",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Training",
+        "integration_mechanism": "Paper register collected at each WAN session; digitised monthly by CEL field officer",
+        "frequency": "Quarterly",
+        "collection_month": 9,
+        "collection_year": 2026,
+        "responsible_party": "Programme Team",
+    },
+    # ── PI.12 — WAN bootcamps / exchanges ────────────────────────────────────
+    {
+        "stakeholder": "WAN members and CEL programme staff",
+        "indicator_statement": (
+            "Number of leadership bootcamps and inter-zonal exchange visits "
+            "organised under the Women in Aquaculture Network (WAN)"
+        ),
+        "data_points": "Event type (bootcamp/exchange); date; location; attendance count; outcomes summary",
+        "rationale": (
+            "Leadership events cannot be measured through routine attendance registers; "
+            "a dedicated event report captures qualitative outcomes alongside headcount"
+        ),
+        "instrument_name": "WAN Event Report & Attendance Log",
+        "logframe_indicator_code": "PI.12",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Training",
+        "integration_mechanism": "CEL field officer event report submitted within 5 days of each event",
+        "frequency": "Quarterly",
+        "collection_month": 3,
+        "collection_year": 2027,
+        "responsible_party": "Programme Team",
+    },
+    # ── PI.13 — Peer mentor matching ──────────────────────────────────────────
+    {
+        "stakeholder": "PWD participants and peer mentors",
+        "indicator_statement": (
+            "Number of young female PWDs identified as peer mentors and matched "
+            "with PWD programme participants"
+        ),
+        "data_points": "Mentor ID; mentee ID; disability type; match date; region; follow-up date",
+        "rationale": (
+            "PWD peer mentorship is a SAWA inclusion commitment; the registry is the only "
+            "evidence of active mentor-mentee relationships and ongoing engagement"
+        ),
+        "instrument_name": "Peer Mentor Registry & Match Record",
+        "logframe_indicator_code": "PI.13",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Training",
+        "integration_mechanism": "Programme Team maintains registry; field officer verifies match via phone call",
+        "frequency": "Quarterly",
+        "collection_month": 9,
+        "collection_year": 2026,
+        "responsible_party": "Programme Team",
+    },
+    # ── PI.17 — Women in cooperatives receiving training ──────────────────────
+    {
+        "stakeholder": "Women-led cooperative and cluster members",
+        "indicator_statement": (
+            "Number of women in women-led cooperatives/clusters receiving gender training, "
+            "financial literacy and business mentoring"
+        ),
+        "data_points": "Name; cooperative ID; training module; date; membership status; region",
+        "rationale": (
+            "Cooperative membership records confirm participation is by active members, "
+            "not community bystanders; distinguishes Pillar III reach from Pillar I reach"
+        ),
+        "instrument_name": "Cooperative Member Training Register",
+        "logframe_indicator_code": "PI.17",
+        "instrument_status": "Existing",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Training",
+        "integration_mechanism": "Paper register maintained by cooperative secretary; collected quarterly by partner MEAL",
+        "frequency": "Quarterly",
+        "collection_month": 12,
+        "collection_year": 2026,
+        "responsible_party": "Programme Team",
+    },
+    # ── PI.18 — Gender-responsive governance frameworks ───────────────────────
+    {
+        "stakeholder": "Women-led cooperatives and clusters",
+        "indicator_statement": (
+            "Number of gender-responsive governance frameworks adopted by "
+            "women-led cooperatives/clusters"
+        ),
+        "data_points": "Cooperative ID; framework type; adoption date; signatory; region; governance score",
+        "rationale": (
+            "Governance adoption requires physical documentation; the KoboToolbox governance "
+            "checklist score provides standardised evidence across all 25 cooperatives"
+        ),
+        "instrument_name": "Governance Checklist & Adoption Record (KoboToolbox Tool 3)",
+        "logframe_indicator_code": "PI.18",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "6-month follow-up",
+        "integration_mechanism": "CEL field officer administers Tool 3 at cooperative; signed document photographed and uploaded",
+        "frequency": "Quarterly",
+        "collection_month": 3,
+        "collection_year": 2027,
+        "responsible_party": "Programme Team",
+    },
+    # ── PI.19 — Gender-transformative training recipients ─────────────────────
+    {
+        "stakeholder": "Programme participants and community champions",
+        "indicator_statement": (
+            "Number of persons (participants and community champions) receiving "
+            "gender-transformative training"
+        ),
+        "data_points": "Name; role (participant/champion); training date; knowledge score; sex; region",
+        "rationale": (
+            "Pre/post knowledge scores evidence transformative impact beyond attendance headcount; "
+            "community champions are a distinct cohort from programme participants"
+        ),
+        "instrument_name": "Gender-Transformative Training Register & Knowledge Assessment",
+        "logframe_indicator_code": "PI.19",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Training",
+        "integration_mechanism": "CEL MEAL-administered pre/post test at each training session",
+        "frequency": "Quarterly",
+        "collection_month": 12,
+        "collection_year": 2026,
+        "responsible_party": "CEL MEAL",
+    },
+    # ── PI.20 — PSEA / safeguarding awareness training ────────────────────────
+    {
+        "stakeholder": "Young women programme participants",
+        "indicator_statement": (
+            "Number of young women trained to identify and respond to safeguarding "
+            "issues (PSEA awareness)"
+        ),
+        "data_points": "Name; training date; session type; incident flag (Y/N); facilitator; region",
+        "rationale": (
+            "PSEA training is a SAWA donor compliance requirement; the incident log enables "
+            "real-time safeguarding response alongside quarterly reporting"
+        ),
+        "instrument_name": "Safeguarding Training Record & Incident Log",
+        "logframe_indicator_code": "PI.20",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Training",
+        "integration_mechanism": "CEL safeguarding officer maintains log; training records digitised via KoboToolbox",
+        "frequency": "Quarterly",
+        "collection_month": 12,
+        "collection_year": 2026,
+        "responsible_party": "CEL MEAL",
+    },
+    # ── PI.22 — Safeguarding campaigns / roadshows ────────────────────────────
+    {
+        "stakeholder": "SAWA intervention communities",
+        "indicator_statement": (
+            "Number of safeguarding awareness campaigns and roadshows undertaken "
+            "in SAWA intervention communities"
+        ),
+        "data_points": "Event type; community name; date; attendance count; feedback summary; region",
+        "rationale": (
+            "Community-level safeguarding awareness cannot be inferred from participant training records; "
+            "separate community evidence is required for AIL donor reporting"
+        ),
+        "instrument_name": "Community Safeguarding Campaign Report",
+        "logframe_indicator_code": "PI.22",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Mobilisation",
+        "integration_mechanism": "CEL safeguarding officer submits campaign report within 7 days of each event",
+        "frequency": "Annual",
+        "collection_month": 6,
+        "collection_year": 2027,
+        "responsible_party": "CEL MEAL",
+    },
+    # ── PI.23 — Sites with safeguarding standards ─────────────────────────────
+    {
+        "stakeholder": "Programme partners and implementation sites",
+        "indicator_statement": (
+            "Number of programme sites/partners with institutionalised safeguarding "
+            "and occupational health standards"
+        ),
+        "data_points": "Site ID; partner; policy adoption date; certification type; OHS standard met; region",
+        "rationale": (
+            "Site-level institutionalisation requires physical certification documentation; "
+            "cannot be verified through participant records alone"
+        ),
+        "instrument_name": "Site Safeguarding & OHS Certification Record",
+        "logframe_indicator_code": "PI.23",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Annual review",
+        "integration_mechanism": "CEL safeguarding officer reviews signed policy documents at each site annually",
+        "frequency": "Annual",
+        "collection_month": 6,
+        "collection_year": 2027,
+        "responsible_party": "CEL MEAL",
+    },
+    # ── PIV.5 — E-SAWA digital literacy training ──────────────────────────────
+    {
+        "stakeholder": "Young women programme participants",
+        "indicator_statement": (
+            "Number of young women receiving E-SAWA digital literacy training, "
+            "mentorship and digital entrepreneurship workshops"
+        ),
+        "data_points": "Name; training type (digital literacy/mentorship/workshop); date; platform enrolment status; region",
+        "rationale": (
+            "Digital literacy is a distinct delivery channel from BDS; platform enrolment data "
+            "confirms digital activation beyond attendance, evidencing the E-SAWA pathway target"
+        ),
+        "instrument_name": "E-SAWA Digital Training Register & Platform Enrolment",
+        "logframe_indicator_code": "PIV.5",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "Training",
+        "integration_mechanism": "E-SAWA platform auto-logs enrolment; facilitator submits paper register for offline participants",
+        "frequency": "Quarterly",
+        "collection_month": 12,
+        "collection_year": 2026,
+        "responsible_party": "Programme Team",
+    },
+    # ── PII.R5 — PWDs accessing D&F employment ───────────────────────────────
+    {
+        "stakeholder": "Persons with Disabilities (PWDs) placed into D&F employment",
+        "indicator_statement": (
+            "Number of Persons with Disabilities (PWDs) accessing D&F in the Aquaculture "
+            "value chain — programme-wide (Young Women in Work, YiW)"
+        ),
+        "data_points": "Name; disability type; employer/site; start date; role type; region; monthly income (GHS)",
+        "rationale": (
+            "Employment verification requires both PWD registry match and employment record; "
+            "field spot-checks prevent proxy reporting, a documented risk in the SAWA context"
+        ),
+        "instrument_name": "PWD Employment Verification Record",
+        "logframe_indicator_code": "PII.R5",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "6-month follow-up",
+        "integration_mechanism": "Partner MEAL officer verifies employment record; CEL field officer conducts spot-check",
+        "frequency": "Quarterly",
+        "collection_month": 9,
+        "collection_year": 2026,
+        "responsible_party": "Partner MEAL",
+    },
+    # ── PII.R7 — Revenue from PWD women in D&F ───────────────────────────────
+    {
+        "stakeholder": "Young women PWDs in D&F production",
+        "indicator_statement": (
+            "Revenue (USD) generated by young women PWDs accessing D&F "
+            "in the Aquaculture value chain"
+        ),
+        "data_points": "Participant ID; sales amount (USD); product type; buyer; transaction date; PWD status",
+        "rationale": (
+            "Revenue cannot be inferred from production volume alone; separate financial records "
+            "capture price variability and actual economic impact attributable to the programme"
+        ),
+        "instrument_name": "PWD Revenue & Sales Record",
+        "logframe_indicator_code": "PII.R7",
+        "instrument_status": "New",
+        "instrument_link": "https://kf.kobotoolbox.org/",
+        "journey_step": "6-month follow-up",
+        "integration_mechanism": "Partner MEAL collects sales receipts quarterly; CEL MEAL consolidates into programme total",
+        "frequency": "Quarterly",
+        "collection_month": 9,
+        "collection_year": 2026,
+        "responsible_party": "Partner MEAL",
     },
 ]
 

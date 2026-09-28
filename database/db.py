@@ -196,14 +196,27 @@ def _run_migrations() -> bool:
             # Backfill DCP logframe_row_id for existing rows that predate the FK.
             # Keyed on stakeholder which is unique per project in SAWA seed data.
             for _stakeholder, _code in [
-                ("PWD participants",                           "PI.1"),
-                ("All programme participants",                 "PI.3"),
-                ("Supported enterprises",                      "PII.R6"),
-                ("Enterprises and value chain actors",         "PIII.6"),
-                ("Programme participants (all)",               "LoP.1"),
-                ("Individual participants",                    "PIII.R1"),
-                ("SAWA-supported enterprises",                 "PIII.R3"),
-                ("Production enterprises (fishpond operators)", "PIII.R2"),
+                ("PWD participants",                                    "PI.1"),
+                ("All programme participants",                          "PI.3"),
+                ("Partner implementing organisations",                  "PI.9"),
+                ("Women in Aquaculture Network (WAN) members",          "PI.11"),
+                ("WAN members and CEL programme staff",                 "PI.12"),
+                ("PWD participants and peer mentors",                   "PI.13"),
+                ("Women-led cooperative and cluster members",           "PI.17"),
+                ("Women-led cooperatives and clusters",                 "PI.18"),
+                ("Programme participants and community champions",      "PI.19"),
+                ("Young women programme participants",                  "PI.20"),
+                ("SAWA intervention communities",                       "PI.22"),
+                ("Programme partners and implementation sites",         "PI.23"),
+                ("Young women programme participants",                  "PIV.5"),
+                ("Supported enterprises",                               "PII.R6"),
+                ("Persons with Disabilities (PWDs) placed into D&F employment", "PII.R5"),
+                ("Young women PWDs in D&F production",                 "PII.R7"),
+                ("Enterprises and value chain actors",                  "PIII.6"),
+                ("Programme participants (all)",                        "LoP.1"),
+                ("Individual participants",                             "PIII.R1"),
+                ("SAWA-supported enterprises",                          "PIII.R3"),
+                ("Production enterprises (fishpond operators)",         "PIII.R2"),
             ]:
                 conn.execute(text("""
                     UPDATE data_collection_plan

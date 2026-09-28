@@ -198,7 +198,7 @@ tab_plan, tab_journey, tab_cal = st.tabs([
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab_plan:
     st.caption(
-        f"**{len(plan_rows)} instruments** in the SAWA baseline data collection plan.  "
+        f"**{len(plan_rows)} instruments** covering all {len(plan_rows)} SAWA logframe indicators.  "
         "Instruments flagged ⚠ are not collectible at baseline — they require the "
         "programme to be underway before data exist."
     )
