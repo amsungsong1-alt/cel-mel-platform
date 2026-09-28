@@ -230,6 +230,59 @@ def _run_migrations() -> bool:
                     WHERE  stakeholder      = :s
                       AND  logframe_row_id IS NULL
                 """), {"s": _stakeholder, "code": _code})
+            # Insert the 13 new DCP instruments added when DCP was expanded from
+            # 11 to 24 rows (one per logframe indicator).  Only runs for projects
+            # that already have DCP data; idempotent (checks stakeholder absence).
+            _NEW_DCP = [
+                ("Partner implementing organisations",  "PI.9",   "New",      "Quarterly",  9, 2026, "Programme Team",  "GYSI Focal Person Training Certificate & Registry",             "Training",       "Partner-submitted completion certificates and registry reviewed by CEL MEAL"),
+                ("Women in Aquaculture Network (WAN) members", "PI.11", "Existing", "Quarterly", 9, 2026, "Programme Team",  "WAN Forum Attendance Register",                                 "Training",       "Paper register collected at each WAN session; digitised monthly by CEL field officer"),
+                ("WAN members and CEL programme staff", "PI.12",  "New",      "Quarterly",  3, 2027, "Programme Team",  "WAN Event Report & Attendance Log",                             "Training",       "CEL field officer event report submitted within 5 days of each event"),
+                ("PWD participants and peer mentors",   "PI.13",  "New",      "Quarterly",  9, 2026, "Programme Team",  "Peer Mentor Registry & Match Record",                           "Training",       "Programme Team maintains registry; field officer verifies match via phone call"),
+                ("Women-led cooperative and cluster members", "PI.17", "Existing", "Quarterly", 12, 2026, "Programme Team", "Cooperative Member Training Register",                        "Training",       "Paper register maintained by cooperative secretary; collected quarterly by partner MEAL"),
+                ("Women-led cooperatives and clusters", "PI.18",  "New",      "Quarterly",  3, 2027, "Programme Team",  "Governance Checklist & Adoption Record (KoboToolbox Tool 3)",   "6-month follow-up", "CEL field officer administers Tool 3 at cooperative; signed document photographed and uploaded"),
+                ("Programme participants and community champions", "PI.19", "New", "Quarterly", 12, 2026, "CEL MEAL",   "Gender-Transformative Training Register & Knowledge Assessment", "Training",       "CEL MEAL-administered pre/post test at each training session"),
+                ("Young women programme participants",  "PI.20",  "New",      "Quarterly", 12, 2026, "CEL MEAL",        "Safeguarding Training Record & Incident Log",                   "Training",       "CEL safeguarding officer maintains log; training records digitised via KoboToolbox"),
+                ("SAWA intervention communities",       "PI.22",  "New",      "Annual",     6, 2027, "CEL MEAL",        "Community Safeguarding Campaign Report",                        "Mobilisation",   "CEL safeguarding officer submits campaign report within 7 days of each event"),
+                ("Programme partners and implementation sites", "PI.23", "New", "Annual",   6, 2027, "CEL MEAL",        "Site Safeguarding & OHS Certification Record",                  "Annual review",  "CEL safeguarding officer reviews signed policy documents at each site annually"),
+                ("Young women programme participants",  "PIV.5",  "New",      "Quarterly", 12, 2026, "Programme Team",  "E-SAWA Digital Training Register & Platform Enrolment",         "Training",       "E-SAWA platform auto-logs enrolment; facilitator submits paper register for offline participants"),
+                ("Persons with Disabilities (PWDs) placed into D&F employment", "PII.R5", "New", "Quarterly", 9, 2026, "Partner MEAL", "PWD Employment Verification Record",            "6-month follow-up", "Partner MEAL officer verifies employment record; CEL field officer conducts spot-check"),
+                ("Young women PWDs in D&F production",  "PII.R7", "New",      "Quarterly",  9, 2026, "Partner MEAL",    "PWD Revenue & Sales Record",                                    "6-month follow-up", "Partner MEAL collects sales receipts quarterly; CEL MEAL consolidates into programme total"),
+            ]
+            _existing_pids = [
+                r[0] for r in conn.execute(
+                    text("SELECT DISTINCT project_id FROM data_collection_plan")
+                ).fetchall()
+            ]
+            for _pid in _existing_pids:
+                for (_sh, _code, _status, _freq, _cm, _cy, _resp, _iname, _jstep, _integ) in _NEW_DCP:
+                    _exists = conn.execute(text(
+                        "SELECT 1 FROM data_collection_plan WHERE project_id=:pid AND stakeholder=:s LIMIT 1"
+                    ), {"pid": _pid, "s": _sh}).fetchone()
+                    if not _exists:
+                        _lf = conn.execute(text(
+                            "SELECT id FROM logframe_rows WHERE project_id=:pid AND indicator_code=:c LIMIT 1"
+                        ), {"pid": _pid, "c": _code}).fetchone()
+                        conn.execute(text("""
+                            INSERT INTO data_collection_plan
+                            (project_id, logframe_row_id, stakeholder, indicator_statement,
+                             instrument_name, instrument_status, instrument_link,
+                             journey_step, integration_mechanism, frequency,
+                             collection_month, collection_year, responsible_party)
+                            SELECT :pid,
+                                   :lf_id,
+                                   :sh,
+                                   lr.indicator_statement,
+                                   :iname, :status,
+                                   'https://kf.kobotoolbox.org/',
+                                   :jstep, :integ, :freq, :cm, :cy, :resp
+                            FROM   logframe_rows lr
+                            WHERE  lr.id = :lf_id
+                        """), {
+                            "pid": _pid, "lf_id": _lf[0] if _lf else None,
+                            "sh": _sh, "iname": _iname, "status": _status,
+                            "jstep": _jstep, "integ": _integ,
+                            "freq": _freq, "cm": _cm, "cy": _cy, "resp": _resp,
+                        })
             # One-time cleanup: retire old partner names and their cascaded
             # partner_targets (left over from pre-Sep-2026-deck seed versions
             # that were never purged, causing _needs_seed to fire on every load
