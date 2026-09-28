@@ -4,7 +4,13 @@ Run from the project root:
     python generate_sample_data.py
 
 Outputs: sample_data/F1_Enrolment_Register_Y1.xlsx  …  F9_PMU_Knowledge_Test_Y1.xlsx
-Each file has 4 sheets: Q1_Jan-Mar2026, Q2_Apr-Jun2026, Q3_Jul-Sep2026, Q4_Oct-Dec2026.
+Each file has 4 sheets: Q1_Jul-Sep2026, Q2_Oct-Dec2026, Q3_Jan-Mar2027, Q4_Apr-Jun2027
+— SAWA's own fiscal year (Jul-Jun), not the calendar year. Module D's
+_detect_fiscal_year() reads the "Q" digit and the "20xx" year from the sheet
+name and subtracts 1 for Q3/Q4 (since Jan-Jun falls in the calendar year
+AFTER the fiscal year started) — so these sheet names are exact, not just
+readable: "Q3_Jan-Mar2027" resolves to fiscal year 2026, matching Q1/Q2 of
+the same programme year. Do not swap these labels back to calendar quarters.
 Upload one sheet at a time via Module D → Upload tab, selecting the matching form.
 """
 import os
@@ -19,15 +25,19 @@ OUT_DIR = os.path.join(os.path.dirname(__file__), "sample_data")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 QUARTERS = [
-    ("Q1_Jan-Mar2026", "2026-01-01", "2026-03-31"),
-    ("Q2_Apr-Jun2026", "2026-04-01", "2026-06-30"),
-    ("Q3_Jul-Sep2026", "2026-07-01", "2026-09-30"),
-    ("Q4_Oct-Dec2026", "2026-10-01", "2026-12-31"),
+    ("Q1_Jul-Sep2026", "2026-07-01", "2026-09-30"),
+    ("Q2_Oct-Dec2026", "2026-10-01", "2026-12-31"),
+    ("Q3_Jan-Mar2027", "2027-01-01", "2027-03-31"),
+    ("Q4_Apr-Jun2027", "2027-04-01", "2027-06-30"),
 ]
 
 ENUMERATORS = ["Abena K.", "Kofi M.", "Akosua D.", "Yaw A.", "Efua N."]
 SITES = ["Accra-Tema Hub", "Kumasi Hub", "Takoradi Hub", "Tamale Hub", "Cape Coast Hub"]
-ANCHORS = ["R&B Farms", "AgroKings", "Yedent/Naple Betta", "Aglow Farms", "NewAge Agric"]
+# Current live Anchor-tier partners only (projects/sawa.py PARTNERS, tier="Anchor")
+# — R&B Farms was removed from the programme; TechnoServe/Fisheries Commission/
+# CSIR/e-SAWA are Technical partners, not community-mobilising anchors, so they
+# don't belong in a per-participant "which anchor enrolled them" field.
+ANCHORS = ["AgroKings", "Naple Betta", "Aglow Farms", "NewAge Agric", "AFRIGEM"]
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
