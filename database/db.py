@@ -230,6 +230,27 @@ def _run_migrations() -> bool:
                     WHERE  stakeholder      = :s
                       AND  logframe_row_id IS NULL
                 """), {"s": _stakeholder, "code": _code})
+            # Backfill instrument_name for the original 11 DCP rows seeded before
+            # the instrument_name column was added (ADD COLUMN leaves them NULL).
+            for _stakeholder, _iname in [
+                ("PWD participants",                          "Enrolment Screening Form (KoboToolbox Tool 1)"),
+                ("All programme participants",                "Training & BDS Attendance Register (KoboToolbox Tool 2)"),
+                ("Supported enterprises",                    "Enterprise Output & Revenue Survey"),
+                ("Young women participants",                 "Gender Empowerment Structured Interview"),
+                ("Enterprises and value chain actors",       "Market Linkage Verification Form"),
+                ("Non-continuers and dropouts",              "Dropout Follow-up Phone Interview"),
+                ("Programme participants (all)",             "Dignified & Fulfilling Work (DFW) Survey"),
+                ("Individual participants",                  "Participant Income Tracking Survey"),
+                ("SAWA-supported enterprises",               "Enterprise Sustainability Assessment"),
+                ("Production enterprises (fishpond operators)", "Production Volume Record (Partner MEAL)"),
+                ("Programme staff and CEL management",       "Programme Quality & Adaptive Management Log"),
+            ]:
+                conn.execute(text("""
+                    UPDATE data_collection_plan
+                    SET    instrument_name = :n
+                    WHERE  stakeholder = :s
+                      AND  (instrument_name IS NULL OR instrument_name = '')
+                """), {"s": _stakeholder, "n": _iname})
             # Insert/backfill the 13 new DCP instruments added when DCP was
             # expanded from 11 to 24 rows (one per logframe indicator).
             # Keyed on instrument_name (unique per row) — NOT stakeholder,
