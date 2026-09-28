@@ -126,7 +126,11 @@ _PLACEHOLDER_UID_RE = re.compile(r"[Xx]{2,}|placeholder", re.IGNORECASE)
 
 _SAMPLE_ENUMERATORS = ["Abena K.", "Kofi M.", "Akosua D.", "Yaw A.", "Efua N."]
 _SAMPLE_SITES = ["Accra-Tema Hub", "Kumasi Hub", "Takoradi Hub", "Tamale Hub", "Cape Coast Hub"]
-_SAMPLE_ANCHORS = ["R&B Farms", "AgroKings", "Yedent/Naple Betta", "Aglow Farms", "NewAge Agric"]
+# Current live Anchor-tier partners only (projects/sawa.py PARTNERS, tier="Anchor")
+# — R&B Farms was removed from the programme; Technical partners (TechnoServe,
+# Fisheries Commission, CSIR, e-SAWA) don't enrol participants the way an
+# anchor does, so they're deliberately excluded here.
+_SAMPLE_ANCHORS = ["AgroKings", "Naple Betta", "Aglow Farms", "NewAge Agric", "AFRIGEM"]
 _SAMPLE_QUARTERS = [
     ("Q1 Jul–Sep 2026", "2026-07-01", "2026-09-30"),
     ("Q2 Oct–Dec 2026", "2026-10-01", "2026-12-31"),
