@@ -193,6 +193,30 @@ def _run_migrations() -> bool:
                     WHERE stakeholder = :s AND frequency = :f
                       AND (collection_month <> :m OR collection_year <> :y)
                 """), {"s": _stakeholder, "f": _freq, "m": _month, "y": _year})
+            # Backfill DCP logframe_row_id for existing rows that predate the FK.
+            # Keyed on stakeholder which is unique per project in SAWA seed data.
+            for _stakeholder, _code in [
+                ("PWD participants",                           "PI.1"),
+                ("All programme participants",                 "PI.3"),
+                ("Supported enterprises",                      "PII.R6"),
+                ("Enterprises and value chain actors",         "PIII.6"),
+                ("Programme participants (all)",               "LoP.1"),
+                ("Individual participants",                    "PIII.R1"),
+                ("SAWA-supported enterprises",                 "PIII.R3"),
+                ("Production enterprises (fishpond operators)", "PIII.R2"),
+            ]:
+                conn.execute(text("""
+                    UPDATE data_collection_plan
+                    SET    logframe_row_id = (
+                               SELECT lr.id
+                               FROM   logframe_rows lr
+                               WHERE  lr.project_id    = data_collection_plan.project_id
+                                 AND  lr.indicator_code = :code
+                               LIMIT 1
+                           )
+                    WHERE  stakeholder      = :s
+                      AND  logframe_row_id IS NULL
+                """), {"s": _stakeholder, "code": _code})
             # One-time cleanup: retire old partner names and their cascaded
             # partner_targets (left over from pre-Sep-2026-deck seed versions
             # that were never purged, causing _needs_seed to fire on every load
