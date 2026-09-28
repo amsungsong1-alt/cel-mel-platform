@@ -230,23 +230,79 @@ def _run_migrations() -> bool:
                     WHERE  stakeholder      = :s
                       AND  logframe_row_id IS NULL
                 """), {"s": _stakeholder, "code": _code})
-            # Insert the 13 new DCP instruments added when DCP was expanded from
-            # 11 to 24 rows (one per logframe indicator).  Only runs for projects
-            # that already have DCP data; idempotent (checks stakeholder absence).
+            # Insert/backfill the 13 new DCP instruments added when DCP was
+            # expanded from 11 to 24 rows (one per logframe indicator).
+            # Keyed on instrument_name (unique per row) — NOT stakeholder,
+            # because PI.20 and PIV.5 share the same stakeholder value.
+            # Idempotent: INSERT only when instrument_name absent; UPDATE
+            # data_points/rationale for rows already inserted without them.
             _NEW_DCP = [
-                ("Partner implementing organisations",  "PI.9",   "New",      "Quarterly",  9, 2026, "Programme Team",  "GYSI Focal Person Training Certificate & Registry",             "Training",       "Partner-submitted completion certificates and registry reviewed by CEL MEAL"),
-                ("Women in Aquaculture Network (WAN) members", "PI.11", "Existing", "Quarterly", 9, 2026, "Programme Team",  "WAN Forum Attendance Register",                                 "Training",       "Paper register collected at each WAN session; digitised monthly by CEL field officer"),
-                ("WAN members and CEL programme staff", "PI.12",  "New",      "Quarterly",  3, 2027, "Programme Team",  "WAN Event Report & Attendance Log",                             "Training",       "CEL field officer event report submitted within 5 days of each event"),
-                ("PWD participants and peer mentors",   "PI.13",  "New",      "Quarterly",  9, 2026, "Programme Team",  "Peer Mentor Registry & Match Record",                           "Training",       "Programme Team maintains registry; field officer verifies match via phone call"),
-                ("Women-led cooperative and cluster members", "PI.17", "Existing", "Quarterly", 12, 2026, "Programme Team", "Cooperative Member Training Register",                        "Training",       "Paper register maintained by cooperative secretary; collected quarterly by partner MEAL"),
-                ("Women-led cooperatives and clusters", "PI.18",  "New",      "Quarterly",  3, 2027, "Programme Team",  "Governance Checklist & Adoption Record (KoboToolbox Tool 3)",   "6-month follow-up", "CEL field officer administers Tool 3 at cooperative; signed document photographed and uploaded"),
-                ("Programme participants and community champions", "PI.19", "New", "Quarterly", 12, 2026, "CEL MEAL",   "Gender-Transformative Training Register & Knowledge Assessment", "Training",       "CEL MEAL-administered pre/post test at each training session"),
-                ("Young women programme participants",  "PI.20",  "New",      "Quarterly", 12, 2026, "CEL MEAL",        "Safeguarding Training Record & Incident Log",                   "Training",       "CEL safeguarding officer maintains log; training records digitised via KoboToolbox"),
-                ("SAWA intervention communities",       "PI.22",  "New",      "Annual",     6, 2027, "CEL MEAL",        "Community Safeguarding Campaign Report",                        "Mobilisation",   "CEL safeguarding officer submits campaign report within 7 days of each event"),
-                ("Programme partners and implementation sites", "PI.23", "New", "Annual",   6, 2027, "CEL MEAL",        "Site Safeguarding & OHS Certification Record",                  "Annual review",  "CEL safeguarding officer reviews signed policy documents at each site annually"),
-                ("Young women programme participants",  "PIV.5",  "New",      "Quarterly", 12, 2026, "Programme Team",  "E-SAWA Digital Training Register & Platform Enrolment",         "Training",       "E-SAWA platform auto-logs enrolment; facilitator submits paper register for offline participants"),
-                ("Persons with Disabilities (PWDs) placed into D&F employment", "PII.R5", "New", "Quarterly", 9, 2026, "Partner MEAL", "PWD Employment Verification Record",            "6-month follow-up", "Partner MEAL officer verifies employment record; CEL field officer conducts spot-check"),
-                ("Young women PWDs in D&F production",  "PII.R7", "New",      "Quarterly",  9, 2026, "Partner MEAL",    "PWD Revenue & Sales Record",                                    "6-month follow-up", "Partner MEAL collects sales receipts quarterly; CEL MEAL consolidates into programme total"),
+              # (stakeholder, lf_code, status, freq, cm, cy, resp, instrument_name, journey_step, integration_mechanism, data_points, rationale)
+              ("Partner implementing organisations", "PI.9", "New", "Quarterly", 9, 2026, "Programme Team",
+               "GYSI Focal Person Training Certificate & Registry", "Training",
+               "Partner-submitted completion certificates and registry reviewed by CEL MEAL",
+               "Name; partner organisation; training module (GALS/EMAP); date; region; sex",
+               "Tracks ToT capacity building; ensures each partner has trained GYSI champions before Phase 2 community-level delivery begins"),
+              ("Women in Aquaculture Network (WAN) members", "PI.11", "Existing", "Quarterly", 9, 2026, "Programme Team",
+               "WAN Forum Attendance Register", "Training",
+               "Paper register collected at each WAN session; digitised monthly by CEL field officer",
+               "Name; region; forum type; session date; PWD status; membership status",
+               "WAN attendance is the primary evidence of women's collective agency activation; register disaggregation by PWD status flags inclusion within the network"),
+              ("WAN members and CEL programme staff", "PI.12", "New", "Quarterly", 3, 2027, "Programme Team",
+               "WAN Event Report & Attendance Log", "Training",
+               "CEL field officer event report submitted within 5 days of each event",
+               "Event type (bootcamp/exchange); date; location; attendance count; outcomes summary",
+               "Leadership events cannot be measured through routine attendance registers; a dedicated event report captures qualitative outcomes alongside headcount"),
+              ("PWD participants and peer mentors", "PI.13", "New", "Quarterly", 9, 2026, "Programme Team",
+               "Peer Mentor Registry & Match Record", "Training",
+               "Programme Team maintains registry; field officer verifies match via phone call",
+               "Mentor ID; mentee ID; disability type; match date; region; follow-up date",
+               "PWD peer mentorship is a SAWA inclusion commitment; the registry is the only evidence of active mentor-mentee relationships and ongoing engagement"),
+              ("Women-led cooperative and cluster members", "PI.17", "Existing", "Quarterly", 12, 2026, "Programme Team",
+               "Cooperative Member Training Register", "Training",
+               "Paper register maintained by cooperative secretary; collected quarterly by partner MEAL",
+               "Name; cooperative ID; training module; date; membership status; region",
+               "Cooperative membership records confirm participation is by active members, not community bystanders; distinguishes Pillar III reach from Pillar I reach"),
+              ("Women-led cooperatives and clusters", "PI.18", "New", "Quarterly", 3, 2027, "Programme Team",
+               "Governance Checklist & Adoption Record (KoboToolbox Tool 3)", "6-month follow-up",
+               "CEL field officer administers Tool 3 at cooperative; signed document photographed and uploaded",
+               "Cooperative ID; framework type; adoption date; signatory; region; governance score",
+               "Governance adoption requires physical documentation; the KoboToolbox governance checklist score provides standardised evidence across all 25 cooperatives"),
+              ("Programme participants and community champions", "PI.19", "New", "Quarterly", 12, 2026, "CEL MEAL",
+               "Gender-Transformative Training Register & Knowledge Assessment", "Training",
+               "CEL MEAL-administered pre/post test at each training session",
+               "Name; role (participant/champion); training date; knowledge score; sex; region",
+               "Pre/post knowledge scores evidence transformative impact beyond attendance headcount; community champions are a distinct cohort from programme participants"),
+              ("Young women programme participants", "PI.20", "New", "Quarterly", 12, 2026, "CEL MEAL",
+               "Safeguarding Training Record & Incident Log", "Training",
+               "CEL safeguarding officer maintains log; training records digitised via KoboToolbox",
+               "Name; training date; session type; incident flag (Y/N); facilitator; region",
+               "PSEA training is a SAWA donor compliance requirement; the incident log enables real-time safeguarding response alongside quarterly reporting"),
+              ("SAWA intervention communities", "PI.22", "New", "Annual", 6, 2027, "CEL MEAL",
+               "Community Safeguarding Campaign Report", "Mobilisation",
+               "CEL safeguarding officer submits campaign report within 7 days of each event",
+               "Event type; community name; date; attendance count; feedback summary; region",
+               "Community-level safeguarding awareness cannot be inferred from participant training records; separate community evidence is required for AIL donor reporting"),
+              ("Programme partners and implementation sites", "PI.23", "New", "Annual", 6, 2027, "CEL MEAL",
+               "Site Safeguarding & OHS Certification Record", "Annual review",
+               "CEL safeguarding officer reviews signed policy documents at each site annually",
+               "Site ID; partner; policy adoption date; certification type; OHS standard met; region",
+               "Site-level institutionalisation requires physical certification documentation; cannot be verified through participant records alone"),
+              ("Young women programme participants", "PIV.5", "New", "Quarterly", 12, 2026, "Programme Team",
+               "E-SAWA Digital Training Register & Platform Enrolment", "Training",
+               "E-SAWA platform auto-logs enrolment; facilitator submits paper register for offline participants",
+               "Name; training type (digital literacy/mentorship/workshop); date; platform enrolment status; region",
+               "Digital literacy is a distinct delivery channel from BDS; platform enrolment data confirms digital activation beyond attendance, evidencing the E-SAWA pathway target"),
+              ("Persons with Disabilities (PWDs) placed into D&F employment", "PII.R5", "New", "Quarterly", 9, 2026, "Partner MEAL",
+               "PWD Employment Verification Record", "6-month follow-up",
+               "Partner MEAL officer verifies employment record; CEL field officer conducts spot-check",
+               "Name; disability type; employer/site; start date; role type; region; monthly income (GHS)",
+               "Employment verification requires both PWD registry match and employment record; field spot-checks prevent proxy reporting, a documented risk in the SAWA context"),
+              ("Young women PWDs in D&F production", "PII.R7", "New", "Quarterly", 9, 2026, "Partner MEAL",
+               "PWD Revenue & Sales Record", "6-month follow-up",
+               "Partner MEAL collects sales receipts quarterly; CEL MEAL consolidates into programme total",
+               "Participant ID; sales amount (USD); product type; buyer; transaction date; PWD status",
+               "Revenue cannot be inferred from production volume alone; separate financial records capture price variability and actual economic impact attributable to the programme"),
             ]
             _existing_pids = [
                 r[0] for r in conn.execute(
@@ -254,35 +310,39 @@ def _run_migrations() -> bool:
                 ).fetchall()
             ]
             for _pid in _existing_pids:
-                for (_sh, _code, _status, _freq, _cm, _cy, _resp, _iname, _jstep, _integ) in _NEW_DCP:
-                    _exists = conn.execute(text(
-                        "SELECT 1 FROM data_collection_plan WHERE project_id=:pid AND stakeholder=:s LIMIT 1"
-                    ), {"pid": _pid, "s": _sh}).fetchone()
-                    if not _exists:
-                        _lf = conn.execute(text(
-                            "SELECT id FROM logframe_rows WHERE project_id=:pid AND indicator_code=:c LIMIT 1"
-                        ), {"pid": _pid, "c": _code}).fetchone()
+                for (_sh, _code, _status, _freq, _cm, _cy, _resp,
+                     _iname, _jstep, _integ, _dpts, _rat) in _NEW_DCP:
+                    _lf = conn.execute(text(
+                        "SELECT id FROM logframe_rows WHERE project_id=:pid AND indicator_code=:c LIMIT 1"
+                    ), {"pid": _pid, "c": _code}).fetchone()
+                    _lf_id = _lf[0] if _lf else None
+                    _row = conn.execute(text(
+                        "SELECT id FROM data_collection_plan WHERE project_id=:pid AND instrument_name=:n LIMIT 1"
+                    ), {"pid": _pid, "n": _iname}).fetchone()
+                    if not _row:
                         conn.execute(text("""
                             INSERT INTO data_collection_plan
                             (project_id, logframe_row_id, stakeholder, indicator_statement,
-                             instrument_name, instrument_status, instrument_link,
-                             journey_step, integration_mechanism, frequency,
-                             collection_month, collection_year, responsible_party)
-                            SELECT :pid,
-                                   :lf_id,
-                                   :sh,
-                                   lr.indicator_statement,
-                                   :iname, :status,
+                             data_points, rationale, instrument_name, instrument_status,
+                             instrument_link, journey_step, integration_mechanism,
+                             frequency, collection_month, collection_year, responsible_party)
+                            SELECT :pid, :lf_id, :sh, lr.indicator_statement,
+                                   :dpts, :rat, :iname, :status,
                                    'https://kf.kobotoolbox.org/',
                                    :jstep, :integ, :freq, :cm, :cy, :resp
-                            FROM   logframe_rows lr
-                            WHERE  lr.id = :lf_id
-                        """), {
-                            "pid": _pid, "lf_id": _lf[0] if _lf else None,
-                            "sh": _sh, "iname": _iname, "status": _status,
-                            "jstep": _jstep, "integ": _integ,
-                            "freq": _freq, "cm": _cm, "cy": _cy, "resp": _resp,
-                        })
+                            FROM   logframe_rows lr WHERE lr.id = :lf_id
+                        """), {"pid": _pid, "lf_id": _lf_id, "sh": _sh,
+                               "dpts": _dpts, "rat": _rat, "iname": _iname,
+                               "status": _status, "jstep": _jstep, "integ": _integ,
+                               "freq": _freq, "cm": _cm, "cy": _cy, "resp": _resp})
+                    else:
+                        # Backfill data_points/rationale on rows already inserted
+                        conn.execute(text("""
+                            UPDATE data_collection_plan
+                            SET data_points = :dpts, rationale = :rat
+                            WHERE id = :rid
+                              AND (data_points IS NULL OR data_points = '')
+                        """), {"dpts": _dpts, "rat": _rat, "rid": _row[0]})
             # One-time cleanup: retire old partner names and their cascaded
             # partner_targets (left over from pre-Sep-2026-deck seed versions
             # that were never purged, causing _needs_seed to fire on every load
