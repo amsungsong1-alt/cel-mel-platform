@@ -472,6 +472,118 @@ st.dataframe(
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+# ── Partner Commitments → CEL Results → Programme Impact ────────────────────
+# Extends the L1→L2 table above (CEL's own Year 1 delivery measures) with the
+# rest of the chain: CEL's Year 1 Results (Level 3) and the Life-of-Programme
+# target each ladders toward (Level 4). Grouped by theme, not by a 1:1 metric
+# match — partner and CEL figures measure different things at different
+# scopes (e.g. Naple Betta's 1,284 D&F jobs vs CEL's own 100, which tracks
+# only the value-addition slice CEL itself delivers) — so partner figures are
+# shown as contribution context, never summed into CEL's own target.
+st.subheader("Partner Commitments → CEL Results → Programme Impact")
+st.caption(
+    "Groups each partner's Year 1 commitment by theme against CEL's own Year 1 "
+    "Results (Level 3) and the Life-of-Programme target it ladders toward "
+    "(Level 4). CEL's Level 3 figures are its own specific delivery slice, not "
+    "a sum of partner totals — partner figures are shown for contribution "
+    "context only, on the same 'do not sum across levels' basis as the "
+    "time-basis note above.  Source: partner Year 1 implementation decks "
+    "(Sep 2026) + CEL Year 1 Consolidated Workplan + SAWA Proposal (28 Nov 2025)."
+)
+
+_contribution_map = pd.DataFrame([
+    {
+        "Theme": "Jobs & livelihoods (D&F)",
+        "Partner Year 1 Commitments": (
+            "Naple Betta 1,284 D&F jobs · NewAge Agric 5,800 D&F jobs · "
+            "TechnoServe 250 jobs (10 catalytic grantees + 150 micro-grant businesses)"
+        ),
+        "CEL Year 1 Results (Level 3)": (
+            "PIII.R1 D&F jobs (value addition) — 100 jobs · "
+            "PII.R5 D&F jobs (PWD, programme-wide) — 8 jobs"
+        ),
+        "Programme Impact by 2030 (Level 4)": (
+            "60,000+ young women & PWDs into D&F work · 86% D&F transition rate"
+        ),
+    },
+    {
+        "Theme": "PWD inclusion",
+        "Partner Year 1 Commitments": (
+            "Fisheries Commission 750 · AgroKings 170 · NewAge Agric 290 · "
+            "AFRIGEM 50 · Aglow Farms 45 · Naple Betta 15 · TechnoServe 10"
+        ),
+        "CEL Year 1 Results (Level 3)": (
+            "PII.R5 D&F jobs (PWD) — 8 jobs · "
+            "PII.R6 Fish produced by PWDs — 9 MT · "
+            "PII.R7 Revenue, PWDs in D&F — $16,667"
+        ),
+        "Programme Impact by 2030 (Level 4)": (
+            "Counted within the 60,000+ young women & PWDs into D&F work "
+            "target — no separate PWD-only LoP figure exists"
+        ),
+    },
+    {
+        "Theme": "Fish production & value addition",
+        "Partner Year 1 Commitments": (
+            "TechnoServe 1,298+ MT fish traded, $845,000 from catfish sales · "
+            "Naple Betta 110 MT value-added trade, $841,500 revenue"
+        ),
+        "CEL Year 1 Results (Level 3)": (
+            "PIII.R2 Fish produced/traded — 115.74 MT · "
+            "PIII.R3 Revenue, value-added trading — $208,333"
+        ),
+        "Programme Impact by 2030 (Level 4)": (
+            "50,000 MT additional fish production/year (Annual) · "
+            "$90M additional annual revenue (Annual)"
+        ),
+    },
+    {
+        "Theme": "Enterprise & cooperative development",
+        "Partner Year 1 Commitments": (
+            "AgroKings 800 group enterprises · Fisheries Commission 500 "
+            "enterprises supported · TechnoServe 10 catalytic grantees + "
+            "150 micro-grant businesses"
+        ),
+        "CEL Year 1 Results (Level 3)": (
+            "No direct Level 3 indicator — feeds Level 2's Women-led "
+            "cooperatives/clusters strengthened (25) instead"
+        ),
+        "Programme Impact by 2030 (Level 4)": (
+            "2,500 women-led microenterprises funded"
+        ),
+    },
+    {
+        "Theme": "Reach — young women & communities",
+        "Partner Year 1 Commitments": (
+            "Fisheries Commission 15,000 participants · AgroKings 2,650 · "
+            "Aglow Farms 1,200 · Naple Betta 1,850 mobilised · AFRIGEM 1,000 · "
+            "TechnoServe 320 · CSIR 100 coached"
+        ),
+        "CEL Year 1 Results (Level 3)": (
+            "No direct Level 3 indicator — feeds Level 2's five 500-target "
+            "measures instead (youth mobilised, BDS, coaching & mentorship, "
+            "WAN engagements, safeguarding trained)"
+        ),
+        "Programme Impact by 2030 (Level 4)": (
+            "60,000+ young women & PWDs into D&F work"
+        ),
+    },
+])
+
+st.dataframe(
+    _contribution_map,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "Theme":                             st.column_config.TextColumn("Theme", width="small"),
+        "Partner Year 1 Commitments":         st.column_config.TextColumn("Partner Year 1 Commitments", width="large"),
+        "CEL Year 1 Results (Level 3)":       st.column_config.TextColumn("CEL Year 1 Results (Level 3)", width="large"),
+        "Programme Impact by 2030 (Level 4)": st.column_config.TextColumn("Programme Impact by 2030 (Level 4)", width="large"),
+    },
+)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # ── Year 1 Quarterly Delivery Calendar ───────────────────────────────────────
 st.subheader("Year 1 Quarterly Delivery Calendar")
 st.caption(
