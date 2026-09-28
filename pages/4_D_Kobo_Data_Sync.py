@@ -436,12 +436,28 @@ st.caption(
 )
 
 # ── Load indicator lookup for mapping UI ──────────────────────────────────────
+# indicator_code is NOT unique across logframe_rows — SAWA's logframe carries
+# a separate row per implementing partner for some shared codes (e.g. "PI.1"
+# exists once for the programme/CEL and again for each IP). Keying a lookup
+# dict by the bare code string collapses all of those into one key, and a
+# dict comprehension silently keeps only the last row seen for it — with
+# `ORDER BY id`, always the highest id sharing that code — regardless of
+# which row was actually selected in the dropdown. Disambiguate every row's
+# label with its id (and who's responsible for it, when known) so each one
+# gets its own unique, unambiguous selector entry instead of colliding.
 lf_rows = run_query(
-    "SELECT id, indicator_code FROM logframe_rows WHERE project_id=:pid ORDER BY id",
+    "SELECT id, indicator_code, responsible FROM logframe_rows WHERE project_id=:pid ORDER BY id",
     {"pid": project_id},
 )
-id_to_code = {r["id"]: r["indicator_code"] for r in lf_rows}
-code_to_id = {r["indicator_code"]: r["id"] for r in lf_rows}
+
+
+def _lf_label(row: dict) -> str:
+    resp = (row.get("responsible") or "").strip()
+    return f"{row['indicator_code']} — {resp} (#{row['id']})" if resp else f"{row['indicator_code']} (#{row['id']})"
+
+
+id_to_code = {r["id"]: _lf_label(r) for r in lf_rows}
+code_to_id = {_lf_label(r): r["id"] for r in lf_rows}
 indicator_codes = list(code_to_id.keys())
 
 tab_sync, tab_upload, tab_storage = st.tabs(["🔄 Sync & Mapping", "📤 Upload", "📦 Storage"])
