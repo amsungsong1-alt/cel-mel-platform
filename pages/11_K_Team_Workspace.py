@@ -12,6 +12,7 @@ Partner:            Partner MEAL
 """
 from __future__ import annotations
 
+import io
 from datetime import date as _date
 
 import pandas as pd
@@ -85,6 +86,173 @@ lf_code_to_id = {r["indicator_code"]: r["id"] for r in logframe_rows}
 _can_write = can_write_module("K")
 _username  = st.session_state.get("username", "Team")
 
+# ── MEAL task allocation source data (21-row Module B logframe, 29 Sep 2026) ───
+# Maps every logframe indicator to its Responsible party, Means of Verification
+# and a suggested day-to-day task, for offline review/allocation under Module K.
+_MEAL_CEL_TASKS = [
+    {"id": "LoP.1", "indicator": "Number of financially disadvantaged young women and PWDs engaged in dignified and fulfilling work across the aquaculture value chain",
+     "mov": "Programme monitoring database; Annual outcome surveys; Partner progress reports", "freq": "Annual",
+     "task": "Maintain the programme monitoring database; commission and administer the annual outcome survey; consolidate partner progress reports"},
+    {"id": "PI.19", "indicator": "Number of persons (participants and community champions) receiving gender-transformative training",
+     "mov": "Training attendance registers; Post-training knowledge assessment records", "freq": "Quarterly",
+     "task": "Collect and verify attendance registers; administer and score post-training knowledge assessments"},
+    {"id": "PI.20", "indicator": "Number of young women trained to identify and respond to safeguarding issues (PSEA awareness)",
+     "mov": "Training records; Safeguarding incident log; CEL safeguarding officer reports", "freq": "Quarterly",
+     "task": "Maintain the safeguarding incident log; compile safeguarding officer reports"},
+    {"id": "PI.22", "indicator": "Number of safeguarding awareness campaigns and roadshows undertaken in SAWA intervention communities",
+     "mov": "Campaign reports; Attendance records; Community feedback forms", "freq": "Quarterly",
+     "task": "Produce campaign reports; collect attendance records and community feedback forms"},
+    {"id": "PI.23", "indicator": "Number of programme sites/partners with institutionalised safeguarding and occupational health standards",
+     "mov": "Site certification documentation; Safeguarding policy adoption records", "freq": "Annual",
+     "task": "Verify and file site certification documentation; track safeguarding policy adoption records"},
+]
+_MEAL_PROGRAMME_TASKS = [
+    {"id": "PI.1", "indicator": "Number of young women and PWDs mobilised, sensitised and enrolled in SAWA D&F value-chain activities",
+     "mov": "Enrolment registers; Mobilisation partner reports; KoboToolbox Tool 2", "freq": "Quarterly",
+     "task": "Sync KoboToolbox Tool 2; reconcile enrolment registers with partner mobilisation reports"},
+    {"id": "PI.3", "indicator": "Number of young women and PWDs completing Business Development Services (BDS) training",
+     "mov": "Training attendance registers; BDS completion records; KoboToolbox Tool 2", "freq": "Quarterly",
+     "task": "Sync KoboToolbox Tool 2; verify BDS completion records against attendance registers"},
+    {"id": "PI.9", "indicator": "Number of GYSI focal persons trained in GALS and EMAP (Training of Trainers model, per implementing partner)",
+     "mov": "Training completion certificates; Focal person registry; Partner reports", "freq": "Quarterly",
+     "task": "Issue and file completion certificates; maintain the focal person registry"},
+    {"id": "PI.11", "indicator": "Number of women engaged in leadership and mentorship forums under the Women in Aquaculture Network (WAN)",
+     "mov": "WAN attendance registers; Forum reports; CEL field officer notes", "freq": "Quarterly",
+     "task": "Collect WAN attendance registers; compile forum reports from field officer notes"},
+    {"id": "PI.12", "indicator": "Number of leadership bootcamps and inter-zonal exchange visits organised under WAN",
+     "mov": "Event reports; Attendance lists; CEL field officer notes", "freq": "Quarterly",
+     "task": "Produce event reports; collect attendance lists"},
+    {"id": "PI.13", "indicator": "Number of young female PWDs identified as peer mentors and matched with PWD programme participants",
+     "mov": "Mentor registry; Match records; Field verification notes", "freq": "Quarterly",
+     "task": "Maintain the mentor registry; log mentor-mentee matches and field verification"},
+    {"id": "PI.17", "indicator": "Number of women in women-led cooperatives/clusters receiving gender training, financial literacy and business mentoring",
+     "mov": "Training registers; Cooperative membership records; Partner reports", "freq": "Quarterly",
+     "task": "Maintain training registers; verify cooperative membership records"},
+    {"id": "PI.18", "indicator": "Number of gender-responsive governance frameworks adopted by women-led cooperatives/clusters",
+     "mov": "Signed governance documents; KoboToolbox Tool 3 Governance Checklist; Field verification", "freq": "Quarterly",
+     "task": "Collect signed governance documents; complete Tool 3 Governance Checklist"},
+    {"id": "PIV.5", "indicator": "Number of young women receiving E-SAWA digital literacy training, mentorship and digital entrepreneurship workshops",
+     "mov": "Training attendance registers; E-SAWA platform enrolment data", "freq": "Quarterly",
+     "task": "Pull E-SAWA platform enrolment data; reconcile against attendance registers"},
+    {"id": "PIII.6", "indicator": "Number of women-led cooperatives/clusters strengthened across the aquaculture value chain (established and registered entities)",
+     "mov": "Cooperative registration documents; Governance Checklist (Tool 3); Field verification", "freq": "Quarterly",
+     "task": "File cooperative registration documents; complete Tool 3 Governance Checklist"},
+]
+_MEAL_PARTNER_TASKS = [
+    {"id": "PII.R5", "indicator": "Number of Persons with Disabilities (PWDs) accessing D&F in the Aquaculture value chain — programme-wide (YiW)",
+     "mov": "Employment records; Partner payroll verification; Field spot-checks; PWD registry", "freq": "Quarterly",
+     "task": "Verify partner payroll records; maintain the PWD registry; conduct field spot-checks"},
+    {"id": "PIII.R1", "indicator": "Number of young women accessing D&F in Aquaculture Value Addition activities (YiW)",
+     "mov": "Employment and enterprise records; Field verification", "freq": "Quarterly",
+     "task": "Collect employment and enterprise records; conduct field verification"},
+    {"id": "PII.R6", "indicator": "Quantity (MT) of fish produced by young women PWDs accessing D&F in the Aquaculture value chain",
+     "mov": "Production logs; Catch data records; Third-party verification", "freq": "Quarterly",
+     "task": "Collect production and catch-data logs; arrange third-party verification"},
+    {"id": "PII.R7", "indicator": "Revenue (USD) generated by young women PWDs accessing D&F in the Aquaculture value chain",
+     "mov": "Sales receipts; Partner financial records; Income survey", "freq": "Quarterly",
+     "task": "Collect sales receipts; verify partner financial records; run the income survey"},
+    {"id": "PIII.R2", "indicator": "Quantity (MT) of fish produced or fish-related products traded through SAWA-supported value-addition channels",
+     "mov": "Trading and processing records; Market assessment data", "freq": "Quarterly",
+     "task": "Collect trading and processing records; conduct the market assessment"},
+    {"id": "PIII.R3", "indicator": "Revenue (USD) generated from trading in Value Added Aquaculture products by SAWA-supported enterprises",
+     "mov": "Sales records; Market price monitoring; Financial audits", "freq": "Quarterly",
+     "task": "Collect sales records; monitor market prices; support financial audits"},
+]
+
+
+def _build_meal_task_word() -> bytes:
+    """Build the MEAL task-allocation Word document (21 logframe indicators
+    grouped by Responsible party, mapped to Means of Verification and a
+    suggested task) for offline review/allocation under Module K."""
+    from docx import Document
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    from docx.shared import Cm, Mm, Pt, RGBColor
+
+    teal = RGBColor(0x1E, 0x7E, 0x76)
+    muted = RGBColor(0x5E, 0x6A, 0x6A)
+
+    def _shade_cell(cell, hex_color):
+        tcPr = cell._tc.get_or_add_tcPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:val"), "clear")
+        shd.set(qn("w:color"), "auto")
+        shd.set(qn("w:fill"), hex_color)
+        tcPr.append(shd)
+
+    def _add_section(document, heading, subtitle, tasks, accent_hex):
+        document.add_heading(heading, level=1)
+        p = document.add_paragraph(subtitle)
+        p.runs[0].italic = True
+        p.runs[0].font.size = Pt(9)
+        p.runs[0].font.color.rgb = muted
+
+        table = document.add_table(rows=1, cols=5)
+        table.style = "Table Grid"
+        widths = [Cm(2.0), Cm(5.2), Cm(4.6), Cm(2.0), Cm(4.6)]
+        headers = ["Indicator ID", "Indicator (SMART)", "Means of Verification", "Frequency", "Suggested Task"]
+        hdr_cells = table.rows[0].cells
+        for i, (h, w) in enumerate(zip(headers, widths)):
+            hdr_cells[i].width = w
+            run = hdr_cells[i].paragraphs[0].add_run(h)
+            run.bold = True
+            run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+            run.font.size = Pt(9)
+            _shade_cell(hdr_cells[i], accent_hex)
+
+        for t in tasks:
+            row_cells = table.add_row().cells
+            for i, (v, w) in enumerate(zip([t["id"], t["indicator"], t["mov"], t["freq"], t["task"]], widths)):
+                row_cells[i].width = w
+                run = row_cells[i].paragraphs[0].add_run(v)
+                run.font.size = Pt(8.5)
+        document.add_paragraph()
+
+    document = Document()
+    section = document.sections[0]
+    section.page_width = Mm(297)
+    section.page_height = Mm(210)
+    section.left_margin = Cm(1.5)
+    section.right_margin = Cm(1.5)
+
+    title = document.add_heading("SAWA MEAL Task Allocation", level=0)
+    title.runs[0].font.color.rgb = teal
+
+    intro = document.add_paragraph(
+        "Draft for review and task allocation in Module K (Team Workspace). Every logframe "
+        "indicator (21 total) grouped by its Responsible party, with the Means of Verification "
+        "it depends on and a suggested day-to-day task. CEL MEAL's tasks are grouped with the "
+        "Assistant MEAL Officer, who holds write access to Modules D-G where most of this "
+        "verification work happens in practice."
+    )
+    intro.runs[0].font.size = Pt(9.5)
+    intro.runs[0].font.color.rgb = muted
+
+    _add_section(
+        document, "CEL MEAL (MEAL Admin + Assistant MEAL Officer)",
+        "5 indicators — programme-level monitoring, safeguarding evidence and the annual outcome survey.",
+        _MEAL_CEL_TASKS, "1E7E76",
+    )
+    _add_section(
+        document, "Programme Team",
+        "10 indicators — mobilisation, training, WAN and cooperative delivery evidence across partners.",
+        _MEAL_PROGRAMME_TASKS, "4A6B5C",
+    )
+    _add_section(
+        document, "Partner MEAL",
+        "6 indicators — outcome-level D&F jobs, production and revenue data verified at partner level.",
+        _MEAL_PARTNER_TASKS, "B96A2E",
+    )
+
+    document.add_paragraph().add_run(
+        "Source: SAWA logframe export, 29 Sep 2026 (21 rows, Module B). Frequencies and targets "
+        "match the live logframe; this document adds only the Suggested Task phrasing for K allocation."
+    ).font.size = Pt(8)
+
+    buf = io.BytesIO()
+    document.save(buf)
+    return buf.getvalue()
+
 # ── Layout ────────────────────────────────────────────────────────────────────
 st.title("Module K — Team Workspace")
 st.caption(
@@ -104,13 +272,24 @@ _all_tasks_dl = run_query(
        ORDER BY tt.team_role, tt.status, tt.due_date""",
     {"pid": project_id},
 )
-if _all_tasks_dl:
-    _dl_csv = pd.DataFrame(_all_tasks_dl).to_csv(index=False)
+_dl_col1, _dl_col2 = st.columns(2)
+with _dl_col1:
+    if _all_tasks_dl:
+        _dl_csv = pd.DataFrame(_all_tasks_dl).to_csv(index=False)
+        st.download_button(
+            "Download all tasks (CSV)",
+            data=_dl_csv,
+            file_name="sawa_team_tasks.csv",
+            mime="text/csv",
+        )
+with _dl_col2:
     st.download_button(
-        "Download all tasks (CSV)",
-        data=_dl_csv,
-        file_name="sawa_team_tasks.csv",
-        mime="text/csv",
+        "📄 MEAL task allocation (Word)",
+        data=_build_meal_task_word(),
+        file_name="sawa_meal_task_allocation.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        help="21 logframe indicators mapped to Means of Verification and a suggested task, "
+             "grouped by CEL MEAL, Programme Team and Partner MEAL — for review and allocation.",
     )
 
 left, right = st.columns([1, 3])
