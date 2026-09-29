@@ -94,82 +94,87 @@ _username  = st.session_state.get("username", "Team")
 # by subject-matter fit, NOT sourced from the logframe — flagged as such in
 # the document intro and pending CEL confirmation/adjustment. Biz Dev and
 # Finance currently have no directly-linked logframe indicator.
+# "quarter" = the Year 1 SAWA quarter(s) (Q1 Jul-Sep 2026 .. Q4 Apr-Jun 2027) in which
+# this indicator's evidence realistically starts being generated, per Module A's Year 1
+# Quarterly Delivery Calendar (BDS/WAN concept notes) and the Consolidated Workplan
+# cross-reference table (_workplan_xref) — i.e. the same sourced data already vetted
+# against the concept notes elsewhere in the app, not a fresh guess for this document.
 _MEAL_TASKS_BY_ROLE = {
     "MEAL Admin": [
         {"id": "LoP.1", "indicator": "Number of financially disadvantaged young women and PWDs engaged in dignified and fulfilling work across the aquaculture value chain",
-         "mov": "Programme monitoring database; Annual outcome surveys; Partner progress reports", "freq": "Annual",
+         "mov": "Programme monitoring database; Annual outcome surveys; Partner progress reports", "freq": "Annual", "quarter": "Q4 (annual review)",
          "task": "Maintain the programme monitoring database; commission and administer the annual outcome survey; consolidate partner progress reports"},
         {"id": "PI.20", "indicator": "Number of young women trained to identify and respond to safeguarding issues (PSEA awareness)",
-         "mov": "Training records; Safeguarding incident log; CEL safeguarding officer reports", "freq": "Quarterly",
+         "mov": "Training records; Safeguarding incident log; CEL safeguarding officer reports", "freq": "Quarterly", "quarter": "Q2–Q4",
          "task": "Maintain the safeguarding incident log; compile safeguarding officer reports"},
         {"id": "PI.23", "indicator": "Number of programme sites/partners with institutionalised safeguarding and occupational health standards",
-         "mov": "Site certification documentation; Safeguarding policy adoption records", "freq": "Annual",
+         "mov": "Site certification documentation; Safeguarding policy adoption records", "freq": "Annual", "quarter": "Q4 (annual review)",
          "task": "Verify and file site certification documentation; track safeguarding policy adoption records"},
     ],
     "MEAL Asst": [
         {"id": "PI.19", "indicator": "Number of persons (participants and community champions) receiving gender-transformative training",
-         "mov": "Training attendance registers; Post-training knowledge assessment records", "freq": "Quarterly",
+         "mov": "Training attendance registers; Post-training knowledge assessment records", "freq": "Quarterly", "quarter": "Q2–Q4",
          "task": "Collect and verify attendance registers; administer and score post-training knowledge assessments"},
         {"id": "PI.22", "indicator": "Number of safeguarding awareness campaigns and roadshows undertaken in SAWA intervention communities",
-         "mov": "Campaign reports; Attendance records; Community feedback forms", "freq": "Quarterly",
+         "mov": "Campaign reports; Attendance records; Community feedback forms", "freq": "Quarterly", "quarter": "Q2–Q4",
          "task": "Produce campaign reports; collect attendance records and community feedback forms"},
     ],
     "GYSI": [
         {"id": "PI.9", "indicator": "Number of GYSI focal persons trained in GALS and EMAP (Training of Trainers model, per implementing partner)",
-         "mov": "Training completion certificates; Focal person registry; Partner reports", "freq": "Quarterly",
+         "mov": "Training completion certificates; Focal person registry; Partner reports", "freq": "Quarterly", "quarter": "Q2–Q3",
          "task": "Issue and file completion certificates; maintain the focal person registry"},
         {"id": "PI.11", "indicator": "Number of women engaged in leadership and mentorship forums under the Women in Aquaculture Network (WAN)",
-         "mov": "WAN attendance registers; Forum reports; CEL field officer notes", "freq": "Quarterly",
+         "mov": "WAN attendance registers; Forum reports; CEL field officer notes", "freq": "Quarterly", "quarter": "Q3–Q4",
          "task": "Collect WAN attendance registers; compile forum reports from field officer notes"},
         {"id": "PI.12", "indicator": "Number of leadership bootcamps and inter-zonal exchange visits organised under WAN",
-         "mov": "Event reports; Attendance lists; CEL field officer notes", "freq": "Quarterly",
+         "mov": "Event reports; Attendance lists; CEL field officer notes", "freq": "Quarterly", "quarter": "Q3–Q4",
          "task": "Produce event reports; collect attendance lists"},
         {"id": "PI.13", "indicator": "Number of young female PWDs identified as peer mentors and matched with PWD programme participants",
-         "mov": "Mentor registry; Match records; Field verification notes", "freq": "Quarterly",
+         "mov": "Mentor registry; Match records; Field verification notes", "freq": "Quarterly", "quarter": "Q1–Q4",
          "task": "Maintain the mentor registry; log mentor-mentee matches and field verification"},
     ],
     "Biz Coach": [
         {"id": "PI.3", "indicator": "Number of young women and PWDs completing Business Development Services (BDS) training",
-         "mov": "Training attendance registers; BDS completion records; KoboToolbox Tool 2", "freq": "Quarterly",
+         "mov": "Training attendance registers; BDS completion records; KoboToolbox Tool 2", "freq": "Quarterly", "quarter": "Q2–Q4",
          "task": "Sync KoboToolbox Tool 2; verify BDS completion records against attendance registers"},
         {"id": "PI.17", "indicator": "Number of women in women-led cooperatives/clusters receiving gender training, financial literacy and business mentoring",
-         "mov": "Training registers; Cooperative membership records; Partner reports", "freq": "Quarterly",
+         "mov": "Training registers; Cooperative membership records; Partner reports", "freq": "Quarterly", "quarter": "Q2–Q4",
          "task": "Maintain training registers; verify cooperative membership records"},
         {"id": "PI.18", "indicator": "Number of gender-responsive governance frameworks adopted by women-led cooperatives/clusters",
-         "mov": "Signed governance documents; KoboToolbox Tool 3 Governance Checklist; Field verification", "freq": "Quarterly",
+         "mov": "Signed governance documents; KoboToolbox Tool 3 Governance Checklist; Field verification", "freq": "Quarterly", "quarter": "Q3–Q4",
          "task": "Collect signed governance documents; complete Tool 3 Governance Checklist"},
         {"id": "PIII.6", "indicator": "Number of women-led cooperatives/clusters strengthened across the aquaculture value chain (established and registered entities)",
-         "mov": "Cooperative registration documents; Governance Checklist (Tool 3); Field verification", "freq": "Quarterly",
+         "mov": "Cooperative registration documents; Governance Checklist (Tool 3); Field verification", "freq": "Quarterly", "quarter": "Q3–Q4",
          "task": "File cooperative registration documents; complete Tool 3 Governance Checklist"},
     ],
     "Comms": [
         {"id": "PIV.5", "indicator": "Number of young women receiving E-SAWA digital literacy training, mentorship and digital entrepreneurship workshops",
-         "mov": "Training attendance registers; E-SAWA platform enrolment data", "freq": "Quarterly",
+         "mov": "Training attendance registers; E-SAWA platform enrolment data", "freq": "Quarterly", "quarter": "Q2–Q4",
          "task": "Pull E-SAWA platform enrolment data; reconcile against attendance registers"},
     ],
     "Admin": [
         {"id": "PI.1", "indicator": "Number of young women and PWDs mobilised, sensitised and enrolled in SAWA D&F value-chain activities",
-         "mov": "Enrolment registers; Mobilisation partner reports; KoboToolbox Tool 2", "freq": "Quarterly",
+         "mov": "Enrolment registers; Mobilisation partner reports; KoboToolbox Tool 2", "freq": "Quarterly", "quarter": "Q1–Q4",
          "task": "Sync KoboToolbox Tool 2; reconcile enrolment registers with partner mobilisation reports"},
     ],
     "Partner MEAL": [
         {"id": "PII.R5", "indicator": "Number of Persons with Disabilities (PWDs) accessing D&F in the Aquaculture value chain — programme-wide (YiW)",
-         "mov": "Employment records; Partner payroll verification; Field spot-checks; PWD registry", "freq": "Quarterly",
+         "mov": "Employment records; Partner payroll verification; Field spot-checks; PWD registry", "freq": "Quarterly", "quarter": "Q1–Q4",
          "task": "Verify partner payroll records; maintain the PWD registry; conduct field spot-checks"},
         {"id": "PIII.R1", "indicator": "Number of young women accessing D&F in Aquaculture Value Addition activities (YiW)",
-         "mov": "Employment and enterprise records; Field verification", "freq": "Quarterly",
+         "mov": "Employment and enterprise records; Field verification", "freq": "Quarterly", "quarter": "Q2–Q4",
          "task": "Collect employment and enterprise records; conduct field verification"},
         {"id": "PII.R6", "indicator": "Quantity (MT) of fish produced by young women PWDs accessing D&F in the Aquaculture value chain",
-         "mov": "Production logs; Catch data records; Third-party verification", "freq": "Quarterly",
+         "mov": "Production logs; Catch data records; Third-party verification", "freq": "Quarterly", "quarter": "Q1–Q4",
          "task": "Collect production and catch-data logs; arrange third-party verification"},
         {"id": "PII.R7", "indicator": "Revenue (USD) generated by young women PWDs accessing D&F in the Aquaculture value chain",
-         "mov": "Sales receipts; Partner financial records; Income survey", "freq": "Quarterly",
+         "mov": "Sales receipts; Partner financial records; Income survey", "freq": "Quarterly", "quarter": "Q1–Q4",
          "task": "Collect sales receipts; verify partner financial records; run the income survey"},
         {"id": "PIII.R2", "indicator": "Quantity (MT) of fish produced or fish-related products traded through SAWA-supported value-addition channels",
-         "mov": "Trading and processing records; Market assessment data", "freq": "Quarterly",
+         "mov": "Trading and processing records; Market assessment data", "freq": "Quarterly", "quarter": "Q2–Q4",
          "task": "Collect trading and processing records; conduct the market assessment"},
         {"id": "PIII.R3", "indicator": "Revenue (USD) generated from trading in Value Added Aquaculture products by SAWA-supported enterprises",
-         "mov": "Sales records; Market price monitoring; Financial audits", "freq": "Quarterly",
+         "mov": "Sales records; Market price monitoring; Financial audits", "freq": "Quarterly", "quarter": "Q2–Q4",
          "task": "Collect sales records; monitor market prices; support financial audits"},
     ],
 }
@@ -264,6 +269,23 @@ def _build_meal_task_word() -> bytes:
     teal = RGBColor(0x1E, 0x7E, 0x76)
     muted = RGBColor(0x5E, 0x6A, 0x6A)
 
+    _Q_MONTH_SETS = [
+        {(7, 2026), (8, 2026), (9, 2026)},
+        {(10, 2026), (11, 2026), (12, 2026)},
+        {(1, 2027), (2, 2027), (3, 2027)},
+        {(4, 2027), (5, 2027), (6, 2027)},
+    ]
+
+    def _quarter_from_date(date_str: str) -> str:
+        """Same Q1-Q4 boundaries as Module A's Year 1 Quarterly Delivery Calendar."""
+        if not date_str:
+            return "Q1 (setup)"
+        y, m = int(date_str[:4]), int(date_str[5:7])
+        for i, q_set in enumerate(_Q_MONTH_SETS, start=1):
+            if (m, y) in q_set:
+                return f"Q{i}"
+        return "—"
+
     def _shade_cell(cell, hex_color):
         tcPr = cell._tc.get_or_add_tcPr()
         shd = OxmlElement("w:shd")
@@ -298,7 +320,7 @@ def _build_meal_task_word() -> bytes:
         p.runs[0].font.size = Pt(9)
         p.runs[0].font.color.rgb = muted
 
-        ind_widths = [Cm(2.0), Cm(5.2), Cm(4.6), Cm(2.0), Cm(4.6)]
+        ind_widths = [Cm(1.8), Cm(4.6), Cm(4.0), Cm(1.6), Cm(1.7), Cm(4.0)]
         if tasks:
             lbl = document.add_paragraph()
             lbl_run = lbl.add_run("Linked logframe indicators")
@@ -306,9 +328,9 @@ def _build_meal_task_word() -> bytes:
             lbl_run.font.size = Pt(8.5)
             _mini_table(
                 document,
-                ["Indicator ID", "Indicator (SMART)", "Means of Verification", "Frequency", "Suggested Task"],
+                ["Indicator ID", "Indicator (SMART)", "Means of Verification", "Frequency", "Y1 Quarter", "Suggested Task"],
                 ind_widths,
-                [[t["id"], t["indicator"], t["mov"], t["freq"], t["task"]] for t in tasks],
+                [[t["id"], t["indicator"], t["mov"], t["freq"], t["quarter"], t["task"]] for t in tasks],
                 accent_hex,
             )
             document.add_paragraph()
@@ -318,12 +340,12 @@ def _build_meal_task_word() -> bytes:
             lbl2_run = lbl2.add_run("Example tasks already in Module K")
             lbl2_run.bold = True
             lbl2_run.font.size = Pt(8.5)
-            ex_widths = [Cm(6.8), Cm(2.4), Cm(2.2), Cm(3.2), Cm(3.9)]
+            ex_widths = [Cm(6.0), Cm(2.0), Cm(1.8), Cm(1.6), Cm(2.8), Cm(3.5)]
             _mini_table(
                 document,
-                ["Task", "Status", "Due Date", "Assigned To", "Linked Indicator"],
+                ["Task", "Status", "Due Date", "Y1 Quarter", "Assigned To", "Linked Indicator"],
                 ex_widths,
-                [[e["task"], e["status"], e["due"] or "—", e["assigned"], e["code"] or "—"] for e in examples],
+                [[e["task"], e["status"], e["due"] or "—", _quarter_from_date(e["due"]), e["assigned"], e["code"] or "—"] for e in examples],
                 accent_hex,
             )
         document.add_paragraph()
@@ -341,8 +363,10 @@ def _build_meal_task_word() -> bytes:
     intro = document.add_paragraph(
         "Draft for review and task allocation in Module K (Team Workspace). Every logframe "
         "indicator (21 total) disaggregated by Module K functional role, with the Means of "
-        "Verification it depends on and a suggested day-to-day task — plus the 3 example tasks "
-        "already seeded live in each role's Module K folder, for a realistic starting picture."
+        "Verification it depends on, a suggested day-to-day task, and the Year 1 quarter(s) "
+        "(Q1 Jul–Sep 2026 .. Q4 Apr–Jun 2027) its evidence realistically starts being generated "
+        "in — plus the 3 example tasks already seeded live in each role's Module K folder, each "
+        "tagged with its quarter from its due date, for a realistic starting picture."
     )
     intro.runs[0].font.size = Pt(9.5)
     intro.runs[0].font.color.rgb = muted
@@ -382,8 +406,11 @@ def _build_meal_task_word() -> bytes:
     document.add_paragraph().add_run(
         "Sources: SAWA logframe export, 29 Sep 2026 (21 rows, Module B) for the indicator tables; "
         "database/db.py team_tasks seed for the example-task tables (27 rows, 3 per K role, "
-        "already live in Module K). Frequencies and targets match the live logframe; this "
-        "document adds only the functional-role split and Suggested Task phrasing for K allocation."
+        "already live in Module K); Module A's Year 1 Quarterly Delivery Calendar and Consolidated "
+        "Workplan cross-reference (BDS/WAN concept notes, 28 Sep 2026) for the Y1 Quarter column on "
+        "indicators; example-task quarters are computed directly from each task's due date using the "
+        "same Q1–Q4 date ranges. Frequencies and targets match the live logframe; this document adds "
+        "only the functional-role split, Y1 Quarter and Suggested Task phrasing for K allocation."
     ).font.size = Pt(8)
 
     buf = io.BytesIO()
@@ -428,7 +455,8 @@ with _dl_col2:
         help="21 logframe indicators mapped to Means of Verification and a suggested task, plus "
              "the 3 example tasks already live per role in Module K, disaggregated by all 9 K "
              "functional roles (GYSI, Biz Dev, Biz Coach, Comms, Admin, Finance, MEAL Admin, "
-             "MEAL Asst, Partner MEAL) — for review and allocation.",
+             "MEAL Asst, Partner MEAL) and tagged with the realistic Year 1 quarter of BDS/WAN "
+             "delivery each task falls under — for review and allocation.",
     )
 
 left, right = st.columns([1, 3])
