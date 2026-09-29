@@ -387,3 +387,61 @@ CREATE TABLE IF NOT EXISTS workplan_activities (
 CREATE INDEX IF NOT EXISTS idx_wa_project ON workplan_activities(project_id);
 CREATE INDEX IF NOT EXISTS idx_wa_partner ON workplan_activities(partner_id);
 CREATE INDEX IF NOT EXISTS idx_wa_quarter ON workplan_activities(quarter, fiscal_year);
+
+-- Module J: Partner Visitations — one row per scheduled or completed field visit.
+CREATE TABLE IF NOT EXISTS partner_visits (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id    INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    partner_id    INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+    visit_date    TEXT    NOT NULL,   -- ISO-8601: YYYY-MM-DD
+    visit_type    TEXT    CHECK(visit_type IN ('In-person','Remote','Joint')),
+    conducted_by  TEXT,
+    status        TEXT    DEFAULT 'Scheduled'
+                  CHECK(status IN ('Scheduled','Completed','Cancelled')),
+    general_notes TEXT,
+    created_at    TEXT    NOT NULL
+);
+
+-- Module J: Needs assessment — one row per visit capturing partner M&E capability.
+CREATE TABLE IF NOT EXISTS visit_findings (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    visit_id            INTEGER NOT NULL REFERENCES partner_visits(id) ON DELETE CASCADE,
+    mel_focal_person    TEXT,
+    mel_focal_email     TEXT,
+    existing_tools      TEXT,
+    data_storage        TEXT,
+    disagg_sex          TEXT    CHECK(disagg_sex IN ('Y','N','Partial')),
+    disagg_age          TEXT    CHECK(disagg_age IN ('Y','N','Partial')),
+    disagg_disability   TEXT    CHECK(disagg_disability IN ('Y','N','Partial')),
+    disagg_value_chain  TEXT    CHECK(disagg_value_chain IN ('Y','N','Partial')),
+    reporting_frequency TEXT,
+    reporting_format    TEXT,
+    communities_served  TEXT,
+    overlap_risk        TEXT    CHECK(overlap_risk IN ('Low','Medium','High')),
+    overlap_notes       TEXT,
+    indicators_confirmed TEXT,   -- comma-separated indicator_codes
+    discrepancies_found TEXT,
+    support_agreed      TEXT,
+    support_notes       TEXT
+);
+
+-- Module J: Evidence files and links per visit, tagged to logframe indicators.
+CREATE TABLE IF NOT EXISTS visit_evidence (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    visit_id        INTEGER NOT NULL REFERENCES partner_visits(id) ON DELETE CASCADE,
+    project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+    label           TEXT    NOT NULL,
+    link_url        TEXT,
+    file_name       TEXT,
+    file_mime       TEXT,
+    file_data       BLOB,
+    uploaded_by     TEXT,
+    uploaded_at     TEXT    -- ISO-8601 datetime
+);
+
+CREATE INDEX IF NOT EXISTS idx_pv_project  ON partner_visits(project_id);
+CREATE INDEX IF NOT EXISTS idx_pv_partner  ON partner_visits(partner_id);
+CREATE INDEX IF NOT EXISTS idx_vf_visit    ON visit_findings(visit_id);
+CREATE INDEX IF NOT EXISTS idx_ve_visit    ON visit_evidence(visit_id);
+CREATE INDEX IF NOT EXISTS idx_ve_project  ON visit_evidence(project_id);
