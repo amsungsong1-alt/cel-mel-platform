@@ -746,6 +746,215 @@ def _run_migrations() -> bool:
                     "pname": _pname, "label": _label, "val": _val,
                     "unit": _unit, "basis": _basis, "doc": _doc,
                 })
+            # ── Sample data for Module J & K (idempotent NOT EXISTS guards) ──
+            # Visits — two completed (with findings + evidence) and three scheduled.
+            for _pname, _vdate, _vtype, _status, _notes in [
+                ("Aglow Farms",   "2026-10-05", "In-person", "Completed",
+                 "Initial M&E mapping. Paper registers + Excel. KoboToolbox training needed."),
+                ("TechnoServe",   "2026-10-07", "Remote",    "Completed",
+                 "Virtual M&E review. Salesforce CRM + ODK. Strong disaggregation. Low overlap risk."),
+                ("AgroKings",     "2026-10-12", "In-person", "Scheduled",  ""),
+                ("Naple Betta",   "2026-10-15", "In-person", "Scheduled",  ""),
+                ("AFRIGEM",       "2026-10-20", "Joint",     "Scheduled",
+                 "Joint visit with Aglow Farms team — shared Kasunya community overlap."),
+            ]:
+                conn.execute(text("""
+                    INSERT INTO partner_visits
+                           (project_id, partner_id, visit_date, visit_type,
+                            conducted_by, status, general_notes, created_at)
+                    SELECT pr.project_id,
+                           (SELECT p.partner_id FROM partners p
+                            WHERE p.project_id=pr.project_id AND p.name=:pname),
+                           :vdate, :vtype, 'CEL MEAL Team', :status, :notes, :vdate
+                    FROM projects pr WHERE pr.name='SAWA'
+                      AND NOT EXISTS (
+                          SELECT 1 FROM partner_visits pv2
+                          JOIN partners p2 ON p2.partner_id=pv2.partner_id
+                          WHERE pv2.project_id=pr.project_id
+                            AND p2.name=:pname AND pv2.visit_date=:vdate
+                      )
+                """), {"pname": _pname, "vdate": _vdate, "vtype": _vtype,
+                       "status": _status, "notes": _notes})
+            # Needs assessment findings for the two completed visits.
+            for _pname, _vdate, _fp, _fe, _tools, _stor, _freq, _fmt, \
+                    _sex, _age, _dis, _vc, _comm, _risk, _onotes, \
+                    _conf, _disc, _supp, _snotes in [
+                ("Aglow Farms", "2026-10-05",
+                 "Grace Mensah", "g.mensah@aglowfarms.gh",
+                 "KoboToolbox (Form 1 partial), Paper register, Excel summary",
+                 "Local Excel files + physical folders; no cloud backup",
+                 "Monthly", "Excel",
+                 "Y", "N", "Partial", "Y",
+                 "Kasunya (Shai Osudoku), Dodowa, Prampram, Nungua",
+                 "Medium",
+                 "Kasunya and Nungua overlap with AgroKings coverage. Duplicate enrolment risk — cross-check needed before Q2 consolidation.",
+                 "PI.1,PII.R6",
+                 "Age disaggregation not collected in Form 1. Disability flag present but inconsistently applied. Q1 actual of 461 confirmed.",
+                 "Training",
+                 "Half-day KoboToolbox Form 1 training for Grace Mensah — November 2026. Shared list to be cross-checked with AgroKings."),
+                ("TechnoServe", "2026-10-07",
+                 "Kwame Asante", "k.asante@technoserve.org",
+                 "Salesforce CRM, ODK Collect, Excel exports",
+                 "Salesforce + Azure cloud backup; full audit trail",
+                 "Quarterly", "Salesforce report + Excel",
+                 "Y", "Y", "Y", "Partial",
+                 "Programme-wide — financial eligibility screening, not site-specific",
+                 "Low",
+                 "No geographic overlap risk. Cross-cutting financial partner serving all anchors.",
+                 "PIII.R1,PII.R5,PII.R6",
+                 "Value-chain node disaggregation not captured at beneficiary level. Salesforce tracks product category only. To be resolved in Q2 with revised intake form.",
+                 "Indicator definitions",
+                 "CEL MEAL to share updated definition sheet for PIII.R1 and PII.R5 with agreed disaggregation format by 31 Oct 2026."),
+            ]:
+                conn.execute(text("""
+                    INSERT INTO visit_findings
+                           (visit_id, mel_focal_person, mel_focal_email,
+                            existing_tools, data_storage, reporting_frequency, reporting_format,
+                            disagg_sex, disagg_age, disagg_disability, disagg_value_chain,
+                            communities_served, overlap_risk, overlap_notes,
+                            indicators_confirmed, discrepancies_found,
+                            support_agreed, support_notes)
+                    SELECT pv.id, :fp, :fe, :tools, :stor, :freq, :fmt,
+                           :sex, :age, :dis, :vc, :comm, :risk, :onotes,
+                           :conf, :disc, :supp, :snotes
+                    FROM partner_visits pv
+                    JOIN partners p ON p.partner_id=pv.partner_id
+                    JOIN projects pr ON pr.project_id=pv.project_id
+                    WHERE pr.name='SAWA' AND p.name=:pname AND pv.visit_date=:vdate
+                      AND NOT EXISTS (
+                          SELECT 1 FROM visit_findings vf2 WHERE vf2.visit_id=pv.id
+                      )
+                """), {"pname": _pname, "vdate": _vdate, "fp": _fp, "fe": _fe,
+                       "tools": _tools, "stor": _stor, "freq": _freq, "fmt": _fmt,
+                       "sex": _sex, "age": _age, "dis": _dis, "vc": _vc,
+                       "comm": _comm, "risk": _risk, "onotes": _onotes,
+                       "conf": _conf, "disc": _disc, "supp": _supp, "snotes": _snotes})
+            # Evidence items for completed visits.
+            for _pname, _vdate, _lbl, _code, _url in [
+                ("Aglow Farms",  "2026-10-05",
+                 "Participant Register Extract — Q1 2026 (Aglow Farms)", "PI.1",   ""),
+                ("TechnoServe",  "2026-10-07",
+                 "TechnoServe Catalytic Grant Disbursement Q1 Report",  "PIII.R1", ""),
+            ]:
+                conn.execute(text("""
+                    INSERT INTO visit_evidence
+                           (visit_id, project_id, logframe_row_id, label,
+                            link_url, uploaded_by, uploaded_at)
+                    SELECT pv.id, pr.project_id,
+                           (SELECT lr.id FROM logframe_rows lr
+                            WHERE lr.project_id=pr.project_id AND lr.indicator_code=:code),
+                           :lbl, :url, 'CEL MEAL Team', :vdate
+                    FROM partner_visits pv
+                    JOIN partners p ON p.partner_id=pv.partner_id
+                    JOIN projects pr ON pr.project_id=pv.project_id
+                    WHERE pr.name='SAWA' AND p.name=:pname AND pv.visit_date=:vdate
+                      AND NOT EXISTS (
+                          SELECT 1 FROM visit_evidence ve2
+                          WHERE ve2.visit_id=pv.id AND ve2.label=:lbl
+                      )
+                """), {"pname": _pname, "vdate": _vdate, "lbl": _lbl,
+                       "code": _code, "url": _url or None})
+            # Sample tasks for Module K — one per role to seed the workspace.
+            for _role, _task, _desc, _status, _due, _asgn, _code in [
+                ("GYSI",   "Collect disaggregated enrolment data from all 5 anchor partners",
+                 "Confirm sex, age, disability and value-chain node disaggregation per partner. Flag any gap to MEAL Admin.",
+                 "In Progress", "2026-10-31", "GYSI Officer", "PI.1"),
+                ("GYSI",   "Verify PWD inclusion rate against 5% programme target",
+                 "Cross-check PII.R5 enrolment figures against 5% PWD floor. Escalate if any partner is below threshold.",
+                 "Not Started", "2026-11-15", "GYSI Officer", "PII.R5"),
+                ("GYSI",   "Review GALS/EMAP focal person training completion (PI.9)",
+                 "Confirm 25 trained focal persons by Q3. Collect certificates via Module J evidence.",
+                 "Not Started", "2026-11-30", "GYSI Officer", "PI.9"),
+                ("Biz Dev", "Map existing BDS providers per district across all anchor sites",
+                 "Inventory of active BDS services to avoid duplication with SAWA delivery.",
+                 "In Progress", "2026-10-31", "Biz Dev Lead", ""),
+                ("Biz Dev", "Finalise catalytic grant eligibility criteria with TechnoServe",
+                 "Agree thresholds and intake form fields for micro-grant and catalytic grant screening.",
+                 "Not Started", "2026-11-15", "Biz Dev Lead", "PIII.R1"),
+                ("Biz Dev", "Submit Year 1 BDS roll-out plan to AIL",
+                 "Consolidated plan showing coverage per anchor operator and quarterly delivery milestones.",
+                 "Not Started", "2026-11-30", "Biz Dev Lead", "PI.3"),
+                ("Biz Coach", "Track BDS training completion (Tool 2) for Q1",
+                 "Reconcile Tool 2 attendance registers with PI.3 Q1 actual. File in Module K Files.",
+                 "In Progress", "2026-10-25", "Biz Coach Lead", "PI.3"),
+                ("Biz Coach", "Deploy coaching curriculum to Naple Betta processing hubs",
+                 "Confirm delivery schedule with Naple Betta MEAL focal person.",
+                 "Not Started", "2026-11-01", "Biz Coach Lead", "PII.R6"),
+                ("Biz Coach", "Conduct coaching quality review at AgroKings cluster sites",
+                 "Site observation visit. Document findings in Module J or Module K Files.",
+                 "Not Started", "2026-11-30", "Biz Coach Lead", ""),
+                ("Comms", "Draft Q1 programme impact story for MCF reporting",
+                 "Source quotes and data from Module A narrative and Module E actuals.",
+                 "In Progress", "2026-11-15", "Comms Officer", ""),
+                ("Comms", "Compile SAWA Voices quotes from NewAge Agric Q1 cohort",
+                 "At least 3 participant quotes with consent forms. Upload to Module K Files.",
+                 "Not Started", "2026-11-01", "Comms Officer", "LoP.1"),
+                ("Comms", "Update SAWA social media content calendar for Q2",
+                 "Align content plan with programme milestones in Module C calendar.",
+                 "Not Started", "2026-10-31", "Comms Officer", ""),
+                ("Admin", "Process partner MOU renewals — Aglow Farms and AgroKings",
+                 "Coordinate legal review and signatures. Deadline before Q2 activity ramp-up.",
+                 "In Progress", "2026-10-31", "Programme Admin", ""),
+                ("Admin", "Archive Q1 field visit documents in shared drive",
+                 "Organise by partner and visit date. Link to Module J evidence where applicable.",
+                 "Not Started", "2026-10-30", "Programme Admin", ""),
+                ("Admin", "Coordinate Q1 programme review meeting logistics",
+                 "Book venue/video link. Circulate Module F review schedule at least 5 days prior.",
+                 "Not Started", "2026-11-07", "Programme Admin", ""),
+                ("Finance", "Verify Q1 burn rate against 70% threshold",
+                 "Pull actuals from financial system. Flag any budget line below threshold to AIL.",
+                 "In Progress", "2026-10-31", "Finance Officer", ""),
+                ("Finance", "Reconcile TechnoServe catalytic grant disbursement tracker",
+                 "Match disbursement records against Module E PIII.R1 actuals.",
+                 "Not Started", "2026-11-15", "Finance Officer", "PIII.R1"),
+                ("Finance", "Submit Q1 financial narrative to AIL",
+                 "Summarise spend by workstream. Cross-reference with Module A workplan actuals.",
+                 "Not Started", "2026-11-30", "Finance Officer", ""),
+                ("MEAL Admin", "Configure KoboToolbox Form 1 across all 5 anchor partners",
+                 "Ensure enrolment screening form is deployed and tested per partner.",
+                 "Complete", "", "MEAL Admin", "PI.1"),
+                ("MEAL Admin", "Set up Module E indicator baseline tracking for FY2026",
+                 "All 21 logframe indicators seeded with targets and trigger values.",
+                 "Complete", "", "MEAL Admin", ""),
+                ("MEAL Admin", "Complete partner MEAL mapping visits (Modules J and K)",
+                 "All 5 anchor + 4 technical partners visited. Findings in Module J; tasks in Module K.",
+                 "In Progress", "2026-10-31", "MEAL Admin", ""),
+                ("MEAL Asst", "Enter Q1 actual values from partner narrative reports into Module E",
+                 "Source values from partner implementation plan decks and confirmation emails.",
+                 "In Progress", "2026-10-25", "MEAL Asst", ""),
+                ("MEAL Asst", "File Q1 participant registers by partner and quarter",
+                 "Scan, label and upload to respective partner folders in Module K.",
+                 "Not Started", "2026-10-31", "MEAL Asst", "PI.1"),
+                ("MEAL Asst", "Review data quality on Q1 KoboToolbox Form 1 submissions",
+                 "Check for missing disaggregation fields and flag to MEAL Admin.",
+                 "Not Started", "2026-11-07", "MEAL Asst", "PI.1"),
+                ("Partner MEAL", "Submit participant register extract to CEL MEAL by 30 Sep 2026",
+                 "Extract from KoboToolbox Form 1. Disaggregate by sex, age, disability. Share via secure link.",
+                 "In Progress", "2026-09-30", "Partner MEAL Focal", "PI.1"),
+                ("Partner MEAL", "Verify disaggregation fields in KoboToolbox Form 1",
+                 "Confirm sex, age, disability and value-chain node fields are completed for every entry.",
+                 "Not Started", "2026-10-15", "Partner MEAL Focal", "PI.1"),
+                ("Partner MEAL", "Provide list of communities served for overlap mapping",
+                 "List all communities/sites reached in Q1. CEL MEAL will cross-check for double-counting.",
+                 "Not Started", "2026-10-15", "Partner MEAL Focal", ""),
+            ]:
+                conn.execute(text("""
+                    INSERT INTO team_tasks
+                           (project_id, team_role, task, description, status,
+                            due_date, assigned_to, logframe_row_id, created_at, created_by)
+                    SELECT pr.project_id, :role, :task, :desc, :st,
+                           NULLIF(:due, ''), :asgn,
+                           (SELECT lr.id FROM logframe_rows lr
+                            WHERE lr.project_id=pr.project_id AND lr.indicator_code=:code),
+                           '2026-10-01', 'MEAL Admin'
+                    FROM projects pr WHERE pr.name='SAWA'
+                      AND NOT EXISTS (
+                          SELECT 1 FROM team_tasks tt2
+                          WHERE tt2.project_id=pr.project_id
+                            AND tt2.team_role=:role AND tt2.task=:task
+                      )
+                """), {"role": _role, "task": _task, "desc": _desc, "st": _status,
+                       "due": _due, "asgn": _asgn, "code": _code or ""})
         return True
 
     schema = SCHEMA_PATH.read_text()
@@ -939,6 +1148,221 @@ def _run_migrations() -> bool:
                  )""",
             (_code, current_fiscal_year(), _pname, _q1, _ps, _pl, _code, _pname),
         )
+    # ── Sample data for Module J & K (SQLite, idempotent) ────────────────────
+    _sawa_pid = conn.execute(
+        "SELECT project_id FROM projects WHERE name='SAWA' LIMIT 1"
+    ).fetchone()
+    if _sawa_pid:
+        _sawa_pid = _sawa_pid[0]
+        def _pid_of(name):
+            r = conn.execute(
+                "SELECT partner_id FROM partners WHERE project_id=? AND name=? LIMIT 1",
+                (_sawa_pid, name)
+            ).fetchone()
+            return r[0] if r else None
+        def _lf_of(code):
+            r = conn.execute(
+                "SELECT id FROM logframe_rows WHERE project_id=? AND indicator_code=? LIMIT 1",
+                (_sawa_pid, code)
+            ).fetchone()
+            return r[0] if r else None
+        def _visit_id(pname, vdate):
+            pid = _pid_of(pname)
+            if not pid:
+                return None
+            r = conn.execute(
+                "SELECT id FROM partner_visits WHERE project_id=? AND partner_id=? AND visit_date=? LIMIT 1",
+                (_sawa_pid, pid, vdate)
+            ).fetchone()
+            return r[0] if r else None
+
+        for _pname, _vdate, _vtype, _status, _notes in [
+            ("Aglow Farms", "2026-10-05", "In-person", "Completed",
+             "Initial M&E mapping. Paper registers + Excel. KoboToolbox training needed."),
+            ("TechnoServe", "2026-10-07", "Remote",    "Completed",
+             "Virtual M&E review. Salesforce CRM + ODK. Strong disaggregation. Low overlap risk."),
+            ("AgroKings",   "2026-10-12", "In-person", "Scheduled",  ""),
+            ("Naple Betta", "2026-10-15", "In-person", "Scheduled",  ""),
+            ("AFRIGEM",     "2026-10-20", "Joint",     "Scheduled",
+             "Joint visit with Aglow Farms — shared Kasunya community overlap."),
+        ]:
+            if not _visit_id(_pname, _vdate):
+                _par = _pid_of(_pname)
+                if _par:
+                    conn.execute(
+                        """INSERT INTO partner_visits
+                           (project_id,partner_id,visit_date,visit_type,
+                            conducted_by,status,general_notes,created_at)
+                           VALUES (?,?,?,?,'CEL MEAL Team',?,?,?)""",
+                        (_sawa_pid, _par, _vdate, _vtype, _status, _notes, _vdate)
+                    )
+
+        for _pname, _vdate, _fp, _fe, _tools, _stor, _freq, _fmt, \
+                _sex, _age, _dis, _vc, _comm, _risk, _onotes, \
+                _conf, _disc, _supp, _snotes in [
+            ("Aglow Farms", "2026-10-05",
+             "Grace Mensah", "g.mensah@aglowfarms.gh",
+             "KoboToolbox (Form 1 partial), Paper register, Excel summary",
+             "Local Excel files + physical folders; no cloud backup",
+             "Monthly", "Excel",
+             "Y","N","Partial","Y",
+             "Kasunya (Shai Osudoku), Dodowa, Prampram, Nungua",
+             "Medium",
+             "Kasunya and Nungua overlap with AgroKings. Cross-check before Q2 consolidation.",
+             "PI.1,PII.R6",
+             "Age disaggregation not collected. Disability flag inconsistently applied. Q1 actual 461 confirmed.",
+             "Training",
+             "Half-day KoboToolbox Form 1 training for Grace Mensah — Nov 2026."),
+            ("TechnoServe", "2026-10-07",
+             "Kwame Asante", "k.asante@technoserve.org",
+             "Salesforce CRM, ODK Collect, Excel exports",
+             "Salesforce + Azure cloud backup; full audit trail",
+             "Quarterly", "Salesforce report + Excel",
+             "Y","Y","Y","Partial",
+             "Programme-wide — financial eligibility screening, not site-specific",
+             "Low",
+             "No geographic overlap risk. Cross-cutting financial partner.",
+             "PIII.R1,PII.R5,PII.R6",
+             "Value-chain node not captured at beneficiary level. Resolved in Q2 with revised intake form.",
+             "Indicator definitions",
+             "CEL MEAL to share updated definition sheet for PIII.R1 and PII.R5 by 31 Oct 2026."),
+        ]:
+            _vid = _visit_id(_pname, _vdate)
+            if _vid:
+                existing = conn.execute(
+                    "SELECT id FROM visit_findings WHERE visit_id=? LIMIT 1", (_vid,)
+                ).fetchone()
+                if not existing:
+                    conn.execute(
+                        """INSERT INTO visit_findings
+                           (visit_id,mel_focal_person,mel_focal_email,existing_tools,
+                            data_storage,reporting_frequency,reporting_format,
+                            disagg_sex,disagg_age,disagg_disability,disagg_value_chain,
+                            communities_served,overlap_risk,overlap_notes,
+                            indicators_confirmed,discrepancies_found,
+                            support_agreed,support_notes)
+                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        (_vid,_fp,_fe,_tools,_stor,_freq,_fmt,
+                         _sex,_age,_dis,_vc,_comm,_risk,_onotes,
+                         _conf,_disc,_supp,_snotes)
+                    )
+
+        for _pname, _vdate, _lbl, _code in [
+            ("Aglow Farms", "2026-10-05",
+             "Participant Register Extract — Q1 2026 (Aglow Farms)", "PI.1"),
+            ("TechnoServe", "2026-10-07",
+             "TechnoServe Catalytic Grant Disbursement Q1 Report", "PIII.R1"),
+        ]:
+            _vid = _visit_id(_pname, _vdate)
+            if _vid:
+                existing = conn.execute(
+                    "SELECT id FROM visit_evidence WHERE visit_id=? AND label=? LIMIT 1",
+                    (_vid, _lbl)
+                ).fetchone()
+                if not existing:
+                    conn.execute(
+                        """INSERT INTO visit_evidence
+                           (visit_id,project_id,logframe_row_id,label,uploaded_by,uploaded_at)
+                           VALUES (?,?,?,?,'CEL MEAL Team',?)""",
+                        (_vid, _sawa_pid, _lf_of(_code), _lbl, _vdate)
+                    )
+
+        for _role, _task, _desc, _status, _due, _asgn, _code in [
+            ("GYSI","Collect disaggregated enrolment data from all 5 anchor partners",
+             "Confirm sex/age/disability/value-chain disaggregation per partner. Flag gaps to MEAL Admin.",
+             "In Progress","2026-10-31","GYSI Officer","PI.1"),
+            ("GYSI","Verify PWD inclusion rate against 5% programme target",
+             "Cross-check PII.R5 figures against 5% PWD floor per partner.",
+             "Not Started","2026-11-15","GYSI Officer","PII.R5"),
+            ("GYSI","Review GALS/EMAP focal person training completion (PI.9)",
+             "Confirm 25 trained focal persons by Q3. Collect certificates via Module J evidence.",
+             "Not Started","2026-11-30","GYSI Officer","PI.9"),
+            ("Biz Dev","Map existing BDS providers per district across all anchor sites",
+             "Inventory of active BDS services to avoid duplication with SAWA delivery.",
+             "In Progress","2026-10-31","Biz Dev Lead",""),
+            ("Biz Dev","Finalise catalytic grant eligibility criteria with TechnoServe",
+             "Agree thresholds and intake form fields for micro-grant and catalytic grant screening.",
+             "Not Started","2026-11-15","Biz Dev Lead","PIII.R1"),
+            ("Biz Dev","Submit Year 1 BDS roll-out plan to AIL",
+             "Consolidated plan showing coverage per anchor operator and quarterly delivery milestones.",
+             "Not Started","2026-11-30","Biz Dev Lead","PI.3"),
+            ("Biz Coach","Track BDS training completion (Tool 2) for Q1",
+             "Reconcile Tool 2 attendance registers with PI.3 Q1 actual. File in Module K Files.",
+             "In Progress","2026-10-25","Biz Coach Lead","PI.3"),
+            ("Biz Coach","Deploy coaching curriculum to Naple Betta processing hubs",
+             "Confirm delivery schedule with Naple Betta MEAL focal person.",
+             "Not Started","2026-11-01","Biz Coach Lead","PII.R6"),
+            ("Biz Coach","Conduct coaching quality review at AgroKings cluster sites",
+             "Site observation visit. Document findings in Module J or Module K Files.",
+             "Not Started","2026-11-30","Biz Coach Lead",""),
+            ("Comms","Draft Q1 programme impact story for MCF reporting",
+             "Source quotes and data from Module A narrative and Module E actuals.",
+             "In Progress","2026-11-15","Comms Officer",""),
+            ("Comms","Compile SAWA Voices quotes from NewAge Agric Q1 cohort",
+             "At least 3 participant quotes with consent forms. Upload to Module K Files.",
+             "Not Started","2026-11-01","Comms Officer","LoP.1"),
+            ("Comms","Update SAWA social media content calendar for Q2",
+             "Align content plan with programme milestones in Module C calendar.",
+             "Not Started","2026-10-31","Comms Officer",""),
+            ("Admin","Process partner MOU renewals — Aglow Farms and AgroKings",
+             "Coordinate legal review and signatures before Q2 activity ramp-up.",
+             "In Progress","2026-10-31","Programme Admin",""),
+            ("Admin","Archive Q1 field visit documents in shared drive",
+             "Organise by partner and visit date. Link to Module J evidence where applicable.",
+             "Not Started","2026-10-30","Programme Admin",""),
+            ("Admin","Coordinate Q1 programme review meeting logistics",
+             "Book venue/video link. Circulate Module F review schedule 5 days prior.",
+             "Not Started","2026-11-07","Programme Admin",""),
+            ("Finance","Verify Q1 burn rate against 70% threshold",
+             "Pull actuals from financial system. Flag any budget line below threshold to AIL.",
+             "In Progress","2026-10-31","Finance Officer",""),
+            ("Finance","Reconcile TechnoServe catalytic grant disbursement tracker",
+             "Match disbursement records against Module E PIII.R1 actuals.",
+             "Not Started","2026-11-15","Finance Officer","PIII.R1"),
+            ("Finance","Submit Q1 financial narrative to AIL",
+             "Summarise spend by workstream. Cross-reference with Module A workplan actuals.",
+             "Not Started","2026-11-30","Finance Officer",""),
+            ("MEAL Admin","Configure KoboToolbox Form 1 across all 5 anchor partners",
+             "Ensure enrolment screening form is deployed and tested per partner.",
+             "Complete","","MEAL Admin","PI.1"),
+            ("MEAL Admin","Set up Module E indicator baseline tracking for FY2026",
+             "All 21 logframe indicators seeded with targets and trigger values.",
+             "Complete","","MEAL Admin",""),
+            ("MEAL Admin","Complete partner MEAL mapping visits (Modules J and K)",
+             "All 5 anchor + 4 technical partners visited. Findings in Module J; tasks in Module K.",
+             "In Progress","2026-10-31","MEAL Admin",""),
+            ("MEAL Asst","Enter Q1 actual values from partner narrative reports into Module E",
+             "Source values from partner implementation plan decks and confirmation emails.",
+             "In Progress","2026-10-25","MEAL Asst",""),
+            ("MEAL Asst","File Q1 participant registers by partner and quarter",
+             "Scan, label and upload to respective partner folders in Module K.",
+             "Not Started","2026-10-31","MEAL Asst","PI.1"),
+            ("MEAL Asst","Review data quality on Q1 KoboToolbox Form 1 submissions",
+             "Check for missing disaggregation fields and flag to MEAL Admin.",
+             "Not Started","2026-11-07","MEAL Asst","PI.1"),
+            ("Partner MEAL","Submit participant register extract to CEL MEAL by 30 Sep 2026",
+             "Extract from KoboToolbox Form 1. Disaggregate by sex/age/disability. Share via secure link.",
+             "In Progress","2026-09-30","Partner MEAL Focal","PI.1"),
+            ("Partner MEAL","Verify disaggregation fields in KoboToolbox Form 1",
+             "Confirm sex/age/disability/value-chain fields are completed for every entry.",
+             "Not Started","2026-10-15","Partner MEAL Focal","PI.1"),
+            ("Partner MEAL","Provide list of communities served for overlap mapping",
+             "List all Q1 communities/sites reached. CEL MEAL will cross-check for double-counting.",
+             "Not Started","2026-10-15","Partner MEAL Focal",""),
+        ]:
+            existing = conn.execute(
+                "SELECT id FROM team_tasks WHERE project_id=? AND team_role=? AND task=? LIMIT 1",
+                (_sawa_pid, _role, _task)
+            ).fetchone()
+            if not existing:
+                conn.execute(
+                    """INSERT INTO team_tasks
+                       (project_id,team_role,task,description,status,
+                        due_date,assigned_to,logframe_row_id,created_at,created_by)
+                       VALUES (?,?,?,?,?,?,?,?,'2026-10-01','MEAL Admin')""",
+                    (_sawa_pid, _role, _task, _desc, _status,
+                     _due or None, _asgn, _lf_of(_code) if _code else None)
+                )
     # Dedup e-SAWA/KNUST (SQLite — correlated DELETE, keep lowest id).
     try:
         conn.execute("""

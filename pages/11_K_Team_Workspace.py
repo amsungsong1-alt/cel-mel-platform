@@ -92,6 +92,27 @@ st.caption(
     "Select a team role to view or add tasks and files."
 )
 
+# ── Download all tasks ─────────────────────────────────────────────────────────
+_all_tasks_dl = run_query(
+    """SELECT tt.team_role AS "Role", tt.task AS "Task",
+              tt.description AS "Description", tt.status AS "Status",
+              tt.due_date AS "Due Date", tt.assigned_to AS "Assigned To",
+              lr.indicator_code AS "Indicator"
+       FROM team_tasks tt
+       LEFT JOIN logframe_rows lr ON lr.id = tt.logframe_row_id
+       WHERE tt.project_id=:pid
+       ORDER BY tt.team_role, tt.status, tt.due_date""",
+    {"pid": project_id},
+)
+if _all_tasks_dl:
+    _dl_csv = pd.DataFrame(_all_tasks_dl).to_csv(index=False)
+    st.download_button(
+        "Download all tasks (CSV)",
+        data=_dl_csv,
+        file_name="sawa_team_tasks.csv",
+        mime="text/csv",
+    )
+
 left, right = st.columns([1, 3])
 
 with left:
