@@ -430,6 +430,340 @@ def _build_meal_task_word() -> bytes:
     document.save(buf)
     return buf.getvalue()
 
+
+# ── Per-role MEAL Evidence Guide & Templates (auto-seeded into Module K Files) ──
+# category id -> reusable evidence-template definition. 16 categories cover all
+# 52 distinct Means-of-Verification phrases across the 21 logframe indicators
+# (verified 1:1 below — see _role_mov_phrases / the dev script that built this).
+_MOV_TEMPLATES = {
+    "attendance_register": {
+        "title": "Attendance Register", "kind": "table",
+        "columns": ["Date", "Community / Site", "Participant Name", "Sex", "Age", "Disability (Y/N)", "Signature / Thumbprint"],
+        "guidance": "Use one register per session/cohort. File the completed register in this Module K folder, referencing the linked indicator code in the file name.",
+    },
+    "knowledge_assessment": {
+        "title": "Post-Training Knowledge Assessment", "kind": "table",
+        "columns": ["Participant Name", "Pre-test Score (%)", "Post-test Score (%)", "Assessment Date", "Facilitator Notes"],
+        "guidance": "Score against the module's standard assessment. Note common gaps to inform future module design.",
+    },
+    "safeguarding_log": {
+        "title": "Safeguarding Incident Log", "kind": "table",
+        "columns": ["Date Reported", "Community / Partner", "Incident Type", "Reported By", "Action Taken", "Status", "Closed Date"],
+        "guidance": "Confidential — restrict access to the CEL Safeguarding Officer and MEAL Admin only.",
+    },
+    "safeguarding_officer_report": {
+        "title": "Safeguarding Officer Report", "kind": "outline",
+        "sections": ["Reporting period", "Sites / partners visited", "Findings", "Policy adoption status per partner", "Follow-up actions", "Sign-off"],
+        "guidance": "One report per reporting period (quarterly for incidents; annual for policy adoption review).",
+    },
+    "site_certification": {
+        "title": "Site Certification Checklist", "kind": "table",
+        "columns": ["Site / Partner", "Standard", "Certified (Y/N)", "Certification Date", "Certifying Body", "Evidence Reference"],
+        "guidance": "Review annually alongside the partner's safeguarding and occupational-health self-assessment.",
+    },
+    "event_report": {
+        "title": "Campaign / Forum / Event Report", "kind": "outline",
+        "sections": ["Event name", "Date & location", "Attendance count (disaggregated by sex/age/disability)", "Key messages / topics covered", "Community feedback summary", "Photos / evidence filed"],
+        "guidance": "Complete within 5 working days of the event and file alongside the attendance register.",
+    },
+    "feedback_form": {
+        "title": "Community Feedback Form", "kind": "table",
+        "columns": ["Date", "Community", "Feedback Theme", "Details", "Follow-up Needed"],
+        "guidance": "Collect at the end of each campaign/roadshow. Summarise themes in the linked event report.",
+    },
+    "registry": {
+        "title": "Registry", "kind": "table",
+        "columns": ["Name", "Role / Partner", "Contact", "Community", "Date Registered", "Status"],
+        "guidance": "Keep as a living document — update status (Active/Inactive) rather than deleting entries.",
+    },
+    "verification_record": {
+        "title": "Field Verification / Spot-Check Record", "kind": "table",
+        "columns": ["Date", "Participant / Site", "Verified By", "Method", "Finding", "Follow-up Action"],
+        "guidance": "Sample at least 10% of records each quarter, weighted toward higher-risk sites.",
+    },
+    "cooperative_governance": {
+        "title": "Cooperative / Governance Record", "kind": "table",
+        "columns": ["Cooperative / Cluster Name", "Registration Status", "Members (n)", "Governance Document Signed (Y/N)", "Date", "Notes"],
+        "guidance": "Cross-check against KoboToolbox Tool 3 Governance Checklist submissions before closing out.",
+    },
+    "partner_report": {
+        "title": "Partner Progress Report", "kind": "outline",
+        "sections": ["Reporting period", "Partner name", "Key achievements", "Challenges", "Data submitted to CEL (Y/N)", "Next steps"],
+        "guidance": "Request from each partner's MEAL focal person on the same cycle as their MoV frequency.",
+    },
+    "enrolment_register": {
+        "title": "Enrolment / Employment Register", "kind": "table",
+        "columns": ["Name", "Sex", "Age", "Disability (Y/N)", "Community", "Enrolment / Start Date", "Role / Position", "Status"],
+        "guidance": "Reconcile against KoboToolbox Tool 2 submissions before reporting a count.",
+    },
+    "production_log": {
+        "title": "Production / Trade Log", "kind": "table",
+        "columns": ["Date", "Site / Partner", "Product", "Quantity (MT / units)", "Unit Price", "Notes"],
+        "guidance": "Where available, cross-check against partner internal production/trade records.",
+    },
+    "financial_record": {
+        "title": "Financial / Revenue Record", "kind": "table",
+        "columns": ["Date", "Transaction Type", "Amount (USD / GHS)", "Partner / Site", "Verified By", "Evidence Reference"],
+        "guidance": "Attach receipts/statements as evidence references rather than transcribing values only.",
+    },
+    "survey_outline": {
+        "title": "Survey Instrument Outline", "kind": "outline",
+        "sections": ["Purpose", "Target respondents", "Sample size", "Key questions / modules", "Frequency", "Data owner"],
+        "guidance": "Draft the full instrument separately; this outline is the design brief to start from.",
+    },
+}
+
+# MoV phrase -> template category id; None = lives in a digital system, not a paper template.
+_MOV_TEMPLATE_MAP = {
+    "Training completion certificates": "registry",
+    "Focal person registry": "registry",
+    "Partner reports": "partner_report",
+    "WAN attendance registers": "attendance_register",
+    "Forum reports": "event_report",
+    "CEL field officer notes": "verification_record",
+    "Event reports": "event_report",
+    "Attendance lists": "attendance_register",
+    "Mentor registry": "registry",
+    "Match records": "verification_record",
+    "Field verification notes": "verification_record",
+    "Training attendance registers": "attendance_register",
+    "BDS completion records": "attendance_register",
+    "Training registers": "attendance_register",
+    "Cooperative membership records": "cooperative_governance",
+    "Signed governance documents": "cooperative_governance",
+    "Field verification": "verification_record",
+    "Cooperative registration documents": "cooperative_governance",
+    "Enrolment registers": "enrolment_register",
+    "Mobilisation partner reports": "partner_report",
+    "Programme monitoring database": None,
+    "Annual outcome surveys": "survey_outline",
+    "Partner progress reports": "partner_report",
+    "Training records": "attendance_register",
+    "Safeguarding incident log": "safeguarding_log",
+    "CEL safeguarding officer reports": "safeguarding_officer_report",
+    "Site certification documentation": "site_certification",
+    "Safeguarding policy adoption records": "safeguarding_officer_report",
+    "Post-training knowledge assessment records": "knowledge_assessment",
+    "Campaign reports": "event_report",
+    "Attendance records": "attendance_register",
+    "Community feedback forms": "feedback_form",
+    "Employment records": "enrolment_register",
+    "Partner payroll verification": "financial_record",
+    "Field spot-checks": "verification_record",
+    "PWD registry": "registry",
+    "Employment and enterprise records": "enrolment_register",
+    "Production logs": "production_log",
+    "Catch data records": "production_log",
+    "Third-party verification": "verification_record",
+    "Sales receipts": "financial_record",
+    "Partner financial records": "financial_record",
+    "Income survey": "survey_outline",
+    "Trading and processing records": "production_log",
+    "Market assessment data": "survey_outline",
+    "Sales records": "financial_record",
+    "Market price monitoring": "financial_record",
+    "Financial audits": "financial_record",
+    "KoboToolbox Tool 2": None,
+    "KoboToolbox Tool 3 Governance Checklist": None,
+    "Governance Checklist (Tool 3)": None,
+    "E-SAWA platform enrolment data": None,
+}
+
+_MOV_DIGITAL_NOTES = {
+    "Programme monitoring database": "CEL's programme-wide M&E database — Module E (Data Sync & Analysis) is the primary interface.",
+    "KoboToolbox Tool 2": "Partner enrolment/training data-collection tool — submissions sync into Module D (Kobo Data Sync).",
+    "KoboToolbox Tool 3 Governance Checklist": "Cooperative governance checklist tool — submissions sync into Module D (Kobo Data Sync).",
+    "Governance Checklist (Tool 3)": "Same tool as KoboToolbox Tool 3 Governance Checklist — submissions sync into Module D.",
+    "E-SAWA platform enrolment data": "E-SAWA digital literacy platform's own enrolment records — request an export from the platform administrator.",
+}
+
+
+def _role_mov_phrases(tasks: list) -> list:
+    seen = []
+    for t in tasks:
+        for phrase in [p.strip() for p in t["mov"].split(";")]:
+            if phrase not in seen:
+                seen.append(phrase)
+    return seen
+
+
+def _build_role_guide_word(role: str) -> bytes:
+    """Build the per-role MEAL Evidence Guide & Templates document: the role's
+    linked indicators plus blank evidence templates for each distinct Means
+    of Verification they depend on — a starting resource for Module K Files."""
+    from docx import Document
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+    from docx.shared import Cm, Mm, Pt, RGBColor
+
+    tasks = _MEAL_TASKS_BY_ROLE.get(role, [])
+    teal = RGBColor(0x1E, 0x7E, 0x76)
+    muted = RGBColor(0x5E, 0x6A, 0x6A)
+
+    def _shade_cell(cell, hex_color):
+        tcPr = cell._tc.get_or_add_tcPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:val"), "clear")
+        shd.set(qn("w:color"), "auto")
+        shd.set(qn("w:fill"), hex_color)
+        tcPr.append(shd)
+
+    def _table(document, headers, widths, rows, accent_hex="1E7E76", n_blank=3):
+        table = document.add_table(rows=1, cols=len(headers))
+        table.style = "Table Grid"
+        hdr_cells = table.rows[0].cells
+        for i, (h, w) in enumerate(zip(headers, widths)):
+            hdr_cells[i].width = w
+            run = hdr_cells[i].paragraphs[0].add_run(h)
+            run.bold = True
+            run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+            run.font.size = Pt(9)
+            _shade_cell(hdr_cells[i], accent_hex)
+        for row in rows:
+            row_cells = table.add_row().cells
+            for i, (v, w) in enumerate(zip(row, widths)):
+                row_cells[i].width = w
+                run = row_cells[i].paragraphs[0].add_run(v)
+                run.font.size = Pt(8.5)
+        for _ in range(n_blank):
+            row_cells = table.add_row().cells
+            for i, w in enumerate(widths):
+                row_cells[i].width = w
+        return table
+
+    document = Document()
+    section = document.sections[0]
+    section.page_width = Mm(210)
+    section.page_height = Mm(297)
+    section.left_margin = Cm(2.0)
+    section.right_margin = Cm(2.0)
+
+    title = document.add_heading("SAWA MEAL Evidence Guide & Templates", level=0)
+    title.runs[0].font.color.rgb = teal
+    sub = document.add_heading(role, level=2)
+    sub.runs[0].font.color.rgb = muted
+
+    intro = document.add_paragraph(
+        f"Starter guide for {role}'s Means of Verification evidence in Module K (Team Workspace). "
+        f"{_MEAL_ROLE_SUBTITLE[role]} Use the templates below as a starting point — adapt fields to "
+        "your partner's specific context, then save your working version back to this Module K "
+        "Files folder."
+    )
+    intro.runs[0].font.size = Pt(10)
+
+    document.add_heading("Your Linked Indicators", level=1)
+    if tasks:
+        _table(
+            document,
+            ["Indicator ID", "Indicator (SMART)", "Frequency", "Y1 Quarter", "Means of Verification"],
+            [Cm(2.0), Cm(6.0), Cm(2.0), Cm(2.0), Cm(4.5)],
+            [[t["id"], t["indicator"], t["freq"], t["quarter"], t["mov"]] for t in tasks],
+            n_blank=0,
+        )
+    else:
+        p = document.add_paragraph(
+            "No logframe indicator is directly linked to this role yet — use the example tasks "
+            "already in your Module K folder as your starting point."
+        )
+        p.runs[0].italic = True
+    document.add_paragraph()
+
+    mov_phrases = _role_mov_phrases(tasks)
+    categories_used: list = []
+    digital_phrases: list = []
+    for phrase in mov_phrases:
+        cat_id = _MOV_TEMPLATE_MAP.get(phrase)
+        if cat_id is None:
+            digital_phrases.append(phrase)
+            continue
+        existing = next((c for c in categories_used if c[0] == cat_id), None)
+        if existing:
+            existing[1].append(phrase)
+        else:
+            categories_used.append((cat_id, [phrase]))
+
+    if categories_used:
+        document.add_heading("Evidence Templates", level=1)
+        for cat_id, phrases in categories_used:
+            tpl = _MOV_TEMPLATES[cat_id]
+            h = document.add_heading(tpl["title"], level=2)
+            h.runs[0].font.color.rgb = teal
+            used_for = document.add_paragraph()
+            used_for_run = used_for.add_run(f"Used for: {', '.join(phrases)}")
+            used_for_run.italic = True
+            used_for_run.font.size = Pt(8.5)
+            used_for_run.font.color.rgb = muted
+
+            if tpl["kind"] == "table":
+                n = len(tpl["columns"])
+                w = round(16.0 / n, 2)
+                _table(document, tpl["columns"], [Cm(w)] * n, [], n_blank=4)
+            else:
+                for s in tpl["sections"]:
+                    p = document.add_paragraph(style="List Bullet")
+                    p.add_run(f"{s}: ").bold = True
+                    p.add_run("________________________________________")
+
+            g = document.add_paragraph()
+            g_run = g.add_run(tpl["guidance"])
+            g_run.italic = True
+            g_run.font.size = Pt(8.5)
+            g_run.font.color.rgb = muted
+            document.add_paragraph()
+
+    if digital_phrases:
+        document.add_heading("Digital Systems Reference", level=1)
+        document.add_paragraph(
+            "These Means of Verification live in a digital system rather than a paper template:"
+        )
+        for phrase in digital_phrases:
+            p = document.add_paragraph(style="List Bullet")
+            p.add_run(f"{phrase}: ").bold = True
+            p.add_run(_MOV_DIGITAL_NOTES.get(phrase, "See Module D/E for this system."))
+        document.add_paragraph()
+
+    document.add_paragraph().add_run(
+        "Source: SAWA logframe export, 29 Sep 2026 (Module B) for linked indicators and Means of "
+        "Verification. Templates are CEL MEAL starting formats, not prescribed instruments — adapt "
+        "as needed and keep your working copy in this Module K folder."
+    ).font.size = Pt(8)
+
+    buf = io.BytesIO()
+    document.save(buf)
+    return buf.getvalue()
+
+
+# Auto-seed one starter guide per role into that role's Files folder, once.
+# Idempotent: checks by label before inserting, so this is a no-op after the
+# first successful run per project. Runs regardless of the viewer's write
+# access — this is a system resource, not a user-authored task/file.
+_GUIDE_LABEL_PREFIX = "MEAL Evidence Guide & Templates"
+for _guide_role in _MEAL_ROLE_ORDER:
+    _guide_label = f"{_GUIDE_LABEL_PREFIX} — {_guide_role}"
+    _guide_exists = run_query(
+        "SELECT id FROM team_files WHERE project_id=:pid AND team_role=:r AND label=:lbl LIMIT 1",
+        {"pid": project_id, "r": _guide_role, "lbl": _guide_label},
+    )
+    if not _guide_exists:
+        run_write(
+            """INSERT INTO team_files
+               (project_id, team_role, label, description,
+                file_name, file_mime, file_data, uploaded_by, uploaded_at)
+               VALUES (:pid, :role, :lbl, :desc, :fn, :fm, :fd, :by, :at)""",
+            {
+                "pid":  project_id,
+                "role": _guide_role,
+                "lbl":  _guide_label,
+                "desc": "Starter guide + blank evidence templates for this role's linked "
+                        "indicators — build on it, then save your working version here.",
+                "fn":   f"sawa_meal_guide_{_guide_role.lower().replace(' ', '_')}.docx",
+                "fm":   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "fd":   _build_role_guide_word(_guide_role),
+                "by":   "System",
+                "at":   str(_date.today()),
+            },
+        )
+
 # ── Layout ────────────────────────────────────────────────────────────────────
 st.title("Module K — Team Workspace")
 st.caption(
