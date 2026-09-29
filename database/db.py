@@ -399,6 +399,31 @@ def _run_migrations() -> bool:
                   AND COALESCE(a.partner_id, -1) = COALESCE(b.partner_id, -1)
                   AND COALESCE(a.time_basis, '') = COALESCE(b.time_basis, '')
             """))
+            # Dedup e-SAWA/KNUST: concurrent reseeds occasionally insert it twice.
+            # Keep the lowest partner_id row; delete cascades to partner_targets.
+            conn.execute(text("""
+                DELETE FROM partners a
+                USING partners b
+                WHERE a.partner_id > b.partner_id
+                  AND a.name = b.name
+                  AND a.name = 'e-SAWA/KNUST'
+            """))
+            # Ensure TechnoServe is present (may be missing on older live DBs
+            # that were seeded before TechnoServe was added to PARTNERS).
+            conn.execute(text("""
+                INSERT INTO partners (project_id, name, role, tier)
+                SELECT pr.project_id,
+                       'TechnoServe',
+                       'Technical Partner — programme finance eligibility assessment',
+                       'Technical'
+                FROM projects pr
+                WHERE pr.name = 'SAWA'
+                  AND NOT EXISTS (
+                      SELECT 1 FROM partners p2
+                      WHERE p2.project_id = pr.project_id
+                        AND p2.name = 'TechnoServe'
+                  )
+            """))
             # Remove decision_reports/actions whose logframe_row_id no longer
             # exists (left by a concurrent reseed where one process deleted
             # logframe_rows that another process had used for its FK inserts).
@@ -914,6 +939,74 @@ def _run_migrations() -> bool:
                  )""",
             (_code, current_fiscal_year(), _pname, _q1, _ps, _pl, _code, _pname),
         )
+    # Dedup e-SAWA/KNUST (SQLite — correlated DELETE, keep lowest id).
+    try:
+        conn.execute("""
+            DELETE FROM partners
+            WHERE name = 'e-SAWA/KNUST'
+              AND partner_id NOT IN (
+                  SELECT MIN(partner_id) FROM partners WHERE name = 'e-SAWA/KNUST'
+              )
+        """)
+    except Exception:
+        pass
+    # Ensure TechnoServe is present on older live DBs.
+    try:
+        conn.execute("""
+            INSERT INTO partners (project_id, name, role, tier)
+            SELECT pr.project_id,
+                   'TechnoServe',
+                   'Technical Partner — programme finance eligibility assessment',
+                   'Technical'
+            FROM projects pr
+            WHERE pr.name = 'SAWA'
+              AND NOT EXISTS (
+                  SELECT 1 FROM partners p2
+                  WHERE p2.project_id = pr.project_id AND p2.name = 'TechnoServe'
+              )
+        """)
+    except Exception:
+        pass
+    # Module K: Team Workspace tables (added Sep 2026).
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS team_tasks (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                team_role       TEXT    NOT NULL,
+                task            TEXT    NOT NULL,
+                description     TEXT,
+                status          TEXT    DEFAULT 'Not Started'
+                                CHECK(status IN ('Not Started','In Progress','Complete','Blocked')),
+                due_date        TEXT,
+                assigned_to     TEXT,
+                logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+                created_at      TEXT    NOT NULL,
+                created_by      TEXT
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS team_files (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                team_role       TEXT    NOT NULL,
+                label           TEXT    NOT NULL,
+                description     TEXT,
+                logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+                link_url        TEXT,
+                file_name       TEXT,
+                file_mime       TEXT,
+                file_data       BLOB,
+                uploaded_by     TEXT,
+                uploaded_at     TEXT    NOT NULL
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tt_project  ON team_tasks(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tt_role     ON team_tasks(team_role)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tf_project  ON team_files(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tf_role     ON team_files(team_role)")
+    except Exception:
+        pass
     conn.commit()
     conn.close()
     return True

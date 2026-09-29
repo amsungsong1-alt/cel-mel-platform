@@ -438,3 +438,39 @@ CREATE INDEX IF NOT EXISTS idx_pv_partner  ON partner_visits(partner_id);
 CREATE INDEX IF NOT EXISTS idx_vf_visit    ON visit_findings(visit_id);
 CREATE INDEX IF NOT EXISTS idx_ve_visit    ON visit_evidence(visit_id);
 CREATE INDEX IF NOT EXISTS idx_ve_project  ON visit_evidence(project_id);
+
+-- Module K: Team Workspace — tasks and evidence per CEL team role.
+CREATE TABLE IF NOT EXISTS team_tasks (
+    id              INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    team_role       TEXT    NOT NULL,
+    task            TEXT    NOT NULL,
+    description     TEXT,
+    status          TEXT    DEFAULT 'Not Started'
+                    CHECK(status IN ('Not Started','In Progress','Complete','Blocked')),
+    due_date        TEXT,
+    assigned_to     TEXT,
+    logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+    created_at      TEXT    NOT NULL,
+    created_by      TEXT
+);
+
+CREATE TABLE IF NOT EXISTS team_files (
+    id              INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    team_role       TEXT    NOT NULL,
+    label           TEXT    NOT NULL,
+    description     TEXT,
+    logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
+    link_url        TEXT,
+    file_name       TEXT,
+    file_mime       TEXT,
+    file_data       BYTEA,
+    uploaded_by     TEXT,
+    uploaded_at     TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_tt_project ON team_tasks(project_id);
+CREATE INDEX IF NOT EXISTS idx_tt_role    ON team_tasks(team_role);
+CREATE INDEX IF NOT EXISTS idx_tf_project ON team_files(project_id);
+CREATE INDEX IF NOT EXISTS idx_tf_role    ON team_files(team_role);
