@@ -18,6 +18,20 @@ Credential resolution order
        role          = "Editor"
        write_modules = ["E", "F", "G"]
 
+       # k_role restricts Module K (Team Workspace) editing to only that
+       # account's own functional-role folder (one of: GYSI, Biz Dev,
+       # Biz Coach, Comms, Admin, Finance, MEAL Admin, MEAL Asst, Partner
+       # MEAL) — the account also needs "K" in write_modules to write
+       # anything in Module K at all. "MEAL Admin" and "MEAL Asst" are the
+       # only k_roles that can see and edit every role's tasks/files.
+       [credentials.usernames.gysi]
+       name          = "GYSI Officer"
+       email         = "gysi@sawa-programme.org"
+       password      = "$2b$12$<bcrypt hash>"
+       role          = "Editor"
+       write_modules = ["K"]
+       k_role        = "GYSI"
+
        [credentials.usernames.viewer]
        name     = "Donor Viewer"
        email    = "viewer@sawa-programme.org"
@@ -73,6 +87,7 @@ def _config_from_secrets() -> dict:
             "role":          udata.get("role", "Viewer"),
             "write_modules": udata.get("write_modules"),
             "view_modules":  udata.get("view_modules"),
+            "k_role":        udata.get("k_role"),
         }
     return {
         "credentials": {"usernames": usernames},
@@ -150,6 +165,29 @@ def can_write_module(module: str) -> bool:
     if write_modules is None:
         return True  # Admin or unrestricted editor
     return module.upper() in [m.upper() for m in write_modules]
+
+
+_K_OVERSIGHT_ROLES = {"MEAL Admin", "MEAL Asst"}
+
+
+def can_write_k_role(k_role: str) -> bool:
+    """Return True if the current user may edit *k_role*'s tasks/files in
+    Module K (Team Workspace).
+
+    Each functional role's tasks/files are editable only by the account
+    whose own k_role matches, so GYSI cannot edit Comms's tasks and vice
+    versa. MEAL Admin and MEAL Asst are the exception — those k_roles can
+    see and edit every role's tasks/files (MEAL oversight). System Admin
+    accounts always pass, same as every other write check in this app.
+    """
+    if can("admin"):
+        return True
+    if not can_write_module("K"):
+        return False
+    user_k_role = st.session_state.get("k_role")
+    if user_k_role in _K_OVERSIGHT_ROLES:
+        return True
+    return user_k_role is not None and user_k_role == k_role
 
 
 def ensure_auth() -> bool:

@@ -19,7 +19,7 @@ import pandas as pd
 import streamlit as st
 
 from database.db import init_db, run_query, run_write
-from utils.auth import can_write_module
+from utils.auth import can_write_k_role
 from utils.nav_strip import render_nav_strip
 from utils.shared_widgets import project_selector
 
@@ -83,7 +83,6 @@ lf_options = ["None"] + [
 ]
 lf_code_to_id = {r["indicator_code"]: r["id"] for r in logframe_rows}
 
-_can_write = can_write_module("K")
 _username  = st.session_state.get("username", "Team")
 
 # ── MEAL task allocation source data (21-row Module B logframe, 29 Sep 2026) ───
@@ -837,10 +836,16 @@ if "k_selected_role" not in st.session_state:
     st.session_state["k_selected_role"] = ALL_ROLES[0]
 
 selected_role = st.session_state["k_selected_role"]
+_can_write_selected = can_write_k_role(selected_role)
 
 with right:
     icon = _ROLE_ICONS.get(selected_role, "")
     st.subheader(f"{icon} {selected_role}")
+    if not _can_write_selected:
+        st.caption(
+            "🔒 View only — editing this role's tasks/files is restricted to "
+            f"{selected_role}, MEAL Admin and MEAL Asst."
+        )
 
     tab_tasks, tab_files = st.tabs(["Tasks", "Files"])
 
@@ -885,7 +890,7 @@ with right:
                     if t.get("description"):
                         st.caption(t["description"])
 
-                    if _can_write:
+                    if _can_write_selected:
                         sc1, sc2 = st.columns([2, 1])
                         with sc1:
                             new_status = st.selectbox(
@@ -906,7 +911,7 @@ with right:
         else:
             st.info(f"No tasks for {selected_role} yet.")
 
-        if _can_write:
+        if _can_write_selected:
             with st.expander("Add task", expanded=not tasks):
                 with st.form(f"add_task_{selected_role}"):
                     nt_task = st.text_input("Task name")
@@ -996,7 +1001,7 @@ with right:
         else:
             st.info(f"No files for {selected_role} yet.")
 
-        if _can_write:
+        if _can_write_selected:
             with st.expander("Upload file or add link", expanded=not files):
                 with st.form(f"add_file_{selected_role}"):
                     nf_label = st.text_input("Label", help="e.g. 'GYSI training attendance Q1 2026'")
