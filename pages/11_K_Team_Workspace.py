@@ -174,22 +174,81 @@ _MEAL_TASKS_BY_ROLE = {
     ],
 }
 _MEAL_ROLE_ACCENT = {
-    "MEAL Admin": "1E7E76",
-    "MEAL Asst":  "2E9E8F",
     "GYSI":       "8E3B72",
+    "Biz Dev":    "1B5E7A",
     "Biz Coach":  "4A6B5C",
     "Comms":      "2E6F9E",
     "Admin":      "5E6A6A",
+    "Finance":    "8A6D1E",
+    "MEAL Admin": "1E7E76",
+    "MEAL Asst":  "2E9E8F",
     "Partner MEAL": "B96A2E",
 }
 _MEAL_ROLE_SUBTITLE = {
-    "MEAL Admin": "Programme-level monitoring, safeguarding officer reporting and the annual outcome survey.",
-    "MEAL Asst":  "Routine quarterly attendance, assessment and campaign evidence collection.",
     "GYSI":       "GYSI focal-person training and Women in Aquaculture Network (WAN) delivery evidence.",
+    "Biz Dev":    "BDS provider mapping and catalytic grant pipeline — no logframe indicator directly assigned.",
     "Biz Coach":  "BDS training completion and cooperative business mentoring/governance evidence.",
     "Comms":      "E-SAWA digital literacy and digital entrepreneurship evidence.",
     "Admin":      "Partner mobilisation and enrolment coordination evidence.",
+    "Finance":    "Budget/burn-rate monitoring and grant disbursement reconciliation — no logframe indicator directly assigned.",
+    "MEAL Admin": "Programme-level monitoring, safeguarding officer reporting and the annual outcome survey.",
+    "MEAL Asst":  "Routine quarterly attendance, assessment and campaign evidence collection.",
     "Partner MEAL": "Outcome-level D&F jobs, production and revenue data verified at partner level.",
+}
+_MEAL_ROLE_ORDER = [
+    "GYSI", "Biz Dev", "Biz Coach", "Comms", "Admin", "Finance",
+    "MEAL Admin", "MEAL Asst", "Partner MEAL",
+]
+
+# The 3 example tasks already seeded live per role in Module K (database/db.py
+# team_tasks seed block) — mirrored here so the Word export retains a realistic
+# example alongside the logframe-derived indicator rows for every K role.
+_MEAL_ROLE_EXAMPLE_TASKS = {
+    "GYSI": [
+        {"task": "Collect disaggregated enrolment data from all 5 anchor partners", "status": "In Progress", "due": "2026-10-31", "assigned": "GYSI Officer", "code": "PI.1"},
+        {"task": "Verify PWD inclusion rate against 5% programme target", "status": "Not Started", "due": "2026-11-15", "assigned": "GYSI Officer", "code": "PII.R5"},
+        {"task": "Review GALS/EMAP focal person training completion (PI.9)", "status": "Not Started", "due": "2026-11-30", "assigned": "GYSI Officer", "code": "PI.9"},
+    ],
+    "Biz Dev": [
+        {"task": "Map existing BDS providers per district across all anchor sites", "status": "In Progress", "due": "2026-10-31", "assigned": "Biz Dev Lead", "code": ""},
+        {"task": "Finalise catalytic grant eligibility criteria with TechnoServe", "status": "Not Started", "due": "2026-11-15", "assigned": "Biz Dev Lead", "code": "PIII.R1"},
+        {"task": "Submit Year 1 BDS roll-out plan to AIL", "status": "Not Started", "due": "2026-11-30", "assigned": "Biz Dev Lead", "code": "PI.3"},
+    ],
+    "Biz Coach": [
+        {"task": "Track BDS training completion (Tool 2) for Q1", "status": "In Progress", "due": "2026-10-25", "assigned": "Biz Coach Lead", "code": "PI.3"},
+        {"task": "Deploy coaching curriculum to Naple Betta processing hubs", "status": "Not Started", "due": "2026-11-01", "assigned": "Biz Coach Lead", "code": "PII.R6"},
+        {"task": "Conduct coaching quality review at AgroKings cluster sites", "status": "Not Started", "due": "2026-11-30", "assigned": "Biz Coach Lead", "code": ""},
+    ],
+    "Comms": [
+        {"task": "Draft Q1 programme impact story for MCF reporting", "status": "In Progress", "due": "2026-11-15", "assigned": "Comms Officer", "code": ""},
+        {"task": "Compile SAWA Voices quotes from NewAge Agric Q1 cohort", "status": "Not Started", "due": "2026-11-01", "assigned": "Comms Officer", "code": "LoP.1"},
+        {"task": "Update SAWA social media content calendar for Q2", "status": "Not Started", "due": "2026-10-31", "assigned": "Comms Officer", "code": ""},
+    ],
+    "Admin": [
+        {"task": "Process partner MOU renewals — Aglow Farms and AgroKings", "status": "In Progress", "due": "2026-10-31", "assigned": "Programme Admin", "code": ""},
+        {"task": "Archive Q1 field visit documents in shared drive", "status": "Not Started", "due": "2026-10-30", "assigned": "Programme Admin", "code": ""},
+        {"task": "Coordinate Q1 programme review meeting logistics", "status": "Not Started", "due": "2026-11-07", "assigned": "Programme Admin", "code": ""},
+    ],
+    "Finance": [
+        {"task": "Verify Q1 burn rate against 70% threshold", "status": "In Progress", "due": "2026-10-31", "assigned": "Finance Officer", "code": ""},
+        {"task": "Reconcile TechnoServe catalytic grant disbursement tracker", "status": "Not Started", "due": "2026-11-15", "assigned": "Finance Officer", "code": "PIII.R1"},
+        {"task": "Submit Q1 financial narrative to AIL", "status": "Not Started", "due": "2026-11-30", "assigned": "Finance Officer", "code": ""},
+    ],
+    "MEAL Admin": [
+        {"task": "Configure KoboToolbox Form 1 across all 5 anchor partners", "status": "Complete", "due": "", "assigned": "MEAL Admin", "code": "PI.1"},
+        {"task": "Set up Module E indicator baseline tracking for FY2026", "status": "Complete", "due": "", "assigned": "MEAL Admin", "code": ""},
+        {"task": "Complete partner MEAL mapping visits (Modules J and K)", "status": "In Progress", "due": "2026-10-31", "assigned": "MEAL Admin", "code": ""},
+    ],
+    "MEAL Asst": [
+        {"task": "Enter Q1 actual values from partner narrative reports into Module E", "status": "In Progress", "due": "2026-10-25", "assigned": "MEAL Asst", "code": ""},
+        {"task": "File Q1 participant registers by partner and quarter", "status": "Not Started", "due": "2026-10-31", "assigned": "MEAL Asst", "code": "PI.1"},
+        {"task": "Review data quality on Q1 KoboToolbox Form 1 submissions", "status": "Not Started", "due": "2026-11-07", "assigned": "MEAL Asst", "code": "PI.1"},
+    ],
+    "Partner MEAL": [
+        {"task": "Submit participant register extract to CEL MEAL by 30 Sep 2026", "status": "In Progress", "due": "2026-09-30", "assigned": "Partner MEAL Focal", "code": "PI.1"},
+        {"task": "Verify disaggregation fields in KoboToolbox Form 1", "status": "Not Started", "due": "2026-10-15", "assigned": "Partner MEAL Focal", "code": "PI.1"},
+        {"task": "Provide list of communities served for overlap mapping", "status": "Not Started", "due": "2026-10-15", "assigned": "Partner MEAL Focal", "code": ""},
+    ],
 }
 
 
@@ -213,17 +272,9 @@ def _build_meal_task_word() -> bytes:
         shd.set(qn("w:fill"), hex_color)
         tcPr.append(shd)
 
-    def _add_section(document, heading, subtitle, tasks, accent_hex):
-        document.add_heading(heading, level=1)
-        p = document.add_paragraph(subtitle)
-        p.runs[0].italic = True
-        p.runs[0].font.size = Pt(9)
-        p.runs[0].font.color.rgb = muted
-
-        table = document.add_table(rows=1, cols=5)
+    def _mini_table(document, headers, widths, rows, accent_hex):
+        table = document.add_table(rows=1, cols=len(headers))
         table.style = "Table Grid"
-        widths = [Cm(2.0), Cm(5.2), Cm(4.6), Cm(2.0), Cm(4.6)]
-        headers = ["Indicator ID", "Indicator (SMART)", "Means of Verification", "Frequency", "Suggested Task"]
         hdr_cells = table.rows[0].cells
         for i, (h, w) in enumerate(zip(headers, widths)):
             hdr_cells[i].width = w
@@ -232,13 +283,49 @@ def _build_meal_task_word() -> bytes:
             run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
             run.font.size = Pt(9)
             _shade_cell(hdr_cells[i], accent_hex)
-
-        for t in tasks:
+        for row in rows:
             row_cells = table.add_row().cells
-            for i, (v, w) in enumerate(zip([t["id"], t["indicator"], t["mov"], t["freq"], t["task"]], widths)):
+            for i, (v, w) in enumerate(zip(row, widths)):
                 row_cells[i].width = w
                 run = row_cells[i].paragraphs[0].add_run(v)
                 run.font.size = Pt(8.5)
+        return table
+
+    def _add_section(document, heading, subtitle, tasks, examples, accent_hex):
+        document.add_heading(heading, level=1)
+        p = document.add_paragraph(subtitle)
+        p.runs[0].italic = True
+        p.runs[0].font.size = Pt(9)
+        p.runs[0].font.color.rgb = muted
+
+        ind_widths = [Cm(2.0), Cm(5.2), Cm(4.6), Cm(2.0), Cm(4.6)]
+        if tasks:
+            lbl = document.add_paragraph()
+            lbl_run = lbl.add_run("Linked logframe indicators")
+            lbl_run.bold = True
+            lbl_run.font.size = Pt(8.5)
+            _mini_table(
+                document,
+                ["Indicator ID", "Indicator (SMART)", "Means of Verification", "Frequency", "Suggested Task"],
+                ind_widths,
+                [[t["id"], t["indicator"], t["mov"], t["freq"], t["task"]] for t in tasks],
+                accent_hex,
+            )
+            document.add_paragraph()
+
+        if examples:
+            lbl2 = document.add_paragraph()
+            lbl2_run = lbl2.add_run("Example tasks already in Module K")
+            lbl2_run.bold = True
+            lbl2_run.font.size = Pt(8.5)
+            ex_widths = [Cm(6.8), Cm(2.4), Cm(2.2), Cm(3.2), Cm(3.9)]
+            _mini_table(
+                document,
+                ["Task", "Status", "Due Date", "Assigned To", "Linked Indicator"],
+                ex_widths,
+                [[e["task"], e["status"], e["due"] or "—", e["assigned"], e["code"] or "—"] for e in examples],
+                accent_hex,
+            )
         document.add_paragraph()
 
     document = Document()
@@ -254,7 +341,8 @@ def _build_meal_task_word() -> bytes:
     intro = document.add_paragraph(
         "Draft for review and task allocation in Module K (Team Workspace). Every logframe "
         "indicator (21 total) disaggregated by Module K functional role, with the Means of "
-        "Verification it depends on and a suggested day-to-day task."
+        "Verification it depends on and a suggested day-to-day task — plus the 3 example tasks "
+        "already seeded live in each role's Module K folder, for a realistic starting picture."
     )
     intro.runs[0].font.size = Pt(9.5)
     intro.runs[0].font.color.rgb = muted
@@ -265,25 +353,37 @@ def _build_meal_task_word() -> bytes:
         "parties (CEL MEAL, Programme Team, Partner MEAL). The split below to GYSI / Biz Coach / "
         "Comms / Admin / MEAL Admin / MEAL Asst is CEL's working assignment by subject-matter fit, "
         "pending confirmation/adjustment — not sourced from the logframe itself. Biz Dev and "
-        "Finance currently have no directly-linked logframe indicator."
+        "Finance currently have no directly-linked logframe indicator, so only their example "
+        "tasks from Module K appear below."
     )
     flag_run.italic = True
     flag_run.font.size = Pt(8.5)
     flag_run.font.color.rgb = RGBColor(0xB9, 0x6A, 0x2E)
 
-    for role, tasks in _MEAL_TASKS_BY_ROLE.items():
+    for role in _MEAL_ROLE_ORDER:
+        tasks = _MEAL_TASKS_BY_ROLE.get(role, [])
+        examples = _MEAL_ROLE_EXAMPLE_TASKS.get(role, [])
+        n_ind = len(tasks)
+        n_ex = len(examples)
+        heading_bits = []
+        if n_ind:
+            heading_bits.append(f"{n_ind} indicator{'s' if n_ind != 1 else ''}")
+        if n_ex:
+            heading_bits.append(f"{n_ex} example task{'s' if n_ex != 1 else ''}")
         _add_section(
             document,
-            f"{role} ({len(tasks)} indicator{'s' if len(tasks) != 1 else ''})",
+            f"{role} ({', '.join(heading_bits)})",
             _MEAL_ROLE_SUBTITLE[role],
             tasks,
+            examples,
             _MEAL_ROLE_ACCENT[role],
         )
 
     document.add_paragraph().add_run(
-        "Source: SAWA logframe export, 29 Sep 2026 (21 rows, Module B). Frequencies and targets "
-        "match the live logframe; this document adds only the functional-role split and Suggested "
-        "Task phrasing for K allocation."
+        "Sources: SAWA logframe export, 29 Sep 2026 (21 rows, Module B) for the indicator tables; "
+        "database/db.py team_tasks seed for the example-task tables (27 rows, 3 per K role, "
+        "already live in Module K). Frequencies and targets match the live logframe; this "
+        "document adds only the functional-role split and Suggested Task phrasing for K allocation."
     ).font.size = Pt(8)
 
     buf = io.BytesIO()
@@ -325,9 +425,10 @@ with _dl_col2:
         data=_build_meal_task_word(),
         file_name="sawa_meal_task_allocation.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        help="21 logframe indicators mapped to Means of Verification and a suggested task, "
-             "disaggregated by Module K functional role (GYSI, Biz Coach, Comms, Admin, "
-             "MEAL Admin, MEAL Asst, Partner MEAL) — for review and allocation.",
+        help="21 logframe indicators mapped to Means of Verification and a suggested task, plus "
+             "the 3 example tasks already live per role in Module K, disaggregated by all 9 K "
+             "functional roles (GYSI, Biz Dev, Biz Coach, Comms, Admin, Finance, MEAL Admin, "
+             "MEAL Asst, Partner MEAL) — for review and allocation.",
     )
 
 left, right = st.columns([1, 3])
