@@ -448,6 +448,20 @@ st.dataframe(
         "Support & Output": st.column_config.TextColumn("Support & Output", width="large"),
     },
 )
+st.markdown(
+    '<div style="background:#F6F3EC;border-left:3px solid #8A9494;border-radius:8px;'
+    'padding:10px 14px;margin-top:6px;">'
+    '<p style="margin:0;font-size:0.78em;color:#5E6A6A;">'
+    '<strong style="color:#16262E;">Proposed, not yet confirmed:</strong> CEL is separately proposing a '
+    'dedicated Finance Department to operationalise the "financing need" row above — financial literacy, '
+    'costing/pricing, budgeting and cash-flow, finance-readiness assessment, referral and post-referral '
+    'mentoring, feeding into the same TechnoServe referral pathway. Its own KPIs are explicitly described as '
+    '"proposed... to be finalised with the consolidated workplan" and validation with partners is still the '
+    'first step, so no targets are shown here. '
+    '<em>Source: SAWA/CEL Finance Department Concept Note and Partner Questionnaire, Sep 2026.</em></p>'
+    '</div>',
+    unsafe_allow_html=True,
+)
 
 st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
