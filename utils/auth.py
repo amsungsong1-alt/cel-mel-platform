@@ -209,6 +209,34 @@ def ensure_auth() -> bool:
     return bool(st.session_state.get("authentication_status"))
 
 
+def refresh_session_permissions() -> None:
+    """Re-read the current user's role/write_modules/view_modules/k_role from
+    the credentials config and refresh session_state.
+
+    app.py's post-login block only sets these when app.py itself runs — in a
+    native Streamlit multipage app, navigating straight to a page under
+    pages/ does NOT re-run app.py, so a session that started before a
+    permissions change (e.g. a newly added k_role, or write_modules edited
+    in Secrets) keeps seeing the stale values until the user logs out and
+    back in. Call this at the top of any page whose access checks depend on
+    these fields to pick up changes without requiring a fresh login.
+    """
+    username = st.session_state.get("username")
+    if not username:
+        return
+    try:
+        _, config = get_authenticator()
+    except Exception:
+        return
+    user_record = config.get("credentials", {}).get("usernames", {}).get(username, {})
+    if not user_record:
+        return
+    st.session_state["role"] = user_record.get("role", st.session_state.get("role", "Viewer"))
+    st.session_state["write_modules"] = user_record.get("write_modules")
+    st.session_state["view_modules"] = user_record.get("view_modules")
+    st.session_state["k_role"] = user_record.get("k_role")
+
+
 def require(action: str):
     """Halt the page with an error if the user lacks *action*."""
     if not can(action):

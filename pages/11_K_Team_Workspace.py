@@ -19,7 +19,7 @@ import pandas as pd
 import streamlit as st
 
 from database.db import init_db, run_query, run_write
-from utils.auth import can_write_k_role
+from utils.auth import can_write_k_role, refresh_session_permissions
 from utils.nav_strip import render_nav_strip
 from utils.shared_widgets import project_selector
 
@@ -30,6 +30,8 @@ render_nav_strip("Input")
 if not st.session_state.get("authentication_status"):
     st.error("Please log in from the main page.")
     st.stop()
+
+refresh_session_permissions()
 
 with st.sidebar:
     project_id = project_selector()
