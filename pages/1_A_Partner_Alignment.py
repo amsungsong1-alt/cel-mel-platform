@@ -811,14 +811,19 @@ _workplan_xref = pd.DataFrame([
 st.subheader("Year 1 Quarterly Delivery Calendar")
 st.caption(
     "CEL and partner activities by quarter, Jul 2026 – Jun 2027.  "
-    "Source: CEL's contribution to SAWA (Sep 2026) + partner Year 1 implementation decks."
+    "Source: CEL's contribution to SAWA (Sep 2026) + partner Year 1 implementation decks + "
+    "Draft CEL SAWA BDS Implementation Concept Note (28 Sep 2026) + "
+    "Draft CEL SAWA WAN Concept Note and Initial Actions (28 Sep 2026)."
 )
 
 _QUARTERS = [
     {
         "cel_bds": (
-            "Review needs & existing training; mobilise women for BDS; "
-            "co-design modules with AFRIGEM, Aglow and AgroKings trainers."
+            "No BDS delivery yet — the BDS concept note's process runs Oct–Dec: "
+            "partner information request, needs assessment and first implementation "
+            "actions all begin 1 October. CEL monitors partner Wave 1 mobilisation "
+            "(AgroKings, Aglow, AFRIGEM, Naple Betta) for entry points ahead of the "
+            "Q2 rollout."
         ),
         "cel_wan": (
             "Map groups and mentors; agree WAN priorities and participation; "
@@ -861,8 +866,11 @@ _QUARTERS = [
     },
     {
         "cel_bds": (
-            "Co-create BDS modules; Training of Trainers (ToT); start coaching and thematic "
-            "workshops — Regulatory Day w/ FC, Financial Literacy, Finance Readiness w/ TechnoServe."
+            "Partner information request & needs assessment (1–30 Oct), prioritising "
+            "Aglow's ToT and AgroKings' stocking; co-create BDS modules with AFRIGEM, "
+            "Aglow and AgroKings trainers; Training of Trainers (ToT); start coaching "
+            "and thematic workshops — Regulatory Day w/ FC, Financial Literacy, "
+            "Finance Readiness w/ TechnoServe."
         ),
         "cel_wan": (
             "Prepare WAN membership, representation, market and leadership activities; "
