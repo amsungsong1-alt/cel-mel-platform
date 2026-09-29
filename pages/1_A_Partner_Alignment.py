@@ -868,9 +868,9 @@ _QUARTERS = [
             "e-Learning Centre live.  Recruitment & first onboarding."
         ),
         "technoserve": (
-            "Programme orientation; pipeline mapping with CEL; "
-            "identify potential grantee pool from BDS-prepared enterprises; "
-            "design micro-grant criteria & screening process."
+            "Programme orientation; design micro-grant criteria & screening process "
+            "ahead of BDS's Q2 rollout. TechnoServe requirements to be confirmed with "
+            "CEL/AIL in early October — no BDS-prepared pipeline exists yet."
         ),
         "fc_csir": (
             "**FC:** Inception & stakeholder coordination; aquaculture regulation/licensing "
