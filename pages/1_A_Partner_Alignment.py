@@ -382,6 +382,147 @@ with rc3:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+# ── How CEL Structures BDS & WAN Delivery ────────────────────────────────────
+# The two Sep 2026 CEL concept notes are the operating-model detail behind
+# the Level 2/3 figures above — every quantity in their own Year 1 tables
+# (Women mobilised 95/135/135/135, WAN forum engagements 300/200, D&F jobs in
+# value addition 40/30/30, PWD mentors 1/2/2/3) matches this page's existing
+# numbers exactly, so this section adds the "how", not new figures.
+st.subheader("How CEL Structures BDS & WAN Delivery")
+st.caption(
+    "Source: Draft CEL SAWA BDS Implementation Concept Note (28 Sep 2026) · "
+    "Draft CEL SAWA WAN Concept Note and Initial Actions (28 Sep 2026)."
+)
+
+bds1, bds2, bds3 = st.columns(3)
+with bds1:
+    st.markdown(
+        '<div style="background:#E7F3F1;border-left:4px solid #1E7E76;'
+        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#1E7E76;">BDS Group 1 — Ideation &amp; Early Business Development</p>'
+        '<p style="margin:0;font-size:0.82em;color:#28362F;">Partner-led. CEL reviews existing BDS materials, '
+        'co-creates cohort-based modules, and provides ToT, co-facilitation and follow-up where needed. '
+        'Practical assignments cover customers, costs and running the activity as a business.</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+with bds2:
+    st.markdown(
+        '<div style="background:#FBEEE3;border-left:4px solid #B96A2E;'
+        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#B96A2E;">BDS Group 2 — Accelerators &amp; Enterprises in Transition</p>'
+        '<p style="margin:0;font-size:0.82em;color:#3A2E24;">CEL provides direct coaching and mentoring. '
+        'Entry reflects commitment and business need — women do not need to be finance- or scale-ready '
+        'before coaching starts. Partner technical staff stay involved in production and quality decisions.</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+with bds3:
+    st.markdown(
+        '<div style="background:#E9F1EC;border-left:4px solid #4A6B5C;'
+        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#4A6B5C;">Support Across Both Groups</p>'
+        '<p style="margin:0;font-size:0.82em;color:#28362F;">Half-day workshops on regulatory requirements, '
+        'financial literacy, digital business skills and market access — using participants\' own records or '
+        'products, ending in a practical action and a named follow-up contact.</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+_bds_finding = pd.DataFrame([
+    {"Finding": "Exploring or testing an aquaculture activity",
+     "Support & Output": "Partner-led ideation and prototyping, with CEL business modules and trainer support. Output: a tested business idea and practical assignments on customers and costs."},
+    {"Finding": "Committed enterprise with gaps in management or market evidence",
+     "Support & Output": "CEL diagnosis followed by coaching and mentoring. Output: an enterprise growth plan with priorities, baseline, actions, responsibilities and review dates."},
+    {"Finding": "A common issue affecting several groups",
+     "Support & Output": "A half-day workshop with the relevant partner, followed by business or regulatory actions. Output: participant action list and referral follow-up."},
+    {"Finding": "A justified financing need with supporting business evidence",
+     "Support & Output": "CEL prepares the enterprise and agrees a referral to TechnoServe under its criteria. Output: required records and documents, referral and assessment feedback."},
+])
+st.dataframe(
+    _bds_finding, hide_index=True, use_container_width=True,
+    column_config={
+        "Finding":          st.column_config.TextColumn("Finding", width="medium"),
+        "Support & Output": st.column_config.TextColumn("Support & Output", width="large"),
+    },
+)
+
+st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+wan1, wan2, wan3 = st.columns(3)
+for _col, (_title, _body, _color, _bg, _txt) in zip(
+    (wan1, wan2, wan3),
+    [
+        ("Access to Markets",
+         "Market information, buyer contacts and collective activities where commercially useful. CEL provides "
+         "the costing, negotiation and business support needed to act on opportunities.",
+         "#1E7E76", "#E7F3F1", "#125650"),
+        ("Advocacy & Policy Influence",
+         "A practical route to raise recurring barriers, prepare evidence and engage responsible institutions. "
+         "The advocacy agenda comes from women's own experience of operating in the sector.",
+         "#B96A2E", "#FBEEE3", "#7A3D14"),
+        ("Role Modelling & Leadership",
+         "Experienced women mentor emerging entrepreneurs and are prepared to chair meetings, represent members "
+         "and take part in sector dialogue — with consent, via SAWA Voices and e-SAWA.",
+         "#4A6B5C", "#E9F1EC", "#2A3F35"),
+    ],
+):
+    with _col:
+        st.markdown(
+            f'<div style="background:{_bg};border-left:4px solid {_color};'
+            f'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+            f'<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:{_color};">{_title}</p>'
+            f'<p style="margin:0;font-size:0.82em;color:{_txt};">{_body}</p>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+st.caption(
+    "WAN membership is open across partner groups and does not depend on admission to CEL's direct BDS coaching."
+)
+
+st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+st.markdown("**WAN charter — topics under co-creation with women (interim agreement by 30 October 2026)**")
+
+_wan_charter = pd.DataFrame([
+    {"Charter Topic": "Membership and purpose",
+     "Initial Agreement Required": "Who can participate, how groups affiliate, member rights and the services WAN will initially provide."},
+    {"Charter Topic": "Representation and decisions",
+     "Initial Agreement Required": "How representatives are chosen, their term and responsibilities, how priorities are agreed and how members can replace or challenge representatives."},
+    {"Charter Topic": "Accountability",
+     "Initial Agreement Required": "Meeting and financial records, reporting back to members, conflicts of interest and transparent handling of any common resources."},
+    {"Charter Topic": "Participation and feedback",
+     "Initial Agreement Required": "Accessible channels, response dates for feedback, a named confidential safeguarding route, and separate consent for stories or photographs."},
+    {"Charter Topic": "Coordination and continuity",
+     "Initial Agreement Required": "CEL's establishment role, partner contributions, arrangements for member management and a date to review the interim structure."},
+])
+st.dataframe(
+    _wan_charter, hide_index=True, use_container_width=True,
+    column_config={
+        "Charter Topic":               st.column_config.TextColumn("Charter Topic", width="medium"),
+        "Initial Agreement Required":  st.column_config.TextColumn("Initial Agreement Required", width="large"),
+    },
+)
+
+st.markdown(
+    '<div style="background:#FBF3DF;border-left:4px solid #A97C1E;border-radius:10px;'
+    'padding:12px 16px;margin-top:10px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+    '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#7A5A10;">What these figures do not mean</p>'
+    '<p style="margin:0 0 4px 0;font-size:0.82em;color:#4A3A10;">'
+    '<strong>D&amp;F jobs in value addition (100):</strong> "Attendance or a finance referral alone will not be '
+    'reported as a job outcome" — work outcomes depend on production, sales and other partner inputs. '
+    '<em>Source: BDS concept note, Targets responsibilities and resources.</em></p>'
+    '<p style="margin:0;font-size:0.82em;color:#4A3A10;">'
+    '<strong>WAN forum engagements (500) and groups strengthened (25):</strong> "Forum engagements and unique '
+    'women will be reported separately... BDS, WAN and work results will not be added together as unique '
+    'programme reach." <em>Source: WAN concept note, Year 1 delivery and evidence of progress.</em></p>'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # ── CEL Year 1 Measures — Partner Contributions ──────────────────────────────
 st.subheader("CEL Year 1 Measures — Partner Contributions")
 st.caption(
