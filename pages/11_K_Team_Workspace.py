@@ -977,6 +977,22 @@ with right:
                 use_container_width=True,
                 hide_index=True,
             )
+            for f in files:
+                if f.get("file_name"):
+                    _blob = run_query(
+                        "SELECT file_data, file_mime FROM team_files WHERE id=:id",
+                        {"id": f["id"]},
+                    )
+                    if _blob and _blob[0].get("file_data"):
+                        st.download_button(
+                            f"⬇ {f['label']}",
+                            data=_blob[0]["file_data"],
+                            file_name=f["file_name"],
+                            mime=_blob[0].get("file_mime") or "application/octet-stream",
+                            key=f"dl_tf_{f['id']}",
+                        )
+                elif f.get("link_url"):
+                    st.markdown(f"🔗 [{f['label']}]({f['link_url']})")
         else:
             st.info(f"No files for {selected_role} yet.")
 
