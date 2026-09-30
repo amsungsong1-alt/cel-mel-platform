@@ -955,6 +955,29 @@ def _run_migrations() -> bool:
                       )
                 """), {"role": _role, "task": _task, "desc": _desc, "st": _status,
                        "due": _due, "asgn": _asgn, "code": _code or ""})
+        # team_time_entries is created in a separate transaction so that any
+        # privilege error on a manually-pre-created table cannot roll back the
+        # main migration above.
+        try:
+            with engine.begin() as _tc:
+                _tc.execute(text("""
+                    CREATE TABLE IF NOT EXISTS team_time_entries (
+                        id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                        project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                        team_role   TEXT    NOT NULL,
+                        entry_date  TEXT    NOT NULL,
+                        hours       REAL    NOT NULL CHECK(hours > 0),
+                        activity    TEXT    NOT NULL,
+                        task_id     INTEGER REFERENCES team_tasks(id) ON DELETE SET NULL,
+                        logged_by   TEXT,
+                        created_at  TEXT    NOT NULL
+                    )
+                """))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tte_project ON team_time_entries(project_id)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tte_role    ON team_time_entries(team_role)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tte_date    ON team_time_entries(entry_date)"))
+        except Exception:
+            pass  # table already exists (created manually in Supabase SQL Editor)
         return True
 
     schema = SCHEMA_PATH.read_text()

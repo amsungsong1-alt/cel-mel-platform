@@ -474,20 +474,3 @@ CREATE INDEX IF NOT EXISTS idx_tt_project ON team_tasks(project_id);
 CREATE INDEX IF NOT EXISTS idx_tt_role    ON team_tasks(team_role);
 CREATE INDEX IF NOT EXISTS idx_tf_project ON team_files(project_id);
 CREATE INDEX IF NOT EXISTS idx_tf_role    ON team_files(team_role);
-
--- Module K: Time tracking — one row per time entry per role (for monthly timesheets).
-CREATE TABLE IF NOT EXISTS team_time_entries (
-    id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
-    team_role   TEXT    NOT NULL,
-    entry_date  TEXT    NOT NULL,
-    hours       REAL    NOT NULL CHECK(hours > 0),
-    activity    TEXT    NOT NULL,
-    task_id     INTEGER REFERENCES team_tasks(id) ON DELETE SET NULL,
-    logged_by   TEXT,
-    created_at  TEXT    NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_tte_project ON team_time_entries(project_id);
-CREATE INDEX IF NOT EXISTS idx_tte_role    ON team_time_entries(team_role);
-CREATE INDEX IF NOT EXISTS idx_tte_date    ON team_time_entries(entry_date);
