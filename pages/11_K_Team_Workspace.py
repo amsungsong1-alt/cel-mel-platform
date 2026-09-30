@@ -1132,7 +1132,7 @@ with right:
                 f"No time logged for {selected_role} in {_sel_month} {int(_sel_year)}."
             )
 
-        if _can_write:
+        if _can_write_selected:
             _role_tasks = run_query(
                 "SELECT id, task FROM team_tasks WHERE project_id=:pid AND team_role=:r ORDER BY task",
                 {"pid": project_id, "r": selected_role},
