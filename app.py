@@ -104,6 +104,7 @@ user_record = creds.get(username, {})
 st.session_state["role"] = user_record.get("role", "Viewer")
 st.session_state["write_modules"] = user_record.get("write_modules", None)
 st.session_state["view_modules"] = user_record.get("view_modules", None)
+st.session_state["k_role"] = user_record.get("k_role", None)
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
