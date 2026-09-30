@@ -52,18 +52,23 @@ _CEL_ROLES = [
     "MEAL Asst",
 ]
 _PARTNER_ROLES = ["Partner MEAL"]
-ALL_ROLES = _CEL_ROLES + _PARTNER_ROLES
+# Not tied to one functional role — anyone with Module K write access can
+# save a worked-on document here, regardless of their own k_role (see
+# can_write_k_role's open-role handling in utils/auth.py).
+_SHARED_ROLES = ["Shared Documents"]
+ALL_ROLES = _CEL_ROLES + _PARTNER_ROLES + _SHARED_ROLES
 
 _ROLE_ICONS = {
-    "GYSI":         "♀",
-    "Biz Dev":      "📈",
-    "Biz Coach":    "🎯",
-    "Comms":        "📢",
-    "Admin":        "🗂",
-    "Finance":      "💰",
-    "MEAL Admin":   "📊",
-    "MEAL Asst":    "📋",
-    "Partner MEAL": "🤝",
+    "GYSI":             "♀",
+    "Biz Dev":          "📈",
+    "Biz Coach":        "🎯",
+    "Comms":            "📢",
+    "Admin":            "🗂",
+    "Finance":          "💰",
+    "MEAL Admin":       "📊",
+    "MEAL Asst":        "📋",
+    "Partner MEAL":     "🤝",
+    "Shared Documents": "🗄",
 }
 
 _STATUS_COLOUR = {
@@ -833,6 +838,17 @@ with left:
         if st.button(label, key=f"role_{role}", use_container_width=True):
             st.session_state["k_selected_role"] = role
 
+    st.markdown("**Shared**")
+    for role in _SHARED_ROLES:
+        task_count = run_query(
+            "SELECT COUNT(*) AS n FROM team_tasks WHERE project_id=:pid AND team_role=:r",
+            {"pid": project_id, "r": role},
+        )
+        n = task_count[0]["n"] if task_count else 0
+        label = f"{_ROLE_ICONS.get(role, '')} {role}" + (f"  `{n}`" if n else "")
+        if st.button(label, key=f"role_{role}", use_container_width=True):
+            st.session_state["k_selected_role"] = role
+
 # ── Default role if none selected ─────────────────────────────────────────────
 if "k_selected_role" not in st.session_state:
     st.session_state["k_selected_role"] = ALL_ROLES[0]
@@ -844,10 +860,7 @@ with right:
     icon = _ROLE_ICONS.get(selected_role, "")
     st.subheader(f"{icon} {selected_role}")
     if not _can_write_selected:
-        st.caption(
-            "🔒 View only — editing this role's tasks/files is restricted to "
-            f"{selected_role}, MEAL Admin and MEAL Asst."
-        )
+        st.caption("🔒 View only — you don't have edit access to this folder.")
 
     tab_tasks, tab_files, tab_time = st.tabs(["Tasks", "Files", "Time"])
 
