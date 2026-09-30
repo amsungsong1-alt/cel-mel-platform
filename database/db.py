@@ -1431,6 +1431,26 @@ def _run_migrations() -> bool:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tf_role     ON team_files(team_role)")
     except Exception:
         pass
+    # Module K: Time entries table (added Sep 2026).
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS team_time_entries (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                team_role   TEXT    NOT NULL,
+                entry_date  TEXT    NOT NULL,
+                hours       REAL    NOT NULL CHECK(hours > 0),
+                activity    TEXT    NOT NULL,
+                task_id     INTEGER REFERENCES team_tasks(id) ON DELETE SET NULL,
+                logged_by   TEXT,
+                created_at  TEXT    NOT NULL
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tte_project ON team_time_entries(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tte_role    ON team_time_entries(team_role)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tte_date    ON team_time_entries(entry_date)")
+    except Exception:
+        pass
     conn.commit()
     conn.close()
     return True

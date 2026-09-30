@@ -149,7 +149,7 @@ with right:
     icon = _ROLE_ICONS.get(selected_role, "")
     st.subheader(f"{icon} {selected_role}")
 
-    tab_tasks, tab_files = st.tabs(["Tasks", "Files"])
+    tab_tasks, tab_files, tab_time = st.tabs(["Tasks", "Files", "Time"])
 
     # ── Tasks ─────────────────────────────────────────────────────────────────
     with tab_tasks:
@@ -335,4 +335,136 @@ with right:
                                 },
                             )
                             st.success("File saved.")
+                            st.rerun()
+
+    # ── Time ──────────────────────────────────────────────────────────────────
+    with tab_time:
+        _now = _date.today()
+        _MONTHS = [
+            "January","February","March","April","May","June",
+            "July","August","September","October","November","December",
+        ]
+        tm_col1, tm_col2 = st.columns([3, 1])
+        with tm_col1:
+            _sel_month = st.selectbox(
+                "Month", _MONTHS, index=_now.month - 1, key="time_month",
+                label_visibility="collapsed",
+            )
+        with tm_col2:
+            _sel_year = st.number_input(
+                "Year", min_value=2026, max_value=2035,
+                value=_now.year, step=1, key="time_year",
+                label_visibility="collapsed",
+            )
+        _month_num = _MONTHS.index(_sel_month) + 1
+        _month_prefix = f"{int(_sel_year)}-{_month_num:02d}"
+
+        time_entries = run_query(
+            """SELECT tte.id, tte.entry_date, tte.hours, tte.activity,
+                      tte.task_id, tt.task AS task_name, tte.logged_by
+               FROM team_time_entries tte
+               LEFT JOIN team_tasks tt ON tt.id = tte.task_id
+               WHERE tte.project_id=:pid AND tte.team_role=:r
+                 AND tte.entry_date LIKE :pfx
+               ORDER BY tte.entry_date DESC, tte.id DESC""",
+            {"pid": project_id, "r": selected_role, "pfx": f"{_month_prefix}%"},
+        )
+
+        total_hours = sum(e["hours"] for e in time_entries) if time_entries else 0.0
+        st.metric(
+            f"Total hours — {_sel_month} {int(_sel_year)} ({selected_role})",
+            f"{total_hours:.1f} hrs",
+        )
+
+        # Download timesheet for all roles in the selected month
+        all_time = run_query(
+            """SELECT tte.entry_date AS "Date", tte.team_role AS "Role",
+                      tte.activity AS "Activity", tt.task AS "Task",
+                      tte.hours AS "Hours", tte.logged_by AS "Logged By"
+               FROM team_time_entries tte
+               LEFT JOIN team_tasks tt ON tt.id = tte.task_id
+               WHERE tte.project_id=:pid AND tte.entry_date LIKE :pfx
+               ORDER BY tte.entry_date, tte.team_role""",
+            {"pid": project_id, "pfx": f"{_month_prefix}%"},
+        )
+        if all_time:
+            _ts_csv = pd.DataFrame(all_time).to_csv(index=False)
+            st.download_button(
+                f"Download {_sel_month} {int(_sel_year)} timesheet — all roles (CSV)",
+                data=_ts_csv,
+                file_name=f"sawa_timesheet_{_month_prefix}.csv",
+                mime="text/csv",
+            )
+
+        if time_entries:
+            st.dataframe(
+                pd.DataFrame([
+                    {
+                        "Date":      e["entry_date"],
+                        "Hours":     e["hours"],
+                        "Activity":  e["activity"],
+                        "Task":      e.get("task_name") or "—",
+                        "Logged by": e.get("logged_by") or "—",
+                    }
+                    for e in time_entries
+                ]),
+                use_container_width=True,
+                hide_index=True,
+            )
+        else:
+            st.info(
+                f"No time logged for {selected_role} in {_sel_month} {int(_sel_year)}."
+            )
+
+        if _can_write:
+            _role_tasks = run_query(
+                "SELECT id, task FROM team_tasks WHERE project_id=:pid AND team_role=:r ORDER BY task",
+                {"pid": project_id, "r": selected_role},
+            )
+            _task_opts = ["None"] + [
+                f"[{t['id']}] {t['task'][:60]}" for t in _role_tasks
+            ]
+
+            with st.expander("Log time", expanded=not time_entries):
+                with st.form(f"log_time_{selected_role}_{_month_prefix}"):
+                    lt1, lt2 = st.columns(2)
+                    with lt1:
+                        lt_date = st.date_input("Date", value=_now, key="lt_date")
+                        lt_hours = st.number_input(
+                            "Hours", min_value=0.5, max_value=24.0,
+                            value=1.0, step=0.5, key="lt_hours",
+                        )
+                    with lt2:
+                        lt_task = st.selectbox(
+                            "Link to task (optional)", _task_opts, key="lt_task",
+                        )
+                    lt_activity = st.text_area(
+                        "Activity description", height=80, key="lt_activity",
+                        help="Describe what you worked on (used in monthly timesheet).",
+                    )
+                    if st.form_submit_button("Log time"):
+                        if not lt_activity.strip():
+                            st.warning("Activity description is required.")
+                        else:
+                            lt_task_id = None
+                            if lt_task != "None":
+                                lt_task_id = int(lt_task.lstrip("[").split("]")[0])
+                            run_write(
+                                """INSERT INTO team_time_entries
+                                   (project_id, team_role, entry_date, hours,
+                                    activity, task_id, logged_by, created_at)
+                                   VALUES (:pid, :role, :dt, :hrs,
+                                           :act, :tid, :by, :now)""",
+                                {
+                                    "pid":  project_id,
+                                    "role": selected_role,
+                                    "dt":   str(lt_date),
+                                    "hrs":  float(lt_hours),
+                                    "act":  lt_activity.strip(),
+                                    "tid":  lt_task_id,
+                                    "by":   _username,
+                                    "now":  str(_date.today()),
+                                },
+                            )
+                            st.success(f"{lt_hours:.1f} hrs logged for {selected_role}.")
                             st.rerun()
