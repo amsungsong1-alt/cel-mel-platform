@@ -18,7 +18,7 @@ from datetime import date as _date, datetime as _datetime, timezone as _timezone
 import pandas as pd
 import streamlit as st
 
-from database.db import init_db, run_query, run_write
+from database.db import ensure_team_activity_log, init_db, run_query, run_write
 from utils.auth import can_write_k_role, refresh_session_permissions
 from utils.nav_strip import render_nav_strip
 from utils.shared_widgets import project_selector
@@ -91,6 +91,11 @@ lf_options = ["None"] + [
 lf_code_to_id = {r["indicator_code"]: r["id"] for r in logframe_rows}
 
 _username  = st.session_state.get("username", "Team")
+
+# Self-heals the Daily Activity table on every page load, independent of
+# whether _run_migrations()'s own (silently-failable) creation attempt
+# succeeded for it — see ensure_team_activity_log()'s docstring.
+ensure_team_activity_log()
 
 
 def _log_activity(role: str, action_type: str) -> None:

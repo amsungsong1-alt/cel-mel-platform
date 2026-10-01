@@ -1376,6 +1376,40 @@ def run_write(sql: str, params: dict | None = None):
         conn.execute(text(sql), params or {})
 
 
+def ensure_team_activity_log() -> None:
+    """Idempotent CREATE TABLE IF NOT EXISTS for team_activity_log, callable
+    at any time — not just at app startup.
+
+    _run_migrations() already creates this table in its own isolated
+    transaction (same pattern as team_time_entries), but that transaction's
+    failure mode is a silent `except Exception: pass` (deliberately, so one
+    bad table can't abort the rest of the startup migration) — which also
+    means a real failure there is invisible. Module K calls this directly
+    before it touches the table, so the table gets created on first actual
+    use regardless of whether the startup path succeeded for it.
+    """
+    engine = get_engine()
+    id_col = (
+        "id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY"
+        if IS_POSTGRES else
+        "id INTEGER PRIMARY KEY AUTOINCREMENT"
+    )
+    with engine.begin() as conn:
+        conn.execute(text(f"""
+            CREATE TABLE IF NOT EXISTS team_activity_log (
+                {id_col},
+                project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                team_role   TEXT    NOT NULL,
+                action_type TEXT    NOT NULL,
+                logged_by   TEXT,
+                logged_at   TEXT    NOT NULL
+            )
+        """))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_project ON team_activity_log(project_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_role    ON team_activity_log(team_role)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at)"))
+
+
 def recompute_actual_year(row_id: int) -> None:
     """Sum actual_q1..q4 into actual_year for a raw_data_analysis row.
 
