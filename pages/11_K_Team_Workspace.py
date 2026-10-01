@@ -13,7 +13,7 @@ Partner:            Partner MEAL
 from __future__ import annotations
 
 import io
-from datetime import date as _date
+from datetime import date as _date, datetime as _datetime, timezone as _timezone
 
 import pandas as pd
 import streamlit as st
@@ -91,6 +91,27 @@ lf_options = ["None"] + [
 lf_code_to_id = {r["indicator_code"]: r["id"] for r in logframe_rows}
 
 _username  = st.session_state.get("username", "Team")
+
+
+def _log_activity(role: str, action_type: str) -> None:
+    """Record one timestamped activity event (task update/add, file add)
+    for the Daily Activity chart on the Time tab. This counts actions, not
+    time spent — Streamlit has no way to measure continuous page-open
+    duration without custom browser instrumentation, so it's an honest
+    activity-frequency proxy rather than tracked hours."""
+    run_write(
+        """INSERT INTO team_activity_log
+           (project_id, team_role, action_type, logged_by, logged_at)
+           VALUES (:pid, :role, :action, :by, :at)""",
+        {
+            "pid":    project_id,
+            "role":   role,
+            "action": action_type,
+            "by":     _username,
+            "at":     _datetime.now(_timezone.utc).isoformat(timespec="seconds"),
+        },
+    )
+
 
 # ── MEAL task allocation source data (21-row Module B logframe, 29 Sep 2026) ───
 # The logframe's Responsible column only names 3 coarse parties (CEL MEAL,
@@ -921,6 +942,7 @@ with right:
                                     "UPDATE team_tasks SET status=:s WHERE id=:id",
                                     {"s": new_status, "id": t["id"]},
                                 )
+                                _log_activity(selected_role, "task_status_update")
                                 st.rerun()
                     st.markdown("---")
         else:
@@ -966,6 +988,7 @@ with right:
                                     "by":   _username,
                                 },
                             )
+                            _log_activity(selected_role, "task_added")
                             st.success("Task added.")
                             st.rerun()
 
@@ -1063,6 +1086,7 @@ with right:
                                     "at":   str(_date.today()),
                                 },
                             )
+                            _log_activity(selected_role, "file_added")
                             st.success("File saved.")
                             st.rerun()
 
@@ -1104,6 +1128,37 @@ with right:
             f"Total hours — {_sel_month} {int(_sel_year)} ({selected_role})",
             f"{total_hours:.1f} hrs",
         )
+
+        # ── Daily Activity (auto-logged — not a time-tracking measurement) ──
+        _activity_rows = run_query(
+            """SELECT logged_at, action_type FROM team_activity_log
+               WHERE project_id=:pid AND team_role=:r AND logged_at LIKE :pfx
+               ORDER BY logged_at""",
+            {"pid": project_id, "r": selected_role, "pfx": f"{_month_prefix}%"},
+        )
+        st.markdown(f"**Daily activity — {_sel_month} {int(_sel_year)} ({selected_role})**")
+        st.caption(
+            "Auto-logged every time a task is updated, a task is added, or a file/link is "
+            "added — a count of actions per day, not time spent. Streamlit can't measure "
+            "how long a page stays open, so this is an activity proxy, not tracked hours; "
+            "use **Log time** below for actual hours."
+        )
+        if _activity_rows:
+            _act_df = pd.DataFrame(_activity_rows)
+            _act_df["day"] = _act_df["logged_at"].str[:10]
+            _days_in_month = pd.Period(_month_prefix, freq="M").days_in_month
+            _full_month_index = pd.date_range(
+                f"{_month_prefix}-01", periods=_days_in_month, freq="D"
+            ).strftime("%Y-%m-%d")
+            _daily_counts = (
+                _act_df.groupby("day").size()
+                .reindex(_full_month_index, fill_value=0)
+                .rename("Actions")
+            )
+            _daily_counts.index.name = "Day"
+            st.line_chart(_daily_counts)
+        else:
+            st.caption(f"No activity logged yet for {selected_role} in {_sel_month} {int(_sel_year)}.")
 
         # Download timesheet for all roles in the selected month
         all_time = run_query(

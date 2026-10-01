@@ -895,6 +895,25 @@ def _run_migrations() -> bool:
                 _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tte_date    ON team_time_entries(entry_date)"))
         except Exception:
             pass  # table already exists (created manually in Supabase SQL Editor)
+        # Same isolated-transaction treatment for team_activity_log (Daily
+        # Activity chart on the Time tab) — new table, same rationale as above.
+        try:
+            with engine.begin() as _tc:
+                _tc.execute(text("""
+                    CREATE TABLE IF NOT EXISTS team_activity_log (
+                        id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                        project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                        team_role   TEXT    NOT NULL,
+                        action_type TEXT    NOT NULL,
+                        logged_by   TEXT,
+                        logged_at   TEXT    NOT NULL
+                    )
+                """))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_project ON team_activity_log(project_id)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_role    ON team_activity_log(team_role)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at)"))
+        except Exception:
+            pass
         return True
 
     schema = SCHEMA_PATH.read_text()
@@ -1317,6 +1336,23 @@ def _run_migrations() -> bool:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tte_project ON team_time_entries(project_id)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tte_role    ON team_time_entries(team_role)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tte_date    ON team_time_entries(entry_date)")
+    except Exception:
+        pass
+    # Module K: activity log table, drives the Time tab's Daily Activity chart.
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS team_activity_log (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                team_role   TEXT    NOT NULL,
+                action_type TEXT    NOT NULL,
+                logged_by   TEXT,
+                logged_at   TEXT    NOT NULL
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tal_project ON team_activity_log(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tal_role    ON team_activity_log(team_role)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at)")
     except Exception:
         pass
     conn.commit()
