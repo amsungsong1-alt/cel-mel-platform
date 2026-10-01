@@ -1142,26 +1142,45 @@ with right:
             {"pid": project_id, "r": selected_role, "pfx": f"{_month_prefix}%"},
         )
         st.markdown(f"**Daily activity — {_sel_month} {int(_sel_year)} ({selected_role})**")
+        _ACT_GAP_CAP_MIN = 30
+        _ACT_SOLO_CREDIT_MIN = 1
         st.caption(
             "Auto-logged every time a task is updated, a task is added, or a file/link is "
-            "added — a count of actions per day, not time spent. Streamlit can't measure "
-            "how long a page stays open, so this is an activity proxy, not tracked hours; "
-            "use **Log time** below for actual hours."
+            "added. Estimated active time per day = time between consecutive actions, "
+            f"capped at {_ACT_GAP_CAP_MIN} min per gap so a lunch break or overnight gap "
+            "doesn't count as active (an action with nothing nearby adds "
+            f"{_ACT_SOLO_CREDIT_MIN} min on its own). Streamlit can't measure how long a "
+            "page actually stays open, so this is still an **estimate**, not tracked "
+            "time — use **Log time** below for actual hours."
         )
         if _activity_rows:
             _act_df = pd.DataFrame(_activity_rows)
-            _act_df["day"] = _act_df["logged_at"].str[:10]
+            _act_df["logged_at"] = pd.to_datetime(_act_df["logged_at"])
+            _act_df["day"] = _act_df["logged_at"].dt.strftime("%Y-%m-%d")
+
+            def _estimate_active_minutes(times: pd.Series) -> float:
+                times = times.sort_values().tolist()
+                total = 0.0
+                for i, t in enumerate(times):
+                    if i + 1 < len(times):
+                        gap_min = (times[i + 1] - t).total_seconds() / 60
+                        total += min(gap_min, _ACT_GAP_CAP_MIN)
+                    else:
+                        total += _ACT_SOLO_CREDIT_MIN
+                return total
+
             _days_in_month = pd.Period(_month_prefix, freq="M").days_in_month
             _full_month_index = pd.date_range(
                 f"{_month_prefix}-01", periods=_days_in_month, freq="D"
             ).strftime("%Y-%m-%d")
-            _daily_counts = (
-                _act_df.groupby("day").size()
-                .reindex(_full_month_index, fill_value=0)
-                .rename("Actions")
+            _daily_minutes = (
+                _act_df.groupby("day")["logged_at"].apply(_estimate_active_minutes)
+                .reindex(_full_month_index, fill_value=0.0)
             )
-            _daily_counts.index.name = "Day"
-            st.line_chart(_daily_counts)
+            _daily_hours = (_daily_minutes / 60).rename("Estimated hours")
+            _daily_hours.index.name = "Day"
+            st.line_chart(_daily_hours)
+            st.caption(f"Estimated total for the month: **{_daily_hours.sum():.1f} hrs**.")
         else:
             st.caption(f"No activity logged yet for {selected_role} in {_sel_month} {int(_sel_year)}.")
 
