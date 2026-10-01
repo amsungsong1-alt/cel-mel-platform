@@ -154,7 +154,7 @@ with tab_visits:
                     st.rerun()
 
         if visits:
-            with st.expander("Update visit status"):
+            with st.expander("Update visit"):
                 visit_labels = [
                     f"{v['partner_name']} — {v['visit_date']} ({v['status']})"
                     for v in visits
@@ -164,19 +164,61 @@ with tab_visits:
                     range(len(visit_labels)),
                     format_func=lambda i: visit_labels[i],
                     key="upd_visit_sel",
+                    help="Choosing a visit here pre-fills its current type, conducted by and notes below.",
                 )
-                new_status = st.selectbox(
-                    "New status",
-                    ["Scheduled", "Completed", "Cancelled"],
-                    key="upd_status",
-                )
-                if st.button("Update status"):
-                    run_write(
-                        "UPDATE partner_visits SET status=:s WHERE id=:id",
-                        {"s": new_status, "id": visits[upd_idx]["id"]},
+                upd_visit = visits[upd_idx]
+                # Keys include the visit id so each field re-initialises from
+                # *this* visit's data when the selection changes — a fixed key
+                # would keep showing whatever was last typed for a different
+                # visit, since Streamlit widgets ignore value=/index= once
+                # their key already has state from a previous rerun.
+                _uk = upd_visit["id"]
+
+                with st.form(f"update_visit_form_{_uk}"):
+                    uc1, uc2 = st.columns(2)
+                    with uc1:
+                        new_status = st.selectbox(
+                            "Status",
+                            ["Scheduled", "Completed", "Cancelled"],
+                            index=["Scheduled", "Completed", "Cancelled"].index(upd_visit["status"])
+                            if upd_visit.get("status") in ["Scheduled", "Completed", "Cancelled"] else 0,
+                            key=f"upd_status_{_uk}",
+                        )
+                        new_type = st.selectbox(
+                            "Visit type",
+                            ["In-person", "Remote", "Joint"],
+                            index=["In-person", "Remote", "Joint"].index(upd_visit["visit_type"])
+                            if upd_visit.get("visit_type") in ["In-person", "Remote", "Joint"] else 0,
+                            key=f"upd_type_{_uk}",
+                            help="'Joint' = conducted together with another partner or CEL team — note which in General notes below.",
+                        )
+                    with uc2:
+                        new_conducted = st.text_input(
+                            "Conducted by",
+                            value=upd_visit.get("conducted_by") or "",
+                            key=f"upd_conducted_{_uk}",
+                        )
+                    new_notes = st.text_area(
+                        "General notes",
+                        value=upd_visit.get("general_notes") or "",
+                        key=f"upd_notes_{_uk}",
+                        height=80,
                     )
-                    st.success("Status updated.")
-                    st.rerun()
+                    if st.form_submit_button("Update visit"):
+                        run_write(
+                            """UPDATE partner_visits
+                               SET status=:s, visit_type=:vt, conducted_by=:cb, general_notes=:notes
+                               WHERE id=:id""",
+                            {
+                                "s": new_status,
+                                "vt": new_type,
+                                "cb": new_conducted.strip(),
+                                "notes": new_notes.strip() or None,
+                                "id": upd_visit["id"],
+                            },
+                        )
+                        st.success("Visit updated.")
+                        st.rerun()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
