@@ -424,26 +424,28 @@ col_config = {
     "Code":              st.column_config.TextColumn("Code", disabled=True, width="small"),
     "Level":             st.column_config.TextColumn("Level", disabled=True, width="small"),
     "Indicator":         st.column_config.TextColumn("Indicator", disabled=True, width="large"),
-    "Type":              st.column_config.SelectboxColumn("Type", options=DATA_TYPES, width="small"),
-    "Target":            st.column_config.TextColumn("Target", disabled=True, width="medium"),
-    "Trigger":           st.column_config.TextColumn("Trigger", width="small"),
-    "Problem Definition":st.column_config.TextColumn("Problem Definition", width="large"),
-    "Baseline?":         st.column_config.SelectboxColumn("Baseline?", options=BASELINE_OPTS, width="small"),
-    "Baseline Value":    st.column_config.TextColumn("Baseline Value", width="small"),
+    "Type":              st.column_config.SelectboxColumn("Type", options=DATA_TYPES, width="small", help="What kind of data this indicator represents — e.g. 'Performance' for a KPI, 'Assumption' for a condition being tracked rather than a target."),
+    "Target":            st.column_config.TextColumn("Target", disabled=True, width="medium", help="Read-only here — set in Module B (ToC & Logframe). Flagged below if it disagrees with the logframe's target_annual."),
+    "Trigger":           st.column_config.TextColumn("Trigger", width="small", help="The value that, once reached, flags this indicator 'Completed - on track' in the Auto-Status Suggestions below."),
+    "Problem Definition":st.column_config.TextColumn("Problem Definition", width="large", help="What's being investigated or watched for this indicator — only relevant for 'Problem' or 'Assumption' data types."),
+    "Baseline?":         st.column_config.SelectboxColumn("Baseline?", options=BASELINE_OPTS, width="small", help="Whether a baseline value has been collected yet for this indicator."),
+    "Baseline Value":    st.column_config.TextColumn("Baseline Value", width="small", help="The starting value this indicator is measured against — should match Module B's Baseline for the same indicator."),
     Q1_LABEL:            st.column_config.TextColumn(Q1_LABEL, width="small"),
     Q2_LABEL:            st.column_config.TextColumn(Q2_LABEL, width="small"),
     Q3_LABEL:            st.column_config.TextColumn(Q3_LABEL, width="small"),
     Q4_LABEL:            st.column_config.TextColumn(Q4_LABEL, width="small"),
     YEAR_LABEL:          st.column_config.TextColumn(YEAR_LABEL, width="small"),
     "Indicator Status":  st.column_config.SelectboxColumn(
-                             "Indicator Status", options=IND_STATUS_OPTS, width="medium"),
+                             "Indicator Status", options=IND_STATUS_OPTS, width="medium",
+                             help="Where data collection for this indicator stands this fiscal year. Drives the status summary tiles above."),
     "Action Status":     st.column_config.SelectboxColumn(
-                             "Action Status", options=ACTION_STATUS_OPTS, width="large"),
-    "Action Description":st.column_config.TextColumn("Action Description", width="large"),
-    "Stage":             st.column_config.SelectboxColumn("Stage", options=PROGRESSION_STAGE_OPTS, width="small"),
-    "Pillar":            st.column_config.SelectboxColumn("Pillar", options=PILLAR_OPTS, width="medium"),
-    "DQA Stage":         st.column_config.SelectboxColumn("DQA Stage", options=DQA_STAGE_OPTS, width="medium"),
-    "Disaggregation":    st.column_config.TextColumn("Disaggregation (JSON)", width="large"),
+                             "Action Status", options=ACTION_STATUS_OPTS, width="large",
+                             help="Anything other than 'No action needed' requires an Action Description and surfaces this row in the flagged-action panel and Module G."),
+    "Action Description":st.column_config.TextColumn("Action Description", width="large", help="Required whenever Action Status is not 'No action needed - data reporting only' — save is blocked without it."),
+    "Stage":             st.column_config.SelectboxColumn("Stage", options=PROGRESSION_STAGE_OPTS, width="small", help="WEO = Women Economically Occupied, YIW = Youth in Work, D&F = Dignified & Fulfilling work — the results-chain progression stage this indicator measures."),
+    "Pillar":            st.column_config.SelectboxColumn("Pillar", options=PILLAR_OPTS, width="medium", help="Which SAWA programme pillar this indicator belongs to — used for pillar-level rollups in Module H/I."),
+    "DQA Stage":         st.column_config.SelectboxColumn("DQA Stage", options=DQA_STAGE_OPTS, width="medium", help="Data Quality Assessment stage. Advances automatically toward 'Traceability Verified' when quarterly actuals are saved — manual edits are for the final 'Outcome Validated' step."),
+    "Disaggregation":    st.column_config.TextColumn("Disaggregation (JSON)", width="large", help="Breakdown by sex/age/disability etc. as JSON, e.g. {\"female\": 120, \"male\": 30}. Leave blank if not disaggregated."),
 }
 
 if can_write_module("E"):
@@ -824,28 +826,33 @@ else:
                     "Description *",
                     placeholder="e.g. Training attendance sheet — R&B Farms Q2",
                     key="ev_up_label",
+                    help="What this evidence is — shown in the evidence list above. Be specific enough to identify it without opening the file.",
                 )
             with up_c2:
                 up_quarter = st.selectbox(
                     "Quarter *", ["Q1", "Q2", "Q3", "Q4", "Annual"],
                     key="ev_up_qtr",
+                    help="Which reporting period this evidence supports — used to filter the evidence list above.",
                 )
             with up_c3:
                 up_year = st.number_input(
                     "Year *", value=selected_year, min_value=2020, max_value=2040,
                     step=1, key="ev_up_year",
+                    help="Fiscal year this evidence belongs to — defaults to the year selected at the top of the page.",
                 )
 
             up_url = st.text_input(
                 "SharePoint / Google Drive link (optional)",
                 placeholder="https://mastercardfdn.sharepoint.com/…",
                 key="ev_up_url",
+                help="Use this instead of (or alongside) a file upload for documents already stored elsewhere — avoids duplicating large files in the database.",
             )
 
             up_file = st.file_uploader(
                 "Scanned document (PDF, JPEG, PNG, DOCX — max 10 MB)",
                 type=["pdf", "jpg", "jpeg", "png", "docx"],
                 key="ev_up_file",
+                help="Stored directly in the database — fine for scanned registers/certificates, but prefer the link field above for large files.",
             )
 
             if up_file is not None:

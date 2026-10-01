@@ -490,6 +490,7 @@ with tab_sync:
                 options=list(BASE_URLS.keys()),
                 index=list(BASE_URLS.keys()).index(st.session_state["kobo_server"]),
                 format_func=lambda s: f"{s}  ({BASE_URLS[s]})",
+                help="Which KoboToolbox deployment your forms live on — most accounts use 'global' unless your organisation was set up on a regional server.",
             )
             st.session_state["kobo_server"] = server
 
@@ -499,6 +500,7 @@ with tab_sync:
                 value=st.session_state["kobo_token"],
                 type="password",
                 placeholder="Paste your KoboToolbox API token here",
+                help="From KoboToolbox: Account Settings → Security → API Key. Grants this app read access to your forms — treat it like a password.",
             )
 
         btn_c1, btn_c2, btn_c3 = st.columns(3)
@@ -702,10 +704,12 @@ with tab_sync:
                     else st.column_config.TextColumn("Kobo Field", width="medium")
                 ),
                 "Indicator": st.column_config.SelectboxColumn(
-                    "Target Indicator", options=indicator_codes, width="medium"
+                    "Target Indicator", options=indicator_codes, width="medium",
+                    help="The logframe indicator this Kobo field's values roll up into. Codes repeat per partner — check the (#id) and Responsible shown in parentheses before picking one.",
                 ),
                 "Transform": st.column_config.SelectboxColumn(
-                    "Transform", options=TRANSFORM_OPTS, width="small"
+                    "Transform", options=TRANSFORM_OPTS, width="small",
+                    help="How to roll up multiple submissions into one value: count = number of responses, sum = add values, mean = average, latest = most recent submission only.",
                 ),
             }
 
@@ -774,9 +778,9 @@ with tab_sync:
         with st.expander("Register a new form manually"):
             nc1, nc2, nc3 = st.columns(3)
             with nc1:
-                new_uid  = st.text_input("Asset UID", placeholder="e.g. aXXXXXXXXXXXXXXXXXXXX")
+                new_uid  = st.text_input("Asset UID", placeholder="e.g. aXXXXXXXXXXXXXXXXXXXX", help="Found in KoboToolbox under the form's Settings → Media, or in its URL after /#/forms/.")
             with nc2:
-                new_name = st.text_input("Form name", placeholder="e.g. SAWA Enrolment Form")
+                new_name = st.text_input("Form name", placeholder="e.g. SAWA Enrolment Form", help="Display name only — doesn't need to match KoboToolbox exactly.")
             with nc3:
                 st.markdown("&nbsp;", unsafe_allow_html=True)
                 if st.button("Register", use_container_width=True, type="primary"):
@@ -920,7 +924,7 @@ with tab_upload:
         ul_c1, ul_c2 = st.columns([2, 3])
         with ul_c1:
             uf_labels = [f"{f['kobo_form_name']}  ({f['asset_uid']})" for f in upload_forms]
-            uf_label  = st.selectbox("Form these files belong to", uf_labels, key="upload_form_sel")
+            uf_label  = st.selectbox("Form these files belong to", uf_labels, key="upload_form_sel", help="Must match the form whose Field Mapping (above) you want applied to this upload.")
             sel_form  = upload_forms[uf_labels.index(uf_label)]
         with ul_c2:
             up_files = st.file_uploader(

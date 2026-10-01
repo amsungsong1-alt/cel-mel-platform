@@ -295,19 +295,24 @@ with tab_plan:
         "Rationale":              st.column_config.TextColumn("Rationale", disabled=True, width="large"),
         "New Instrument":         st.column_config.TextColumn("New Instrument", disabled=True, width="medium"),
         "Existing Instrument":    st.column_config.TextColumn("Existing Instrument", disabled=True, width="medium"),
-        "Instrument Link":        st.column_config.LinkColumn("Instrument Link", width="medium"),
+        "Instrument Link":        st.column_config.LinkColumn("Instrument Link", width="medium", help="Link to the actual tool/form (e.g. a KoboToolbox form URL)."),
         "Journey Step":           st.column_config.SelectboxColumn(
-                                      "Journey Step", options=JOURNEY_ORDER, width="medium"),
-        "Integration Mechanism":  st.column_config.TextColumn("Integration Mechanism", width="large"),
+                                      "Journey Step", options=JOURNEY_ORDER, width="medium",
+                                      help="Which participant-journey stage this instrument fires at. Steps after Training cannot produce baseline values."),
+        "Integration Mechanism":  st.column_config.TextColumn("Integration Mechanism", width="large", help="How this instrument's data flows into the platform, e.g. 'KoboToolbox API sync (Module D)' or 'Manual entry (Module E)'."),
         "Frequency":              st.column_config.SelectboxColumn(
-                                      "Frequency", options=FREQ_OPTIONS, width="small"),
+                                      "Frequency", options=FREQ_OPTIONS, width="small",
+                                      help="How often this instrument is administered. Drives the Collection Calendar and overdue alerts below."),
         "Month":                  st.column_config.SelectboxColumn(
-                                      "Month", options=MONTH_OPTIONS, width="small"),
+                                      "Month", options=MONTH_OPTIONS, width="small",
+                                      help="Start month for the first/next scheduled collection event."),
         "Year":                   st.column_config.NumberColumn(
-                                      "Year", min_value=2024, max_value=2035, step=1, width="small"),
+                                      "Year", min_value=2024, max_value=2035, step=1, width="small",
+                                      help="Start year for the first/next scheduled collection event."),
         "Responsible":            st.column_config.SelectboxColumn(
-                                      "Responsible", options=RESPONSIBLE_OPTIONS, width="medium"),
-        "Last Collected":         st.column_config.DateColumn("Last Collected", width="small"),
+                                      "Responsible", options=RESPONSIBLE_OPTIONS, width="medium",
+                                      help="Which party is accountable for actually running this collection instrument."),
+        "Last Collected":         st.column_config.DateColumn("Last Collected", width="small", help="Date data was last actually gathered with this instrument. Left blank or before the due date triggers the overdue alert above."),
         "Collection Status":      st.column_config.TextColumn("Collection Status", disabled=True, width="small"),
     }
 
@@ -518,7 +523,7 @@ with tab_cal:
             ),
         )
     with ctrl_c2:
-        years_ahead = st.selectbox("Show years ahead", options=[1, 2, 3, 4], index=3)
+        years_ahead = st.selectbox("Show years ahead", options=[1, 2, 3, 4], index=3, help="How many years of future collection events to project onto the heatmap, capped at the programme end (Jun 2030).")
 
     # ── Expand schedule ───────────────────────────────────────────────────────
     events = _expand_events(plan_rows, years_ahead=int(years_ahead))

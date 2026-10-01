@@ -131,7 +131,7 @@ with tab_visits:
                     nv_partner   = st.selectbox("Partner", [p["name"] for p in partners], key="nv_partner")
                     nv_date      = st.date_input("Visit date", value=_date.today(), key="nv_date")
                 with c2:
-                    nv_type      = st.selectbox("Visit type", ["In-person", "Remote", "Joint"], key="nv_type")
+                    nv_type      = st.selectbox("Visit type", ["In-person", "Remote", "Joint"], key="nv_type", help="'Joint' = conducted together with another partner or CEL team — note which in General notes below.")
                     nv_conducted = st.text_input("Conducted by", value=_username, key="nv_conducted")
                 nv_notes = st.text_area("General notes", key="nv_notes", height=80)
                 if st.form_submit_button("Schedule visit"):
@@ -245,6 +245,7 @@ with tab_assess:
                 "Indicators for which partner can supply confirmed figures",
                 indicator_codes,
                 default=confirmed_default,
+                help="Only select indicators this partner's own M&E system can actually produce a verified number for — not every indicator they're relevant to.",
             )
             f_discrepancies = st.text_area(
                 "Discrepancies / gaps found",
@@ -261,10 +262,11 @@ with tab_assess:
                     "Overlap risk level", _risk_opts,
                     index=_risk_opts.index(ex["overlap_risk"]) if ex.get("overlap_risk") in _risk_opts else 0,
                     key="da_risk",
+                    help="Risk that this partner's reported participants/results double-count with another partner serving the same communities — not a general risk rating.",
                 )
             with rc2:
                 f_communities = st.text_area("Communities / sites served", value=ex.get("communities_served") or "", height=72)
-            f_overlap_notes = st.text_area("Overlap notes", value=ex.get("overlap_notes") or "", height=72)
+            f_overlap_notes = st.text_area("Overlap notes", value=ex.get("overlap_notes") or "", height=72, help="Specifically which other partner(s) might overlap here, and what's being done to avoid double-counting — feeds Module A's cross-partner checks.")
 
             st.divider()
             st.subheader("Agreed MEAL Support")

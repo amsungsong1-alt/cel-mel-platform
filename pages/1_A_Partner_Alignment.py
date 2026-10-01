@@ -260,7 +260,13 @@ for lvl in (1, 2, 3, 4):
             disabled=disabled_cols,
             hide_index=True,
             use_container_width=True,
-            column_config={"id": None},
+            column_config={
+                "id": None,
+                "Target Value": st.column_config.TextColumn(
+                    "Target Value",
+                    help="The only editable field here — everything else (Metric, Unit, Time Basis, Source) is fixed reference data. Check Time Basis before editing: Life of Programme and Year 1 targets must not be summed together.",
+                ),
+            },
         )
         if st.button("💾 Save", key=f"save_{lvl}"):
             for _, r in edited.iterrows():

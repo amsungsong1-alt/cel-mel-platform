@@ -929,15 +929,15 @@ with right:
         if _can_write_selected:
             with st.expander("Add task", expanded=not tasks):
                 with st.form(f"add_task_{selected_role}"):
-                    nt_task = st.text_input("Task name")
-                    nt_desc = st.text_area("Description (optional)", height=72)
+                    nt_task = st.text_input("Task name", help="A short, specific action — this is what shows in the task list, so make it identifiable at a glance.")
+                    nt_desc = st.text_area("Description (optional)", height=72, help="Extra detail or context that doesn't fit in the task name — shown as a caption under the task.")
                     tc1, tc2 = st.columns(2)
                     with tc1:
                         nt_status = st.selectbox("Status", STATUS_OPTS, key="nt_status")
-                        nt_due    = st.date_input("Due date (optional)", value=None, key="nt_due")
+                        nt_due    = st.date_input("Due date (optional)", value=None, key="nt_due", help="Leave blank for tasks with no fixed deadline.")
                     with tc2:
-                        nt_asgn   = st.text_input("Assigned to", value=_username)
-                        nt_ind    = st.selectbox("Link to indicator (optional)", lf_options, key="nt_ind")
+                        nt_asgn   = st.text_input("Assigned to", value=_username, help="Who's doing this specific task — can differ from who created it.")
+                        nt_ind    = st.selectbox("Link to indicator (optional)", lf_options, key="nt_ind", help="Ties this task to a logframe indicator so it's traceable back to Module B/E — optional but useful for MEV-related tasks.")
                     if st.form_submit_button("Add task"):
                         if not nt_task.strip():
                             st.warning("Task name is required.")
@@ -1021,8 +1021,8 @@ with right:
                 with st.form(f"add_file_{selected_role}"):
                     nf_label = st.text_input("Label", help="e.g. 'GYSI training attendance Q1 2026'")
                     nf_desc  = st.text_area("Description (optional)", height=60)
-                    nf_ind   = st.selectbox("Link to indicator (optional)", lf_options, key="nf_ind")
-                    nf_link  = st.text_input("URL / link (leave blank if uploading a file)")
+                    nf_ind   = st.selectbox("Link to indicator (optional)", lf_options, key="nf_ind", help="Ties this file to a logframe indicator so it shows up as supporting evidence for it.")
+                    nf_link  = st.text_input("URL / link (leave blank if uploading a file)", help="Use for a SharePoint/Drive link instead of uploading — avoids duplicating large files in the database.")
                     nf_file  = st.file_uploader(
                         "Upload file",
                         type=["pdf", "xlsx", "xls", "csv", "png", "jpg", "docx"],
@@ -1162,10 +1162,12 @@ with right:
                         lt_hours = st.number_input(
                             "Hours", min_value=0.5, max_value=24.0,
                             value=1.0, step=0.5, key="lt_hours",
+                            help="Hours worked on this single entry — log separate entries for different activities on the same day rather than one combined total.",
                         )
                     with lt2:
                         lt_task = st.selectbox(
                             "Link to task (optional)", _task_opts, key="lt_task",
+                            help="Only lists tasks already in this role's own task list — add the task first if it's missing.",
                         )
                     lt_activity = st.text_area(
                         "Activity description", height=80, key="lt_activity",
