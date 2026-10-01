@@ -746,114 +746,6 @@ def _run_migrations() -> bool:
                     "pname": _pname, "label": _label, "val": _val,
                     "unit": _unit, "basis": _basis, "doc": _doc,
                 })
-            # ── Sample data for Module J & K (idempotent NOT EXISTS guards) ──
-            # Visits — two completed (with findings + evidence) and three scheduled.
-            for _pname, _vdate, _vtype, _status, _notes in [
-                ("Aglow Farms",   "2026-10-05", "In-person", "Completed",
-                 "Initial M&E mapping. Paper registers + Excel. KoboToolbox training needed."),
-                ("TechnoServe",   "2026-10-07", "Remote",    "Completed",
-                 "Virtual M&E review. Salesforce CRM + ODK. Strong disaggregation. Low overlap risk."),
-                ("AgroKings",     "2026-10-12", "In-person", "Scheduled",  ""),
-                ("Naple Betta",   "2026-10-15", "In-person", "Scheduled",  ""),
-                ("AFRIGEM",       "2026-10-20", "Joint",     "Scheduled",
-                 "Joint visit with Aglow Farms team — shared Kasunya community overlap."),
-            ]:
-                conn.execute(text("""
-                    INSERT INTO partner_visits
-                           (project_id, partner_id, visit_date, visit_type,
-                            conducted_by, status, general_notes, created_at)
-                    SELECT pr.project_id,
-                           (SELECT p.partner_id FROM partners p
-                            WHERE p.project_id=pr.project_id AND p.name=:pname),
-                           :vdate, :vtype, 'CEL MEAL Team', :status, :notes, :vdate
-                    FROM projects pr WHERE pr.name='SAWA'
-                      AND NOT EXISTS (
-                          SELECT 1 FROM partner_visits pv2
-                          JOIN partners p2 ON p2.partner_id=pv2.partner_id
-                          WHERE pv2.project_id=pr.project_id
-                            AND p2.name=:pname AND pv2.visit_date=:vdate
-                      )
-                """), {"pname": _pname, "vdate": _vdate, "vtype": _vtype,
-                       "status": _status, "notes": _notes})
-            # Needs assessment findings for the two completed visits.
-            for _pname, _vdate, _fp, _fe, _tools, _stor, _freq, _fmt, \
-                    _sex, _age, _dis, _vc, _comm, _risk, _onotes, \
-                    _conf, _disc, _supp, _snotes in [
-                ("Aglow Farms", "2026-10-05",
-                 "Grace Mensah", "g.mensah@aglowfarms.gh",
-                 "KoboToolbox (Form 1 partial), Paper register, Excel summary",
-                 "Local Excel files + physical folders; no cloud backup",
-                 "Monthly", "Excel",
-                 "Y", "N", "Partial", "Y",
-                 "Kasunya (Shai Osudoku), Dodowa, Prampram, Nungua",
-                 "Medium",
-                 "Kasunya and Nungua overlap with AgroKings coverage. Duplicate enrolment risk — cross-check needed before Q2 consolidation.",
-                 "PI.1,PII.R6",
-                 "Age disaggregation not collected in Form 1. Disability flag present but inconsistently applied. Q1 actual of 461 confirmed.",
-                 "Training",
-                 "Half-day KoboToolbox Form 1 training for Grace Mensah — November 2026. Shared list to be cross-checked with AgroKings."),
-                ("TechnoServe", "2026-10-07",
-                 "Kwame Asante", "k.asante@technoserve.org",
-                 "Salesforce CRM, ODK Collect, Excel exports",
-                 "Salesforce + Azure cloud backup; full audit trail",
-                 "Quarterly", "Salesforce report + Excel",
-                 "Y", "Y", "Y", "Partial",
-                 "Programme-wide — financial eligibility screening, not site-specific",
-                 "Low",
-                 "No geographic overlap risk. Cross-cutting financial partner serving all anchors.",
-                 "PIII.R1,PII.R5,PII.R6",
-                 "Value-chain node disaggregation not captured at beneficiary level. Salesforce tracks product category only. To be resolved in Q2 with revised intake form.",
-                 "Indicator definitions",
-                 "CEL MEAL to share updated definition sheet for PIII.R1 and PII.R5 with agreed disaggregation format by 31 Oct 2026."),
-            ]:
-                conn.execute(text("""
-                    INSERT INTO visit_findings
-                           (visit_id, mel_focal_person, mel_focal_email,
-                            existing_tools, data_storage, reporting_frequency, reporting_format,
-                            disagg_sex, disagg_age, disagg_disability, disagg_value_chain,
-                            communities_served, overlap_risk, overlap_notes,
-                            indicators_confirmed, discrepancies_found,
-                            support_agreed, support_notes)
-                    SELECT pv.id, :fp, :fe, :tools, :stor, :freq, :fmt,
-                           :sex, :age, :dis, :vc, :comm, :risk, :onotes,
-                           :conf, :disc, :supp, :snotes
-                    FROM partner_visits pv
-                    JOIN partners p ON p.partner_id=pv.partner_id
-                    JOIN projects pr ON pr.project_id=pv.project_id
-                    WHERE pr.name='SAWA' AND p.name=:pname AND pv.visit_date=:vdate
-                      AND NOT EXISTS (
-                          SELECT 1 FROM visit_findings vf2 WHERE vf2.visit_id=pv.id
-                      )
-                """), {"pname": _pname, "vdate": _vdate, "fp": _fp, "fe": _fe,
-                       "tools": _tools, "stor": _stor, "freq": _freq, "fmt": _fmt,
-                       "sex": _sex, "age": _age, "dis": _dis, "vc": _vc,
-                       "comm": _comm, "risk": _risk, "onotes": _onotes,
-                       "conf": _conf, "disc": _disc, "supp": _supp, "snotes": _snotes})
-            # Evidence items for completed visits.
-            for _pname, _vdate, _lbl, _code, _url in [
-                ("Aglow Farms",  "2026-10-05",
-                 "Participant Register Extract — Q1 2026 (Aglow Farms)", "PI.1",   ""),
-                ("TechnoServe",  "2026-10-07",
-                 "TechnoServe Catalytic Grant Disbursement Q1 Report",  "PIII.R1", ""),
-            ]:
-                conn.execute(text("""
-                    INSERT INTO visit_evidence
-                           (visit_id, project_id, logframe_row_id, label,
-                            link_url, uploaded_by, uploaded_at)
-                    SELECT pv.id, pr.project_id,
-                           (SELECT lr.id FROM logframe_rows lr
-                            WHERE lr.project_id=pr.project_id AND lr.indicator_code=:code),
-                           :lbl, :url, 'CEL MEAL Team', :vdate
-                    FROM partner_visits pv
-                    JOIN partners p ON p.partner_id=pv.partner_id
-                    JOIN projects pr ON pr.project_id=pv.project_id
-                    WHERE pr.name='SAWA' AND p.name=:pname AND pv.visit_date=:vdate
-                      AND NOT EXISTS (
-                          SELECT 1 FROM visit_evidence ve2
-                          WHERE ve2.visit_id=pv.id AND ve2.label=:lbl
-                      )
-                """), {"pname": _pname, "vdate": _vdate, "lbl": _lbl,
-                       "code": _code, "url": _url or None})
             # Sample tasks for Module K — one per role to seed the workspace.
             for _role, _task, _desc, _status, _due, _asgn, _code in [
                 ("GYSI",   "Collect disaggregated enrolment data from all 5 anchor partners",
@@ -1171,124 +1063,18 @@ def _run_migrations() -> bool:
                  )""",
             (_code, current_fiscal_year(), _pname, _q1, _ps, _pl, _code, _pname),
         )
-    # ── Sample data for Module J & K (SQLite, idempotent) ────────────────────
+    # ── Sample data for Module K (SQLite, idempotent) ─────────────────────────
     _sawa_pid = conn.execute(
         "SELECT project_id FROM projects WHERE name='SAWA' LIMIT 1"
     ).fetchone()
     if _sawa_pid:
         _sawa_pid = _sawa_pid[0]
-        def _pid_of(name):
-            r = conn.execute(
-                "SELECT partner_id FROM partners WHERE project_id=? AND name=? LIMIT 1",
-                (_sawa_pid, name)
-            ).fetchone()
-            return r[0] if r else None
         def _lf_of(code):
             r = conn.execute(
                 "SELECT id FROM logframe_rows WHERE project_id=? AND indicator_code=? LIMIT 1",
                 (_sawa_pid, code)
             ).fetchone()
             return r[0] if r else None
-        def _visit_id(pname, vdate):
-            pid = _pid_of(pname)
-            if not pid:
-                return None
-            r = conn.execute(
-                "SELECT id FROM partner_visits WHERE project_id=? AND partner_id=? AND visit_date=? LIMIT 1",
-                (_sawa_pid, pid, vdate)
-            ).fetchone()
-            return r[0] if r else None
-
-        for _pname, _vdate, _vtype, _status, _notes in [
-            ("Aglow Farms", "2026-10-05", "In-person", "Completed",
-             "Initial M&E mapping. Paper registers + Excel. KoboToolbox training needed."),
-            ("TechnoServe", "2026-10-07", "Remote",    "Completed",
-             "Virtual M&E review. Salesforce CRM + ODK. Strong disaggregation. Low overlap risk."),
-            ("AgroKings",   "2026-10-12", "In-person", "Scheduled",  ""),
-            ("Naple Betta", "2026-10-15", "In-person", "Scheduled",  ""),
-            ("AFRIGEM",     "2026-10-20", "Joint",     "Scheduled",
-             "Joint visit with Aglow Farms — shared Kasunya community overlap."),
-        ]:
-            if not _visit_id(_pname, _vdate):
-                _par = _pid_of(_pname)
-                if _par:
-                    conn.execute(
-                        """INSERT INTO partner_visits
-                           (project_id,partner_id,visit_date,visit_type,
-                            conducted_by,status,general_notes,created_at)
-                           VALUES (?,?,?,?,'CEL MEAL Team',?,?,?)""",
-                        (_sawa_pid, _par, _vdate, _vtype, _status, _notes, _vdate)
-                    )
-
-        for _pname, _vdate, _fp, _fe, _tools, _stor, _freq, _fmt, \
-                _sex, _age, _dis, _vc, _comm, _risk, _onotes, \
-                _conf, _disc, _supp, _snotes in [
-            ("Aglow Farms", "2026-10-05",
-             "Grace Mensah", "g.mensah@aglowfarms.gh",
-             "KoboToolbox (Form 1 partial), Paper register, Excel summary",
-             "Local Excel files + physical folders; no cloud backup",
-             "Monthly", "Excel",
-             "Y","N","Partial","Y",
-             "Kasunya (Shai Osudoku), Dodowa, Prampram, Nungua",
-             "Medium",
-             "Kasunya and Nungua overlap with AgroKings. Cross-check before Q2 consolidation.",
-             "PI.1,PII.R6",
-             "Age disaggregation not collected. Disability flag inconsistently applied. Q1 actual 461 confirmed.",
-             "Training",
-             "Half-day KoboToolbox Form 1 training for Grace Mensah — Nov 2026."),
-            ("TechnoServe", "2026-10-07",
-             "Kwame Asante", "k.asante@technoserve.org",
-             "Salesforce CRM, ODK Collect, Excel exports",
-             "Salesforce + Azure cloud backup; full audit trail",
-             "Quarterly", "Salesforce report + Excel",
-             "Y","Y","Y","Partial",
-             "Programme-wide — financial eligibility screening, not site-specific",
-             "Low",
-             "No geographic overlap risk. Cross-cutting financial partner.",
-             "PIII.R1,PII.R5,PII.R6",
-             "Value-chain node not captured at beneficiary level. Resolved in Q2 with revised intake form.",
-             "Indicator definitions",
-             "CEL MEAL to share updated definition sheet for PIII.R1 and PII.R5 by 31 Oct 2026."),
-        ]:
-            _vid = _visit_id(_pname, _vdate)
-            if _vid:
-                existing = conn.execute(
-                    "SELECT id FROM visit_findings WHERE visit_id=? LIMIT 1", (_vid,)
-                ).fetchone()
-                if not existing:
-                    conn.execute(
-                        """INSERT INTO visit_findings
-                           (visit_id,mel_focal_person,mel_focal_email,existing_tools,
-                            data_storage,reporting_frequency,reporting_format,
-                            disagg_sex,disagg_age,disagg_disability,disagg_value_chain,
-                            communities_served,overlap_risk,overlap_notes,
-                            indicators_confirmed,discrepancies_found,
-                            support_agreed,support_notes)
-                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                        (_vid,_fp,_fe,_tools,_stor,_freq,_fmt,
-                         _sex,_age,_dis,_vc,_comm,_risk,_onotes,
-                         _conf,_disc,_supp,_snotes)
-                    )
-
-        for _pname, _vdate, _lbl, _code in [
-            ("Aglow Farms", "2026-10-05",
-             "Participant Register Extract — Q1 2026 (Aglow Farms)", "PI.1"),
-            ("TechnoServe", "2026-10-07",
-             "TechnoServe Catalytic Grant Disbursement Q1 Report", "PIII.R1"),
-        ]:
-            _vid = _visit_id(_pname, _vdate)
-            if _vid:
-                existing = conn.execute(
-                    "SELECT id FROM visit_evidence WHERE visit_id=? AND label=? LIMIT 1",
-                    (_vid, _lbl)
-                ).fetchone()
-                if not existing:
-                    conn.execute(
-                        """INSERT INTO visit_evidence
-                           (visit_id,project_id,logframe_row_id,label,uploaded_by,uploaded_at)
-                           VALUES (?,?,?,?,'CEL MEAL Team',?)""",
-                        (_vid, _sawa_pid, _lf_of(_code), _lbl, _vdate)
-                    )
 
         for _role, _task, _desc, _status, _due, _asgn, _code in [
             ("GYSI","Collect disaggregated enrolment data from all 5 anchor partners",
