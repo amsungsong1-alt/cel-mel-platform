@@ -126,12 +126,27 @@ def _run_migrations() -> bool:
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS partner_id INTEGER",
             ):
                 conn.execute(text(stmt))
-            # Add 'Pending' to partner_visits.status — the unnamed CHECK
-            # constraint in the CREATE TABLE above gets Postgres's default
-            # auto-generated name (<table>_<column>_check).
-            conn.execute(text(
-                "ALTER TABLE partner_visits DROP CONSTRAINT IF EXISTS partner_visits_status_check"
-            ))
+            # Add 'Pending' to partner_visits.status. Don't assume the CHECK
+            # constraint's name (guessing 'partner_visits_status_check' left
+            # a differently-named old constraint in place in production,
+            # which still rejected 'Pending' alongside the newly-added one —
+            # both constraints must pass, so the old one still blocked it).
+            # Look up every CHECK constraint actually on the status column via
+            # catalog tables and drop each by its real name, in Python rather
+            # than a PL/pgSQL DO block — avoids embedding literal '%'
+            # wildcards in SQL text passed through SQLAlchemy/psycopg, which
+            # use '%'-style paramstyles and can misinterpret stray '%' chars.
+            _pv_status_constraints = conn.execute(text("""
+                SELECT c.conname
+                FROM   pg_constraint c
+                JOIN   pg_attribute a
+                       ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+                WHERE  c.conrelid = 'partner_visits'::regclass
+                  AND  c.contype  = 'c'
+                  AND  a.attname  = 'status'
+            """)).fetchall()
+            for (_con_name,) in _pv_status_constraints:
+                conn.execute(text(f'ALTER TABLE partner_visits DROP CONSTRAINT "{_con_name}"'))
             conn.execute(text(
                 "ALTER TABLE partner_visits ADD CONSTRAINT partner_visits_status_check "
                 "CHECK (status IN ('Pending','Scheduled','Completed','Cancelled'))"
