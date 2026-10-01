@@ -397,7 +397,7 @@ CREATE TABLE IF NOT EXISTS partner_visits (
     visit_type    TEXT    CHECK(visit_type IN ('In-person','Remote','Joint')),
     conducted_by  TEXT,
     status        TEXT    DEFAULT 'Scheduled'
-                  CHECK(status IN ('Scheduled','Completed','Cancelled')),
+                  CHECK(status IN ('Pending','Scheduled','Completed','Cancelled')),
     general_notes TEXT,
     created_at    TEXT    NOT NULL
 );

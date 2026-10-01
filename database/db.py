@@ -126,6 +126,16 @@ def _run_migrations() -> bool:
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS partner_id INTEGER",
             ):
                 conn.execute(text(stmt))
+            # Add 'Pending' to partner_visits.status — the unnamed CHECK
+            # constraint in the CREATE TABLE above gets Postgres's default
+            # auto-generated name (<table>_<column>_check).
+            conn.execute(text(
+                "ALTER TABLE partner_visits DROP CONSTRAINT IF EXISTS partner_visits_status_check"
+            ))
+            conn.execute(text(
+                "ALTER TABLE partner_visits ADD CONSTRAINT partner_visits_status_check "
+                "CHECK (status IN ('Pending','Scheduled','Completed','Cancelled'))"
+            ))
             # Index must come after ADD COLUMN (schema.sql can't do it safely on existing DBs).
             conn.execute(text(
                 "CREATE INDEX IF NOT EXISTS idx_rda_partner ON raw_data_analysis(partner_id)"
@@ -900,6 +910,40 @@ def _run_migrations() -> bool:
         )
     except Exception:
         pass
+    # Add 'Pending' to partner_visits.status. SQLite has no ALTER TABLE ...
+    # DROP/ADD CONSTRAINT, so rebuild the table when the old CHECK (without
+    # 'Pending') is still in place — only runs once, since the rebuilt table's
+    # own CREATE statement already includes 'Pending'.
+    try:
+        _pv_row = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='partner_visits'"
+        ).fetchone()
+        if _pv_row and _pv_row[0] and "'Pending'" not in _pv_row[0]:
+            conn.execute("ALTER TABLE partner_visits RENAME TO partner_visits_old")
+            conn.execute("""
+                CREATE TABLE partner_visits (
+                    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                    project_id    INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                    partner_id    INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+                    visit_date    TEXT    NOT NULL,
+                    visit_type    TEXT    CHECK(visit_type IN ('In-person','Remote','Joint')),
+                    conducted_by  TEXT,
+                    status        TEXT    DEFAULT 'Scheduled'
+                                  CHECK(status IN ('Pending','Scheduled','Completed','Cancelled')),
+                    general_notes TEXT,
+                    created_at    TEXT    NOT NULL
+                )
+            """)
+            conn.execute(
+                "INSERT INTO partner_visits "
+                "(id, project_id, partner_id, visit_date, visit_type, conducted_by, "
+                " status, general_notes, created_at) "
+                "SELECT id, project_id, partner_id, visit_date, visit_type, conducted_by, "
+                "       status, general_notes, created_at FROM partner_visits_old"
+            )
+            conn.execute("DROP TABLE partner_visits_old")
+    except Exception:
+        pass
     # Ensure workplan_activities table exists (added after initial schema deploy).
     try:
         conn.execute("""
@@ -935,7 +979,7 @@ def _run_migrations() -> bool:
                 visit_type    TEXT    CHECK(visit_type IN ('In-person','Remote','Joint')),
                 conducted_by  TEXT,
                 status        TEXT    DEFAULT 'Scheduled'
-                              CHECK(status IN ('Scheduled','Completed','Cancelled')),
+                              CHECK(status IN ('Pending','Scheduled','Completed','Cancelled')),
                 general_notes TEXT,
                 created_at    TEXT    NOT NULL
             )

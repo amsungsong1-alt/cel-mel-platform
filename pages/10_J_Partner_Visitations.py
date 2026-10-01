@@ -79,6 +79,8 @@ tab_visits, tab_assess, tab_evidence, tab_report = st.tabs(
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — VISITS
 # ═══════════════════════════════════════════════════════════════════════════════
+_VISIT_STATUSES = ["Pending", "Scheduled", "Completed", "Cancelled"]
+
 with tab_visits:
     col_f1, col_f2 = st.columns(2)
     with col_f1:
@@ -90,7 +92,7 @@ with tab_visits:
     with col_f2:
         filter_status = st.selectbox(
             "Filter by status",
-            ["All", "Scheduled", "Completed", "Cancelled"],
+            ["All"] + _VISIT_STATUSES,
             key="vf_status",
         )
 
@@ -100,7 +102,7 @@ with tab_visits:
         and (filter_status == "All" or v["status"] == filter_status)
     ]
 
-    _STATUS_COLOUR = {"Scheduled": "🔵", "Completed": "🟢", "Cancelled": "⚫"}
+    _STATUS_COLOUR = {"Pending": "🟡", "Scheduled": "🔵", "Completed": "🟢", "Cancelled": "⚫"}
 
     if visible:
         st.dataframe(
@@ -179,9 +181,9 @@ with tab_visits:
                     with uc1:
                         new_status = st.selectbox(
                             "Status",
-                            ["Scheduled", "Completed", "Cancelled"],
-                            index=["Scheduled", "Completed", "Cancelled"].index(upd_visit["status"])
-                            if upd_visit.get("status") in ["Scheduled", "Completed", "Cancelled"] else 0,
+                            _VISIT_STATUSES,
+                            index=_VISIT_STATUSES.index(upd_visit["status"])
+                            if upd_visit.get("status") in _VISIT_STATUSES else 0,
                             key=f"upd_status_{_uk}",
                         )
                         new_type = st.selectbox(
