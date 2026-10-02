@@ -29,18 +29,14 @@ if not st.session_state.get("authentication_status"):
     st.error("Please log in from the main page.")
     st.stop()
 
+_VISIT_STATUSES = ["Pending", "Scheduled", "Completed", "Cancelled"]
+
 with st.sidebar:
     project_id = project_selector()
     if project_id is None:
         st.stop()
     st.divider()
     st.caption(f"Role: **{st.session_state.get('role', 'Viewer')}**")
-
-st.title("Module J — Partner Visitations")
-st.caption(
-    "SAWA Programme · Sept–Oct 2026 — "
-    "Map partner M&E systems, confirm disaggregation, agree data-sharing frequency, flag overlap risks."
-)
 
 # ── Reference data ─────────────────────────────────────────────────────────────
 partners = run_query(
@@ -49,6 +45,27 @@ partners = run_query(
 )
 partner_name_to_id = {p["name"]: p["partner_id"] for p in partners}
 partner_id_to_name = {p["partner_id"]: p["name"] for p in partners}
+
+with st.sidebar:
+    st.divider()
+    st.caption("Visits tab navigation")
+    filter_partner = st.selectbox(
+        "Filter by partner",
+        ["All partners"] + [p["name"] for p in partners],
+        key="vf_partner",
+        help="Jumps straight to one partner's visits in the Visits tab table below, instead of scrolling through all of them.",
+    )
+    filter_status = st.selectbox(
+        "Filter by status",
+        ["All"] + _VISIT_STATUSES,
+        key="vf_status",
+    )
+
+st.title("Module J — Partner Visitations")
+st.caption(
+    "SAWA Programme · Sept–Oct 2026 — "
+    "Map partner M&E systems, confirm disaggregation, agree data-sharing frequency, flag overlap risks."
+)
 
 logframe_rows = run_query(
     """SELECT id, indicator_code, indicator_statement
@@ -79,23 +96,7 @@ tab_visits, tab_assess, tab_evidence, tab_report = st.tabs(
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — VISITS
 # ═══════════════════════════════════════════════════════════════════════════════
-_VISIT_STATUSES = ["Pending", "Scheduled", "Completed", "Cancelled"]
-
 with tab_visits:
-    col_f1, col_f2 = st.columns(2)
-    with col_f1:
-        filter_partner = st.selectbox(
-            "Filter by partner",
-            ["All partners"] + [p["name"] for p in partners],
-            key="vf_partner",
-        )
-    with col_f2:
-        filter_status = st.selectbox(
-            "Filter by status",
-            ["All"] + _VISIT_STATUSES,
-            key="vf_status",
-        )
-
     visible = [
         v for v in visits
         if (filter_partner == "All partners" or v["partner_name"] == filter_partner)
