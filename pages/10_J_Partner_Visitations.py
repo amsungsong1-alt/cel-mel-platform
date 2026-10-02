@@ -60,6 +60,12 @@ with st.sidebar:
         ["All"] + _VISIT_STATUSES,
         key="vf_status",
     )
+    hide_pending = st.checkbox(
+        "Hide pending (unconfirmed) visits",
+        value=True,
+        key="vf_hide_pending",
+        help="Pending visits stay in the database — this just keeps unconfirmed dates out of the table below. Uncheck here, or pick 'Pending' above, to see them again.",
+    )
 
 st.title("Module J — Partner Visitations")
 st.caption(
@@ -101,7 +107,17 @@ with tab_visits:
         v for v in visits
         if (filter_partner == "All partners" or v["partner_name"] == filter_partner)
         and (filter_status == "All" or v["status"] == filter_status)
+        and (filter_status != "All" or not hide_pending or v["status"] != "Pending")
     ]
+    _n_hidden_pending = (
+        sum(1 for v in visits if v["status"] == "Pending") - sum(1 for v in visible if v["status"] == "Pending")
+        if hide_pending and filter_status == "All" else 0
+    )
+    if _n_hidden_pending:
+        st.caption(
+            f"🟡 {_n_hidden_pending} pending visit(s) hidden — "
+            "uncheck **Hide pending visits** in the sidebar to see them."
+        )
 
     _STATUS_COLOUR = {"Pending": "🟡", "Scheduled": "🔵", "Completed": "🟢", "Cancelled": "⚫"}
 
