@@ -710,6 +710,103 @@ with st.expander(
     else:
         st.success("No mismatches — every indicator's target agrees with the logframe.")
 
+# ── MCF standard aggregation coverage reference ───────────────────────────────
+# Source: Mastercard Foundation's standard Work Enabling Outreach (WEO) /
+# Youth in Work (YiW) cross-portfolio aggregation taxonomy (provided 2 Oct
+# 2026). This checks which of MCF's standard reporting categories SAWA's own
+# 21-indicator logframe has a genuinely matching indicator for — "Covered"
+# requires the SAWA indicator to match both the population and the counting
+# unit, not just a loosely related topic. Most "Not tracked" rows reflect
+# categories SAWA's logframe (Module B) genuinely doesn't collect, not a
+# reporting oversight — this is a coverage/gap reference, not an official
+# MCF submission.
+_MCF_COVERAGE = [
+    # (Section, MCF Category, Coverage, SAWA Indicator(s), Note)
+    ("Work Enabling Outreach (WEO)", "Total Youth (WEO)", "✅ Covered", "PI.1",
+     "SAWA's enrolment count is inherently young-women/PWD-focused, not general youth."),
+    ("Work Enabling Outreach (WEO)", "Total Youth women 18-35 (accessing training)", "⚠️ Partial", "PI.3, PI.19, PI.20",
+     "SAWA tracks training access by type (BDS, gender-transformative, safeguarding) — no single combined 'any training' count."),
+    ("Work Enabling Outreach (WEO)", "Total Youth women 18-35 (accessing starter pack)", "❌ Not tracked", "—",
+     "Partner narratives mention starter-pack support (e.g. Naple Betta) but it isn't a logframe indicator."),
+    ("Work Enabling Outreach (WEO)", "Total Rural / Urban / Peri-Urban", "❌ Not tracked", "—",
+     "SAWA's disaggregation fields are sex / age / disability — no rural / urban / peri-urban breakdown."),
+    ("Operational Reach", "Total Regions / Districts / Communities", "⚠️ Partial", "—",
+     "Module J captures 'Communities served' per partner visit as free text — not an aggregated, counted indicator."),
+    ("Youth In Work", "Total Youth in Work", "⚠️ Partial", "LoP.1, PIII.R1, PII.R5",
+     "LoP.1 is Life-of-Programme, not annual; PIII.R1/PII.R5 are value-chain/PWD subsets, not one combined total."),
+    ("Youth In Work", "Primary / Secondary / Tertiary sector breakdown", "❌ Not tracked", "—",
+     "SAWA doesn't disaggregate Youth-in-Work by economic sector tier."),
+    ("Women Youth In Work", "Total Women Youth in Work", "⚠️ Partial", "PIII.R1",
+     "PIII.R1 covers Value Addition activities only, not the full D&F value chain."),
+    ("Women Youth In Work", "Primary / Secondary / Tertiary sector breakdown", "❌ Not tracked", "—",
+     "Same sector-tier gap as above."),
+    ("Employment Category", "Self Employment / Wage Employment (+ Women)", "❌ Not tracked", "—",
+     "SAWA's outcome indicators don't distinguish self- vs wage-employment."),
+    ("Employment Type", "New / Improved / Additional Employment (+ Women, + Self/Wage splits)", "❌ Not tracked", "—",
+     "SAWA doesn't track employment-type transitions at all."),
+    ("Refugee and/or Displaced Persons", "All 6 sub-categories (incl. Host Community, PWD overlap)", "❌ Not tracked", "—",
+     "No refugee/displaced or host-community disaggregation anywhere in the logframe."),
+    ("Persons with Disabilities", "Total Youth with Disabilities", "⚠️ Partial", "PI.1 (disaggregation)",
+     "Disability is a disaggregation field on PI.1's enrolment count, not its own standalone indicator."),
+    ("Persons with Disabilities", "Total Young Women with Disabilities", "⚠️ Partial", "PI.1 (disaggregation)",
+     "Same — a PI.1 disaggregation dimension, not a standalone count."),
+    ("Persons with Disabilities", "Total Youth with Disabilities in Work", "✅ Covered", "PII.R5",
+     "Direct match — PII.R5 is exactly this count."),
+    ("Persons with Disabilities", "Total Women Youth with Disabilities in Work", "⚠️ Likely overlap", "PII.R5",
+     "PII.R5's statement doesn't explicitly restrict to women, though SAWA's PWD cohort sits within its women-focused participant base."),
+    ("Persons with Disabilities", "Refugee/Displaced PWD in Work (+ Women)", "❌ Not tracked", "—",
+     "Compounds the refugee/displaced gap above."),
+    ("Enterprises Supported", "Number of Enterprises Supported - Total", "⚠️ Partial", "—",
+     "TechnoServe's catalytic/micro-grant enterprise counts appear in Module A's partner narrative, not as a formal logframe indicator."),
+    ("Enterprises Supported", "Women-Led / Youth-Led Enterprises Supported", "❌ Not tracked", "—",
+     "No leadership-gender/age disaggregation on enterprise counts."),
+    ("Women in Aquaculture Network (WAN)", "Number of WAN formed / supported - Total", "❌ Not tracked", "—",
+     "PI.11/PI.12 count individual women engaged in WAN forums/bootcamps, not the number of WAN groups formed or supported — a different counting unit."),
+]
+_mcf_df = pd.DataFrame(_MCF_COVERAGE, columns=["Section", "MCF Category", "Coverage", "SAWA Indicator(s)", "Note"])
+_n_covered = int((_mcf_df["Coverage"] == "✅ Covered").sum())
+_n_partial = int(_mcf_df["Coverage"].str.startswith("⚠️").sum())
+_n_gap     = int((_mcf_df["Coverage"] == "❌ Not tracked").sum())
+
+with st.expander(
+    f"📐 MCF standard aggregation coverage — {_n_covered} covered · {_n_partial} partial · {_n_gap} not tracked",
+    expanded=False,
+):
+    st.caption(
+        "Checks SAWA's 21-indicator logframe against Mastercard Foundation's standard "
+        "Work Enabling Outreach (WEO) / Youth in Work (YiW) cross-portfolio aggregation "
+        "categories. 'Covered' requires a SAWA indicator matching both the population and "
+        "the counting unit, not just a related topic — most gaps below reflect categories "
+        "SAWA genuinely doesn't collect, not a reporting oversight."
+    )
+
+    def _mcf_css(val) -> str:
+        if val == "✅ Covered":
+            return "background-color:#E8F5E9;color:#2E7D32;"
+        if str(val).startswith("⚠️"):
+            return "background-color:#FFF8E1;color:#E65100;"
+        if val == "❌ Not tracked":
+            return "background-color:#FFEBEE;color:#C62828;"
+        return ""
+
+    try:
+        _styled_mcf = _mcf_df.style.map(_mcf_css, subset=["Coverage"])
+    except AttributeError:
+        _styled_mcf = _mcf_df.style.applymap(_mcf_css, subset=["Coverage"])
+
+    st.dataframe(
+        _styled_mcf,
+        hide_index=True,
+        use_container_width=True,
+        column_config={
+            "Section":           st.column_config.TextColumn("Section", width="medium"),
+            "MCF Category":      st.column_config.TextColumn("MCF Category", width="large"),
+            "Coverage":          st.column_config.TextColumn("Coverage", width="small"),
+            "SAWA Indicator(s)": st.column_config.TextColumn("SAWA Indicator(s)", width="medium"),
+            "Note":              st.column_config.TextColumn("Note", width="large"),
+        },
+    )
+
 
 # =============================================================================
 # Evidence & Means of Verification
