@@ -285,263 +285,247 @@ for lvl in (1, 2, 3, 4):
 st.divider()
 
 # ── Budget allocation chart ───────────────────────────────────────────────────
-st.subheader("Budget Allocation by Pillar")
+with st.expander("Budget Allocation by Pillar", expanded=False):
+    pillar_names  = list(PILLAR_BUDGETS.keys())
+    pillar_usd_m  = [v / 1_000_000 for v in PILLAR_BUDGETS.values()]
+    total_m       = sum(pillar_usd_m)
 
-pillar_names  = list(PILLAR_BUDGETS.keys())
-pillar_usd_m  = [v / 1_000_000 for v in PILLAR_BUDGETS.values()]
-total_m       = sum(pillar_usd_m)
+    fig = go.Figure()
+    for name, val, col in zip(pillar_names, pillar_usd_m, PILLAR_COLORS):
+        fig.add_trace(go.Bar(
+            name=name,
+            x=[val],
+            y=["SAWA Budget"],
+            orientation="h",
+            marker_color=col,
+            text=f"${val:.2f}M",
+            textposition="inside",
+            insidetextanchor="middle",
+            hovertemplate=f"<b>{name}</b><br>${val:.2f}M ({100*val/total_m:.1f}%)<extra></extra>",
+        ))
 
-fig = go.Figure()
-for name, val, col in zip(pillar_names, pillar_usd_m, PILLAR_COLORS):
-    fig.add_trace(go.Bar(
-        name=name,
-        x=[val],
-        y=["SAWA Budget"],
-        orientation="h",
-        marker_color=col,
-        text=f"${val:.2f}M",
-        textposition="inside",
-        insidetextanchor="middle",
-        hovertemplate=f"<b>{name}</b><br>${val:.2f}M ({100*val/total_m:.1f}%)<extra></extra>",
-    ))
-
-fig.update_layout(
-    barmode="stack",
-    title=dict(
-        text=f"SAWA Programme Budget — USD {total_m:.2f}M total",
-        font=dict(family="Fraunces, Georgia, serif", size=15, color="#16262E"),
-    ),
-    height=175,
-    margin=dict(l=0, r=0, t=40, b=90),
-    xaxis=dict(title=None, showgrid=True, gridcolor="#eee"),
-    yaxis=dict(showticklabels=False),
-    legend=dict(orientation="h", y=-1.5, x=0),
-    plot_bgcolor="rgba(0,0,0,0)",
-    paper_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="IBM Plex Mono, monospace", size=11, color="#5E6A6A"),
-)
-st.plotly_chart(fig, use_container_width=True)
-
-st.divider()
+    fig.update_layout(
+        barmode="stack",
+        title=dict(
+            text=f"SAWA Programme Budget — USD {total_m:.2f}M total",
+            font=dict(family="Fraunces, Georgia, serif", size=15, color="#16262E"),
+        ),
+        height=175,
+        margin=dict(l=0, r=0, t=40, b=90),
+        xaxis=dict(title=None, showgrid=True, gridcolor="#eee"),
+        yaxis=dict(showticklabels=False),
+        legend=dict(orientation="h", y=-1.5, x=0),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="IBM Plex Mono, monospace", size=11, color="#5E6A6A"),
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 # ── SAWA Partners on the Map ──────────────────────────────────────────────────
-st.subheader("SAWA Partners on the Map")
-st.caption(
-    "5 implementing partners · 40 communities · 10 of 16 regions  |  "
-    "Every pair shares a region · 4 shared districts · "
-    "5 hotspots where partners sit ≤15 km apart.  "
-    "Source: SAWA Partner Mapping & Alignment (GPS validated), Sep 2026."
-)
-_map_path = Path(__file__).parent.parent / "assets" / "sawa_partner_map.webp"
-if _map_path.exists():
-    st.image(str(_map_path), use_container_width=True)
-else:
-    pass
-
-st.divider()
+with st.expander("SAWA Partners on the Map", expanded=False):
+    st.caption(
+        "5 implementing partners · 40 communities · 10 of 16 regions  |  "
+        "Every pair shares a region · 4 shared districts · "
+        "5 hotspots where partners sit ≤15 km apart.  "
+        "Source: SAWA Partner Mapping & Alignment (GPS validated), Sep 2026."
+    )
+    _map_path = Path(__file__).parent.parent / "assets" / "sawa_partner_map.webp"
+    if _map_path.exists():
+        st.image(str(_map_path), use_container_width=True)
 
 # ── CEL's Role in SAWA ────────────────────────────────────────────────────────
-st.subheader("CEL's Delivery Role in SAWA")
-st.caption("Source: CEL SAWA proposal (Value Chain Pathway & Job Roles slide, July 2026)")
+with st.expander("CEL's Delivery Role in SAWA", expanded=False):
+    st.caption("Source: CEL SAWA proposal (Value Chain Pathway & Job Roles slide, July 2026)")
 
-rc1, rc2, rc3 = st.columns(3)
-with rc1:
-    st.markdown(
-        '<div style="background:#E7F3F1;border-left:4px solid #1E7E76;'
-        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#1E7E76;">Jobs Target</p>'
-        '<p style="margin:0;font-family:\'IBM Plex Mono\',monospace;font-size:1.28em;font-weight:600;color:#125650;">600 D&amp;F</p>'
-        '<p style="margin:0;font-size:0.78em;color:#5E6A6A;">Displaced &amp; Female participants</p>'
-        '<p style="margin:8px 0 0 0;font-family:\'IBM Plex Mono\',monospace;font-size:1.28em;font-weight:600;color:#125650;">800 YiW</p>'
-        '<p style="margin:0;font-size:0.78em;color:#5E6A6A;">Youth in Work</p>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-with rc2:
-    st.markdown(
-        '<div style="background:#FBEEE3;border-left:4px solid #B96A2E;'
-        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#B96A2E;">CEL Delivers</p>'
-        '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#3A2E24;">'
-        '<li>Business development services, training and mentorship to young women entrepreneurs</li>'
-        '<li>Tiers and tracks enterprises from foundational training to bankable status</li>'
-        '<li>Refers grant-ready entrepreneurs to TechnoServe and mentors promising businesses beyond the core cohort</li>'
-        '</ul>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-with rc3:
-    st.markdown(
-        '<div style="background:#E9F1EC;border-left:4px solid #4A6B5C;'
-        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#4A6B5C;">National Mandate</p>'
-        '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#28362F;">'
-        '<li>Enterprise training (national)</li>'
-        '<li>Safeguarding focal point across all IPs</li>'
-        '<li>Women in Aquaculture Network (WAN) establishment</li>'
-        '<li>Independently manages programme grievance mechanism</li>'
-        '<li>PWD target: 30 D&amp;F / 40 YiW</li>'
-        '</ul>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ── How CEL Structures BDS & WAN Delivery ────────────────────────────────────
-# The two Sep 2026 CEL concept notes are the operating-model detail behind
-# the Level 2/3 figures above — every quantity in their own Year 1 tables
-# (Women mobilised 95/135/135/135, WAN forum engagements 300/200, D&F jobs in
-# value addition 40/30/30, PWD mentors 1/2/2/3) matches this page's existing
-# numbers exactly, so this section adds the "how", not new figures.
-st.subheader("How CEL Structures BDS & WAN Delivery")
-st.caption(
-    "Source: Draft CEL SAWA BDS Implementation Concept Note (28 Sep 2026) · "
-    "Draft CEL SAWA WAN Concept Note and Initial Actions (28 Sep 2026)."
-)
-
-bds1, bds2, bds3 = st.columns(3)
-with bds1:
-    st.markdown(
-        '<div style="background:#E7F3F1;border-left:4px solid #1E7E76;'
-        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#1E7E76;">BDS Group 1 — Ideation &amp; Early Business Development</p>'
-        '<p style="margin:0;font-size:0.82em;color:#28362F;">Partner-led. CEL reviews existing BDS materials, '
-        'co-creates cohort-based modules, and provides ToT, co-facilitation and follow-up where needed. '
-        'Practical assignments cover customers, costs and running the activity as a business.</p>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-with bds2:
-    st.markdown(
-        '<div style="background:#FBEEE3;border-left:4px solid #B96A2E;'
-        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#B96A2E;">BDS Group 2 — Accelerators &amp; Enterprises in Transition</p>'
-        '<p style="margin:0;font-size:0.82em;color:#3A2E24;">CEL provides direct coaching and mentoring. '
-        'Entry reflects commitment and business need — women do not need to be finance- or scale-ready '
-        'before coaching starts. Partner technical staff stay involved in production and quality decisions.</p>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-with bds3:
-    st.markdown(
-        '<div style="background:#E9F1EC;border-left:4px solid #4A6B5C;'
-        'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#4A6B5C;">Support Across Both Groups</p>'
-        '<p style="margin:0;font-size:0.82em;color:#28362F;">Half-day workshops on regulatory requirements, '
-        'financial literacy, digital business skills and market access — using participants\' own records or '
-        'products, ending in a practical action and a named follow-up contact.</p>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-
-_bds_finding = pd.DataFrame([
-    {"Finding": "Exploring or testing an aquaculture activity",
-     "Support & Output": "Partner-led ideation and prototyping, with CEL business modules and trainer support. Output: a tested business idea and practical assignments on customers and costs."},
-    {"Finding": "Committed enterprise with gaps in management or market evidence",
-     "Support & Output": "CEL diagnosis followed by coaching and mentoring. Output: an enterprise growth plan with priorities, baseline, actions, responsibilities and review dates."},
-    {"Finding": "A common issue affecting several groups",
-     "Support & Output": "A half-day workshop with the relevant partner, followed by business or regulatory actions. Output: participant action list and referral follow-up."},
-    {"Finding": "A justified financing need with supporting business evidence",
-     "Support & Output": "CEL prepares the enterprise and agrees a referral to TechnoServe under its criteria. Output: required records and documents, referral and assessment feedback."},
-])
-st.dataframe(
-    _bds_finding, hide_index=True, use_container_width=True,
-    column_config={
-        "Finding":          st.column_config.TextColumn("Finding", width="medium"),
-        "Support & Output": st.column_config.TextColumn("Support & Output", width="large"),
-    },
-)
-st.markdown(
-    '<div style="background:#F6F3EC;border-left:3px solid #8A9494;border-radius:8px;'
-    'padding:10px 14px;margin-top:6px;">'
-    '<p style="margin:0;font-size:0.78em;color:#5E6A6A;">'
-    '<strong style="color:#16262E;">Proposed, not yet confirmed:</strong> CEL is separately proposing a '
-    'dedicated Finance Department to operationalise the "financing need" row above — financial literacy, '
-    'costing/pricing, budgeting and cash-flow, finance-readiness assessment, referral and post-referral '
-    'mentoring, feeding into the same TechnoServe referral pathway. Its own KPIs are explicitly described as '
-    '"proposed... to be finalised with the consolidated workplan" and validation with partners is still the '
-    'first step, so no targets are shown here. '
-    '<em>Source: SAWA/CEL Finance Department Concept Note and Partner Questionnaire, Sep 2026.</em></p>'
-    '</div>',
-    unsafe_allow_html=True,
-)
-
-st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-
-wan1, wan2, wan3 = st.columns(3)
-for _col, (_title, _body, _color, _bg, _txt) in zip(
-    (wan1, wan2, wan3),
-    [
-        ("Access to Markets",
-         "Market information, buyer contacts and collective activities where commercially useful. CEL provides "
-         "the costing, negotiation and business support needed to act on opportunities.",
-         "#1E7E76", "#E7F3F1", "#125650"),
-        ("Advocacy & Policy Influence",
-         "A practical route to raise recurring barriers, prepare evidence and engage responsible institutions. "
-         "The advocacy agenda comes from women's own experience of operating in the sector.",
-         "#B96A2E", "#FBEEE3", "#7A3D14"),
-        ("Role Modelling & Leadership",
-         "Experienced women mentor emerging entrepreneurs and are prepared to chair meetings, represent members "
-         "and take part in sector dialogue — with consent, via SAWA Voices and e-SAWA.",
-         "#4A6B5C", "#E9F1EC", "#2A3F35"),
-    ],
-):
-    with _col:
+    rc1, rc2, rc3 = st.columns(3)
+    with rc1:
         st.markdown(
-            f'<div style="background:{_bg};border-left:4px solid {_color};'
-            f'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-            f'<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:{_color};">{_title}</p>'
-            f'<p style="margin:0;font-size:0.82em;color:{_txt};">{_body}</p>'
-            f'</div>',
+            '<div style="background:#E7F3F1;border-left:4px solid #1E7E76;'
+            'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+            '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#1E7E76;">Jobs Target</p>'
+            '<p style="margin:0;font-family:\'IBM Plex Mono\',monospace;font-size:1.28em;font-weight:600;color:#125650;">600 D&amp;F</p>'
+            '<p style="margin:0;font-size:0.78em;color:#5E6A6A;">Displaced &amp; Female participants</p>'
+            '<p style="margin:8px 0 0 0;font-family:\'IBM Plex Mono\',monospace;font-size:1.28em;font-weight:600;color:#125650;">800 YiW</p>'
+            '<p style="margin:0;font-size:0.78em;color:#5E6A6A;">Youth in Work</p>'
+            '</div>',
             unsafe_allow_html=True,
         )
-st.caption(
-    "WAN membership is open across partner groups and does not depend on admission to CEL's direct BDS coaching."
-)
+    with rc2:
+        st.markdown(
+            '<div style="background:#FBEEE3;border-left:4px solid #B96A2E;'
+            'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+            '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#B96A2E;">CEL Delivers</p>'
+            '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#3A2E24;">'
+            '<li>Business development services, training and mentorship to young women entrepreneurs</li>'
+            '<li>Tiers and tracks enterprises from foundational training to bankable status</li>'
+            '<li>Refers grant-ready entrepreneurs to TechnoServe and mentors promising businesses beyond the core cohort</li>'
+            '</ul>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+    with rc3:
+        st.markdown(
+            '<div style="background:#E9F1EC;border-left:4px solid #4A6B5C;'
+            'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+            '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#4A6B5C;">National Mandate</p>'
+            '<ul style="margin:0;padding-left:16px;font-size:0.82em;color:#28362F;">'
+            '<li>Enterprise training (national)</li>'
+            '<li>Safeguarding focal point across all IPs</li>'
+            '<li>Women in Aquaculture Network (WAN) establishment</li>'
+            '<li>Independently manages programme grievance mechanism</li>'
+            '<li>PWD target: 30 D&amp;F / 40 YiW</li>'
+            '</ul>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
-st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-st.markdown("**WAN charter — topics under co-creation with women (interim agreement by 30 October 2026)**")
+# ── How CEL Structures BDS & WAN Delivery ────────────────────────────────────
+with st.expander("How CEL Structures BDS & WAN Delivery", expanded=False):
+    st.caption(
+        "Source: Draft CEL SAWA BDS Implementation Concept Note (28 Sep 2026) · "
+        "Draft CEL SAWA WAN Concept Note and Initial Actions (28 Sep 2026)."
+    )
 
-_wan_charter = pd.DataFrame([
-    {"Charter Topic": "Membership and purpose",
-     "Initial Agreement Required": "Who can participate, how groups affiliate, member rights and the services WAN will initially provide."},
-    {"Charter Topic": "Representation and decisions",
-     "Initial Agreement Required": "How representatives are chosen, their term and responsibilities, how priorities are agreed and how members can replace or challenge representatives."},
-    {"Charter Topic": "Accountability",
-     "Initial Agreement Required": "Meeting and financial records, reporting back to members, conflicts of interest and transparent handling of any common resources."},
-    {"Charter Topic": "Participation and feedback",
-     "Initial Agreement Required": "Accessible channels, response dates for feedback, a named confidential safeguarding route, and separate consent for stories or photographs."},
-    {"Charter Topic": "Coordination and continuity",
-     "Initial Agreement Required": "CEL's establishment role, partner contributions, arrangements for member management and a date to review the interim structure."},
-])
-st.dataframe(
-    _wan_charter, hide_index=True, use_container_width=True,
-    column_config={
-        "Charter Topic":               st.column_config.TextColumn("Charter Topic", width="medium"),
-        "Initial Agreement Required":  st.column_config.TextColumn("Initial Agreement Required", width="large"),
-    },
-)
+    bds1, bds2, bds3 = st.columns(3)
+    with bds1:
+        st.markdown(
+            '<div style="background:#E7F3F1;border-left:4px solid #1E7E76;'
+            'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+            '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#1E7E76;">BDS Group 1 — Ideation &amp; Early Business Development</p>'
+            '<p style="margin:0;font-size:0.82em;color:#28362F;">Partner-led. CEL reviews existing BDS materials, '
+            'co-creates cohort-based modules, and provides ToT, co-facilitation and follow-up where needed. '
+            'Practical assignments cover customers, costs and running the activity as a business.</p>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+    with bds2:
+        st.markdown(
+            '<div style="background:#FBEEE3;border-left:4px solid #B96A2E;'
+            'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+            '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#B96A2E;">BDS Group 2 — Accelerators &amp; Enterprises in Transition</p>'
+            '<p style="margin:0;font-size:0.82em;color:#3A2E24;">CEL provides direct coaching and mentoring. '
+            'Entry reflects commitment and business need — women do not need to be finance- or scale-ready '
+            'before coaching starts. Partner technical staff stay involved in production and quality decisions.</p>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+    with bds3:
+        st.markdown(
+            '<div style="background:#E9F1EC;border-left:4px solid #4A6B5C;'
+            'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+            '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#4A6B5C;">Support Across Both Groups</p>'
+            '<p style="margin:0;font-size:0.82em;color:#28362F;">Half-day workshops on regulatory requirements, '
+            'financial literacy, digital business skills and market access — using participants\' own records or '
+            'products, ending in a practical action and a named follow-up contact.</p>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
-st.markdown(
-    '<div style="background:#FBF3DF;border-left:4px solid #A97C1E;border-radius:10px;'
-    'padding:12px 16px;margin-top:10px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-    '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#7A5A10;">What these figures do not mean</p>'
-    '<p style="margin:0 0 4px 0;font-size:0.82em;color:#4A3A10;">'
-    '<strong>D&amp;F jobs in value addition (100):</strong> "Attendance or a finance referral alone will not be '
-    'reported as a job outcome" — work outcomes depend on production, sales and other partner inputs. '
-    '<em>Source: BDS concept note, Targets responsibilities and resources.</em></p>'
-    '<p style="margin:0;font-size:0.82em;color:#4A3A10;">'
-    '<strong>WAN forum engagements (500) and groups strengthened (25):</strong> "Forum engagements and unique '
-    'women will be reported separately... BDS, WAN and work results will not be added together as unique '
-    'programme reach." <em>Source: WAN concept note, Year 1 delivery and evidence of progress.</em></p>'
-    '</div>',
-    unsafe_allow_html=True,
-)
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
+    _bds_finding = pd.DataFrame([
+        {"Finding": "Exploring or testing an aquaculture activity",
+         "Support & Output": "Partner-led ideation and prototyping, with CEL business modules and trainer support. Output: a tested business idea and practical assignments on customers and costs."},
+        {"Finding": "Committed enterprise with gaps in management or market evidence",
+         "Support & Output": "CEL diagnosis followed by coaching and mentoring. Output: an enterprise growth plan with priorities, baseline, actions, responsibilities and review dates."},
+        {"Finding": "A common issue affecting several groups",
+         "Support & Output": "A half-day workshop with the relevant partner, followed by business or regulatory actions. Output: participant action list and referral follow-up."},
+        {"Finding": "A justified financing need with supporting business evidence",
+         "Support & Output": "CEL prepares the enterprise and agrees a referral to TechnoServe under its criteria. Output: required records and documents, referral and assessment feedback."},
+    ])
+    st.dataframe(
+        _bds_finding, hide_index=True, use_container_width=True,
+        column_config={
+            "Finding":          st.column_config.TextColumn("Finding", width="medium"),
+            "Support & Output": st.column_config.TextColumn("Support & Output", width="large"),
+        },
+    )
+    st.markdown(
+        '<div style="background:#F6F3EC;border-left:3px solid #8A9494;border-radius:8px;'
+        'padding:10px 14px;margin-top:6px;">'
+        '<p style="margin:0;font-size:0.78em;color:#5E6A6A;">'
+        '<strong style="color:#16262E;">Proposed, not yet confirmed:</strong> CEL is separately proposing a '
+        'dedicated Finance Department to operationalise the "financing need" row above — financial literacy, '
+        'costing/pricing, budgeting and cash-flow, finance-readiness assessment, referral and post-referral '
+        'mentoring, feeding into the same TechnoServe referral pathway. Its own KPIs are explicitly described as '
+        '"proposed... to be finalised with the consolidated workplan" and validation with partners is still the '
+        'first step, so no targets are shown here. '
+        '<em>Source: SAWA/CEL Finance Department Concept Note and Partner Questionnaire, Sep 2026.</em></p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+    wan1, wan2, wan3 = st.columns(3)
+    for _col, (_title, _body, _color, _bg, _txt) in zip(
+        (wan1, wan2, wan3),
+        [
+            ("Access to Markets",
+             "Market information, buyer contacts and collective activities where commercially useful. CEL provides "
+             "the costing, negotiation and business support needed to act on opportunities.",
+             "#1E7E76", "#E7F3F1", "#125650"),
+            ("Advocacy & Policy Influence",
+             "A practical route to raise recurring barriers, prepare evidence and engage responsible institutions. "
+             "The advocacy agenda comes from women's own experience of operating in the sector.",
+             "#B96A2E", "#FBEEE3", "#7A3D14"),
+            ("Role Modelling & Leadership",
+             "Experienced women mentor emerging entrepreneurs and are prepared to chair meetings, represent members "
+             "and take part in sector dialogue — with consent, via SAWA Voices and e-SAWA.",
+             "#4A6B5C", "#E9F1EC", "#2A3F35"),
+        ],
+    ):
+        with _col:
+            st.markdown(
+                f'<div style="background:{_bg};border-left:4px solid {_color};'
+                f'border-radius:10px;padding:12px 16px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+                f'<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:{_color};">{_title}</p>'
+                f'<p style="margin:0;font-size:0.82em;color:{_txt};">{_body}</p>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+    st.caption(
+        "WAN membership is open across partner groups and does not depend on admission to CEL's direct BDS coaching."
+    )
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    st.markdown("**WAN charter — topics under co-creation with women (interim agreement by 30 October 2026)**")
+
+    _wan_charter = pd.DataFrame([
+        {"Charter Topic": "Membership and purpose",
+         "Initial Agreement Required": "Who can participate, how groups affiliate, member rights and the services WAN will initially provide."},
+        {"Charter Topic": "Representation and decisions",
+         "Initial Agreement Required": "How representatives are chosen, their term and responsibilities, how priorities are agreed and how members can replace or challenge representatives."},
+        {"Charter Topic": "Accountability",
+         "Initial Agreement Required": "Meeting and financial records, reporting back to members, conflicts of interest and transparent handling of any common resources."},
+        {"Charter Topic": "Participation and feedback",
+         "Initial Agreement Required": "Accessible channels, response dates for feedback, a named confidential safeguarding route, and separate consent for stories or photographs."},
+        {"Charter Topic": "Coordination and continuity",
+         "Initial Agreement Required": "CEL's establishment role, partner contributions, arrangements for member management and a date to review the interim structure."},
+    ])
+    st.dataframe(
+        _wan_charter, hide_index=True, use_container_width=True,
+        column_config={
+            "Charter Topic":               st.column_config.TextColumn("Charter Topic", width="medium"),
+            "Initial Agreement Required":  st.column_config.TextColumn("Initial Agreement Required", width="large"),
+        },
+    )
+
+    st.markdown(
+        '<div style="background:#FBF3DF;border-left:4px solid #A97C1E;border-radius:10px;'
+        'padding:12px 16px;margin-top:10px;box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+        '<p style="margin:0 0 6px 0;font-family:\'Public Sans\',sans-serif;font-weight:700;color:#7A5A10;">What these figures do not mean</p>'
+        '<p style="margin:0 0 4px 0;font-size:0.82em;color:#4A3A10;">'
+        '<strong>D&amp;F jobs in value addition (100):</strong> "Attendance or a finance referral alone will not be '
+        'reported as a job outcome" — work outcomes depend on production, sales and other partner inputs. '
+        '<em>Source: BDS concept note, Targets responsibilities and resources.</em></p>'
+        '<p style="margin:0;font-size:0.82em;color:#4A3A10;">'
+        '<strong>WAN forum engagements (500) and groups strengthened (25):</strong> "Forum engagements and unique '
+        'women will be reported separately... BDS, WAN and work results will not be added together as unique '
+        'programme reach." <em>Source: WAN concept note, Year 1 delivery and evidence of progress.</em></p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 # ── CEL Year 1 Measures — Partner Contributions ──────────────────────────────
 st.subheader("CEL Year 1 Measures — Partner Contributions")
@@ -1269,52 +1253,52 @@ for _tab, _qd, _qms in zip(_q_tabs, _QUARTERS, _Q_MONTH_SETS):
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Partner Roles & Expectations ─────────────────────────────────────────────
-st.subheader("Partner Roles & Expectations")
-st.caption("Source: SAWA Partner Roles & Expectations slide — defines the mutual accountability framework.")
+with st.expander("Partner Roles & Expectations", expanded=False):
+    st.caption("Source: SAWA Partner Roles & Expectations slide — defines the mutual accountability framework.")
 
-pe1, pe2 = st.columns(2)
-with pe1:
-    st.markdown(
-        '<div style="background:#FFFFFF;border:1px solid #DED7C6;border-radius:10px;overflow:hidden;'
-        'box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-        '<div style="background:#1E7E76;padding:8px 14px;">'
-        '<p style="margin:0;color:white;font-family:\'IBM Plex Mono\',monospace;font-weight:600;'
-        'letter-spacing:.03em;font-size:0.8em;">WHAT SAWA / AGRI-IMPACT PROVIDES</p>'
-        '</div>'
-        '<div style="padding:12px 16px;">'
-        '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#16262E;">'
-        '<li>Funding and resource mobilisation</li>'
-        '<li>Program management and coordination</li>'
-        '<li>Training and capacity building support</li>'
-        '<li>MEL systems and reporting frameworks</li>'
-        '<li>Safeguarding infrastructure</li>'
-        '<li>Market linkage facilitation</li>'
-        '</ul>'
-        '</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-with pe2:
-    st.markdown(
-        '<div style="background:#FFFFFF;border:1px solid #DED7C6;border-radius:10px;overflow:hidden;'
-        'box-shadow:0 1px 2px rgba(20,30,28,.05);">'
-        '<div style="background:#B96A2E;padding:8px 14px;">'
-        '<p style="margin:0;color:white;font-family:\'IBM Plex Mono\',monospace;font-weight:600;'
-        'letter-spacing:.03em;font-size:0.8em;">WHAT IMPLEMENTING PARTNERS COMMIT TO</p>'
-        '</div>'
-        '<div style="padding:12px 16px;">'
-        '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#16262E;">'
-        '<li>Infrastructure and facility access</li>'
-        '<li>Technical expertise and last-mile delivery</li>'
-        '<li>Participant recruitment and mobilisation</li>'
-        '<li>Compliance with safeguarding standards</li>'
-        '<li>Data reporting and MEL participation</li>'
-        '<li>Co-investment and private sector leverage</li>'
-        '</ul>'
-        '</div>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+    pe1, pe2 = st.columns(2)
+    with pe1:
+        st.markdown(
+            '<div style="background:#FFFFFF;border:1px solid #DED7C6;border-radius:10px;overflow:hidden;'
+            'box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+            '<div style="background:#1E7E76;padding:8px 14px;">'
+            '<p style="margin:0;color:white;font-family:\'IBM Plex Mono\',monospace;font-weight:600;'
+            'letter-spacing:.03em;font-size:0.8em;">WHAT SAWA / AGRI-IMPACT PROVIDES</p>'
+            '</div>'
+            '<div style="padding:12px 16px;">'
+            '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#16262E;">'
+            '<li>Funding and resource mobilisation</li>'
+            '<li>Program management and coordination</li>'
+            '<li>Training and capacity building support</li>'
+            '<li>MEL systems and reporting frameworks</li>'
+            '<li>Safeguarding infrastructure</li>'
+            '<li>Market linkage facilitation</li>'
+            '</ul>'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+    with pe2:
+        st.markdown(
+            '<div style="background:#FFFFFF;border:1px solid #DED7C6;border-radius:10px;overflow:hidden;'
+            'box-shadow:0 1px 2px rgba(20,30,28,.05);">'
+            '<div style="background:#B96A2E;padding:8px 14px;">'
+            '<p style="margin:0;color:white;font-family:\'IBM Plex Mono\',monospace;font-weight:600;'
+            'letter-spacing:.03em;font-size:0.8em;">WHAT IMPLEMENTING PARTNERS COMMIT TO</p>'
+            '</div>'
+            '<div style="padding:12px 16px;">'
+            '<ul style="margin:0;padding-left:16px;font-size:0.84em;color:#16262E;">'
+            '<li>Infrastructure and facility access</li>'
+            '<li>Technical expertise and last-mile delivery</li>'
+            '<li>Participant recruitment and mobilisation</li>'
+            '<li>Compliance with safeguarding standards</li>'
+            '<li>Data reporting and MEL participation</li>'
+            '<li>Co-investment and private sector leverage</li>'
+            '</ul>'
+            '</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
 st.divider()
 
