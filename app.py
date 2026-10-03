@@ -67,8 +67,8 @@ if _needs_seed:
         st.warning(f"Auto-seed skipped: {_e}")
 
 # ── Brand ─────────────────────────────────────────────────────────────────────
-NAVY = "#0D2B5E"
-GOLD = "#C8A951"
+NAVY = "#3D4555"
+GOLD = "#F5A820"
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 from utils.auth import get_authenticator, can

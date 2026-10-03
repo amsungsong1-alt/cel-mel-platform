@@ -17,7 +17,7 @@ import json
 import streamlit as st
 import streamlit.components.v1 as components
 
-_NAVY = "#0D2B5E"
+_NAVY = "#3D4555"
 
 _STAGES = [
     ("📥 Input",    "pages/1_A_Partner_Alignment.py",  "Input",   "#2563EB"),

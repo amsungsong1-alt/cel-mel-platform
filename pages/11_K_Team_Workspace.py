@@ -879,7 +879,7 @@ with right:
                     f'border-radius:4px;font-size:0.75em;font-weight:700;">'
                     f'{t["status"]}</span>'
                 )
-                ind_tag = f' · <b style="color:#0891B2;">[{t["indicator_code"]}]</b>' if t.get("indicator_code") else ""
+                ind_tag = f' · <b style="color:#F5A820;">[{t["indicator_code"]}]</b>' if t.get("indicator_code") else ""
                 due_tag = f' · due {t["due_date"]}' if t.get("due_date") else ""
                 asgn    = f' · {t["assigned_to"]}' if t.get("assigned_to") else ""
                 with st.container():
