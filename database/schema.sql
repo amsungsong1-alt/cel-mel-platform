@@ -514,3 +514,122 @@ CREATE TABLE IF NOT EXISTS team_activity_log (
 CREATE INDEX IF NOT EXISTS idx_tal_project ON team_activity_log(project_id);
 CREATE INDEX IF NOT EXISTS idx_tal_role    ON team_activity_log(team_role);
 CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at);
+
+-- Module L: Participant Register — one row per registered participant.
+-- Captures all breakdowns required by the quarterly narrative report
+-- (fish type, location type, employment status, primary/secondary, PWD, refugee).
+CREATE TABLE IF NOT EXISTS participant_register (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id          INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    partner_id          INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+    participant_code    TEXT,          -- unique within a programme; Kobo submission_id or registry ID
+    registration_date   TEXT NOT NULL, -- YYYY-MM-DD
+    fiscal_year         INTEGER,
+    quarter             INTEGER CHECK(quarter IN (1,2,3,4)),
+    full_name           TEXT,          -- optional (privacy)
+    sex                 TEXT CHECK(sex IN ('Female','Male','Prefer not to say')),
+    age_group           TEXT CHECK(age_group IN ('Under 18','18-24','25-29','30-35','35+')),
+    is_youth            TEXT CHECK(is_youth IN ('Y','N')),
+    is_pwd              TEXT CHECK(is_pwd IN ('Y','N')),
+    refugee_displaced   TEXT CHECK(refugee_displaced IN ('Y','N','Unknown')),
+    fish_type           TEXT CHECK(fish_type IN ('Tilapia','Catfish','Both','Other')),
+    value_chain_role    TEXT,          -- Producer / Processor / Trader / Other
+    location_type       TEXT CHECK(location_type IN ('Rural','Urban','Peri-urban')),
+    region              TEXT,
+    district            TEXT,
+    community           TEXT,
+    employment_status   TEXT CHECK(employment_status IN ('New','Improved','Additional')),
+    primary_secondary   TEXT CHECK(primary_secondary IN ('Primary','Secondary')),
+    intervention_type   TEXT CHECK(intervention_type IN (
+                            'BDS','WAN','Safeguarding','Coaching','E-SAWA','Starter pack','Other'
+                        )),
+    progression_stage   TEXT CHECK(progression_stage IN ('WEO','YIW','D&F')),
+    wan_member          TEXT CHECK(wan_member IN ('Y','N')),
+    kobo_submission_id  TEXT,
+    registered_by       TEXT,
+    notes               TEXT,
+    created_at          TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_pr_project  ON participant_register(project_id);
+CREATE INDEX IF NOT EXISTS idx_pr_partner  ON participant_register(partner_id);
+CREATE INDEX IF NOT EXISTS idx_pr_quarter  ON participant_register(fiscal_year, quarter);
+CREATE INDEX IF NOT EXISTS idx_pr_fish     ON participant_register(fish_type);
+CREATE INDEX IF NOT EXISTS idx_pr_stage    ON participant_register(progression_stage);
+
+-- Module L: MEL Activities log — one row per MEL activity in the quarter.
+-- Feeds §3.1 Quarterly MEL Activities in the narrative report.
+CREATE TABLE IF NOT EXISTS mel_activities (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    activity_date   TEXT NOT NULL,    -- YYYY-MM-DD
+    quarter         INTEGER CHECK(quarter IN (1,2,3,4)),
+    fiscal_year     INTEGER,
+    activity_type   TEXT CHECK(activity_type IN (
+                        'Field visit','FGD','Partner visit','Kobo review',
+                        'Pre/post test','Data quality check','Learning session','Other'
+                    )),
+    location        TEXT,
+    partner_id      INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+    objective       TEXT NOT NULL,
+    participants    TEXT,             -- who was involved (comma-separated roles/names)
+    key_findings    TEXT,
+    follow_up       TEXT,
+    conducted_by    TEXT,
+    created_at      TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ma_project ON mel_activities(project_id);
+CREATE INDEX IF NOT EXISTS idx_ma_quarter ON mel_activities(fiscal_year, quarter);
+
+-- Module L: Learnings — covers both §6.1 (programme learnings) and
+-- §6.2 (influencing points for Mastercard Foundation).
+CREATE TABLE IF NOT EXISTS learnings (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id      INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    quarter         INTEGER CHECK(quarter IN (1,2,3,4)),
+    fiscal_year     INTEGER,
+    learning_type   TEXT CHECK(learning_type IN ('Learning','Influencing point')),
+    category        TEXT,             -- theme/thematic area
+    statement       TEXT NOT NULL,    -- the learning or influencing point itself
+    evidence        TEXT,             -- what supports this learning
+    implication     TEXT,             -- so what? what does this mean?
+    audience        TEXT,             -- for influencing points: Mastercard, donor, etc.
+    reason          TEXT,             -- why this matters to the audience
+    created_by      TEXT,
+    created_at      TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_lrn_project ON learnings(project_id);
+CREATE INDEX IF NOT EXISTS idx_lrn_quarter ON learnings(fiscal_year, quarter);
+CREATE INDEX IF NOT EXISTS idx_lrn_type    ON learnings(learning_type);
+
+-- Module L: Quarterly Report Actuals — one row per indicator per quarter per
+-- fiscal year for the §7 technical reconciliation table. Stores CEL actuals
+-- separately from raw_data_analysis because the reconciliation needs tilapia/
+-- catfish fish-type breakdowns and a fixed set of CEL-owned indicators.
+-- UNIQUE constraint prevents duplicate rows per (project, year, indicator).
+CREATE TABLE IF NOT EXISTS qr_actuals (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id          INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    fiscal_year         INTEGER NOT NULL,
+    indicator_code      TEXT NOT NULL,    -- e.g. 'PIII.R1', 'I.3'
+    indicator_label     TEXT NOT NULL,    -- human-readable label
+    unit                TEXT,             -- persons / MT / USD / groups
+    target_y1           TEXT,             -- Year 1 annual target
+    actual_q1           TEXT,
+    actual_q1_tilapia   TEXT,
+    actual_q1_catfish   TEXT,
+    actual_q2           TEXT,
+    actual_q2_tilapia   TEXT,
+    actual_q2_catfish   TEXT,
+    actual_q3           TEXT,
+    actual_q3_tilapia   TEXT,
+    actual_q3_catfish   TEXT,
+    actual_q4           TEXT,
+    actual_q4_tilapia   TEXT,
+    actual_q4_catfish   TEXT,
+    notes               TEXT,
+    updated_by          TEXT,
+    updated_at          TEXT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_qra_key ON qr_actuals(project_id, fiscal_year, indicator_code);
+CREATE INDEX IF NOT EXISTS idx_qra_project  ON qr_actuals(project_id);
+CREATE INDEX IF NOT EXISTS idx_qra_year     ON qr_actuals(fiscal_year);

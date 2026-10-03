@@ -914,6 +914,136 @@ def _run_migrations() -> bool:
                 _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at)"))
         except Exception:
             pass
+        # Module L: Participant Register
+        try:
+            with engine.begin() as _tc:
+                _tc.execute(text("""
+                    CREATE TABLE IF NOT EXISTS participant_register (
+                        id                 INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                        project_id         INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                        partner_id         INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+                        participant_code   TEXT,
+                        registration_date  TEXT NOT NULL,
+                        fiscal_year        INTEGER,
+                        quarter            INTEGER CHECK(quarter IN (1,2,3,4)),
+                        full_name          TEXT,
+                        sex                TEXT CHECK(sex IN ('Female','Male','Prefer not to say')),
+                        age_group          TEXT CHECK(age_group IN ('Under 18','18-24','25-29','30-35','35+')),
+                        is_youth           TEXT CHECK(is_youth IN ('Y','N')),
+                        is_pwd             TEXT CHECK(is_pwd IN ('Y','N')),
+                        refugee_displaced  TEXT CHECK(refugee_displaced IN ('Y','N','Unknown')),
+                        fish_type          TEXT CHECK(fish_type IN ('Tilapia','Catfish','Both','Other')),
+                        value_chain_role   TEXT,
+                        location_type      TEXT CHECK(location_type IN ('Rural','Urban','Peri-urban')),
+                        region             TEXT,
+                        district           TEXT,
+                        community          TEXT,
+                        employment_status  TEXT CHECK(employment_status IN ('New','Improved','Additional')),
+                        primary_secondary  TEXT CHECK(primary_secondary IN ('Primary','Secondary')),
+                        intervention_type  TEXT CHECK(intervention_type IN (
+                                               'BDS','WAN','Safeguarding','Coaching','E-SAWA','Starter pack','Other'
+                                           )),
+                        progression_stage  TEXT CHECK(progression_stage IN ('WEO','YIW','D&F')),
+                        wan_member         TEXT CHECK(wan_member IN ('Y','N')),
+                        kobo_submission_id TEXT,
+                        registered_by      TEXT,
+                        notes              TEXT,
+                        created_at         TEXT NOT NULL
+                    )
+                """))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_pr_project ON participant_register(project_id)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_pr_quarter ON participant_register(fiscal_year, quarter)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_pr_fish    ON participant_register(fish_type)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_pr_stage   ON participant_register(progression_stage)"))
+        except Exception:
+            pass
+        # Module L: MEL Activities log
+        try:
+            with engine.begin() as _tc:
+                _tc.execute(text("""
+                    CREATE TABLE IF NOT EXISTS mel_activities (
+                        id            INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                        project_id    INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                        activity_date TEXT NOT NULL,
+                        quarter       INTEGER CHECK(quarter IN (1,2,3,4)),
+                        fiscal_year   INTEGER,
+                        activity_type TEXT CHECK(activity_type IN (
+                                          'Field visit','FGD','Partner visit','Kobo review',
+                                          'Pre/post test','Data quality check','Learning session','Other'
+                                      )),
+                        location      TEXT,
+                        partner_id    INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+                        objective     TEXT NOT NULL,
+                        participants  TEXT,
+                        key_findings  TEXT,
+                        follow_up     TEXT,
+                        conducted_by  TEXT,
+                        created_at    TEXT NOT NULL
+                    )
+                """))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_ma_project ON mel_activities(project_id)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_ma_quarter ON mel_activities(fiscal_year, quarter)"))
+        except Exception:
+            pass
+        # Module L: Learnings (§6.1 and §6.2)
+        try:
+            with engine.begin() as _tc:
+                _tc.execute(text("""
+                    CREATE TABLE IF NOT EXISTS learnings (
+                        id            INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                        project_id    INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                        quarter       INTEGER CHECK(quarter IN (1,2,3,4)),
+                        fiscal_year   INTEGER,
+                        learning_type TEXT CHECK(learning_type IN ('Learning','Influencing point')),
+                        category      TEXT,
+                        statement     TEXT NOT NULL,
+                        evidence      TEXT,
+                        implication   TEXT,
+                        audience      TEXT,
+                        reason        TEXT,
+                        created_by    TEXT,
+                        created_at    TEXT NOT NULL
+                    )
+                """))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_lrn_project ON learnings(project_id)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_lrn_quarter ON learnings(fiscal_year, quarter)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_lrn_type    ON learnings(learning_type)"))
+        except Exception:
+            pass
+        # Module L: Quarterly Report Actuals (§7 reconciliation)
+        try:
+            with engine.begin() as _tc:
+                _tc.execute(text("""
+                    CREATE TABLE IF NOT EXISTS qr_actuals (
+                        id                 INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                        project_id         INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                        fiscal_year        INTEGER NOT NULL,
+                        indicator_code     TEXT NOT NULL,
+                        indicator_label    TEXT NOT NULL,
+                        unit               TEXT,
+                        target_y1          TEXT,
+                        actual_q1          TEXT,
+                        actual_q1_tilapia  TEXT,
+                        actual_q1_catfish  TEXT,
+                        actual_q2          TEXT,
+                        actual_q2_tilapia  TEXT,
+                        actual_q2_catfish  TEXT,
+                        actual_q3          TEXT,
+                        actual_q3_tilapia  TEXT,
+                        actual_q3_catfish  TEXT,
+                        actual_q4          TEXT,
+                        actual_q4_tilapia  TEXT,
+                        actual_q4_catfish  TEXT,
+                        notes              TEXT,
+                        updated_by         TEXT,
+                        updated_at         TEXT,
+                        UNIQUE(project_id, fiscal_year, indicator_code)
+                    )
+                """))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_qra_project ON qr_actuals(project_id)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_qra_year    ON qr_actuals(fiscal_year)"))
+        except Exception:
+            pass
         return True
 
     schema = SCHEMA_PATH.read_text()
@@ -1353,6 +1483,132 @@ def _run_migrations() -> bool:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tal_project ON team_activity_log(project_id)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tal_role    ON team_activity_log(team_role)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at)")
+    except Exception:
+        pass
+    # Module L: Participant Register
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS participant_register (
+                id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id         INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                partner_id         INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+                participant_code   TEXT,
+                registration_date  TEXT NOT NULL,
+                fiscal_year        INTEGER,
+                quarter            INTEGER CHECK(quarter IN (1,2,3,4)),
+                full_name          TEXT,
+                sex                TEXT CHECK(sex IN ('Female','Male','Prefer not to say')),
+                age_group          TEXT CHECK(age_group IN ('Under 18','18-24','25-29','30-35','35+')),
+                is_youth           TEXT CHECK(is_youth IN ('Y','N')),
+                is_pwd             TEXT CHECK(is_pwd IN ('Y','N')),
+                refugee_displaced  TEXT CHECK(refugee_displaced IN ('Y','N','Unknown')),
+                fish_type          TEXT CHECK(fish_type IN ('Tilapia','Catfish','Both','Other')),
+                value_chain_role   TEXT,
+                location_type      TEXT CHECK(location_type IN ('Rural','Urban','Peri-urban')),
+                region             TEXT,
+                district           TEXT,
+                community          TEXT,
+                employment_status  TEXT CHECK(employment_status IN ('New','Improved','Additional')),
+                primary_secondary  TEXT CHECK(primary_secondary IN ('Primary','Secondary')),
+                intervention_type  TEXT CHECK(intervention_type IN (
+                                       'BDS','WAN','Safeguarding','Coaching','E-SAWA','Starter pack','Other'
+                                   )),
+                progression_stage  TEXT CHECK(progression_stage IN ('WEO','YIW','D&F')),
+                wan_member         TEXT CHECK(wan_member IN ('Y','N')),
+                kobo_submission_id TEXT,
+                registered_by      TEXT,
+                notes              TEXT,
+                created_at         TEXT NOT NULL
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_pr_project ON participant_register(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_pr_quarter ON participant_register(fiscal_year, quarter)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_pr_fish    ON participant_register(fish_type)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_pr_stage   ON participant_register(progression_stage)")
+    except Exception:
+        pass
+    # Module L: MEL Activities log
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS mel_activities (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id    INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                activity_date TEXT NOT NULL,
+                quarter       INTEGER CHECK(quarter IN (1,2,3,4)),
+                fiscal_year   INTEGER,
+                activity_type TEXT CHECK(activity_type IN (
+                                  'Field visit','FGD','Partner visit','Kobo review',
+                                  'Pre/post test','Data quality check','Learning session','Other'
+                              )),
+                location      TEXT,
+                partner_id    INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+                objective     TEXT NOT NULL,
+                participants  TEXT,
+                key_findings  TEXT,
+                follow_up     TEXT,
+                conducted_by  TEXT,
+                created_at    TEXT NOT NULL
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_ma_project ON mel_activities(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_ma_quarter ON mel_activities(fiscal_year, quarter)")
+    except Exception:
+        pass
+    # Module L: Learnings (§6.1 and §6.2)
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS learnings (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id    INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                quarter       INTEGER CHECK(quarter IN (1,2,3,4)),
+                fiscal_year   INTEGER,
+                learning_type TEXT CHECK(learning_type IN ('Learning','Influencing point')),
+                category      TEXT,
+                statement     TEXT NOT NULL,
+                evidence      TEXT,
+                implication   TEXT,
+                audience      TEXT,
+                reason        TEXT,
+                created_by    TEXT,
+                created_at    TEXT NOT NULL
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_lrn_project ON learnings(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_lrn_quarter ON learnings(fiscal_year, quarter)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_lrn_type    ON learnings(learning_type)")
+    except Exception:
+        pass
+    # Module L: Quarterly Report Actuals (§7 reconciliation)
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS qr_actuals (
+                id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id         INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                fiscal_year        INTEGER NOT NULL,
+                indicator_code     TEXT NOT NULL,
+                indicator_label    TEXT NOT NULL,
+                unit               TEXT,
+                target_y1          TEXT,
+                actual_q1          TEXT,
+                actual_q1_tilapia  TEXT,
+                actual_q1_catfish  TEXT,
+                actual_q2          TEXT,
+                actual_q2_tilapia  TEXT,
+                actual_q2_catfish  TEXT,
+                actual_q3          TEXT,
+                actual_q3_tilapia  TEXT,
+                actual_q3_catfish  TEXT,
+                actual_q4          TEXT,
+                actual_q4_tilapia  TEXT,
+                actual_q4_catfish  TEXT,
+                notes              TEXT,
+                updated_by         TEXT,
+                updated_at         TEXT,
+                UNIQUE(project_id, fiscal_year, indicator_code)
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_qra_project ON qr_actuals(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_qra_year    ON qr_actuals(fiscal_year)")
     except Exception:
         pass
     conn.commit()
