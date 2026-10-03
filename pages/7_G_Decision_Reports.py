@@ -336,6 +336,16 @@ if incoming_ids:
         icon="📋",
     )
 
+_g_title_col, _g_link_col = st.columns([5, 1])
+with _g_link_col:
+    st.page_link(
+        "pages/12_L_Quarterly_Report.py",
+        label="📋 Quarterly Report →",
+        use_container_width=True,
+        help="Key findings from decision reports feed §8 (challenges & unintended outcomes) "
+             "and §6 (learnings) of the quarterly narrative — open Module L to record them.",
+    )
+
 tab_dash, tab_edit = st.tabs(["📊 Dashboard", "📝 Report Editor"])
 
 # ═══════════════════════════════════════════════════════════════════════════════

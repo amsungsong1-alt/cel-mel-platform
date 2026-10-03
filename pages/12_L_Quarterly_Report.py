@@ -77,14 +77,22 @@ with st.sidebar:
         st.stop()
     st.divider()
     _fy_options = [2026, 2027, 2028, 2029]
-    _fy = st.selectbox("Fiscal year (start)", _fy_options,
-                       index=_fy_options.index(current_fiscal_year())
-                       if current_fiscal_year() in _fy_options else 0)
-    _qtr = st.selectbox("Quarter", [1, 2, 3, 4],
-                        format_func=lambda q: {
-                            1: "Q1 Jul–Sep", 2: "Q2 Oct–Dec",
-                            3: "Q3 Jan–Mar", 4: "Q4 Apr–Jun",
-                        }[q])
+    _fy = st.selectbox(
+        "Fiscal year (start)",
+        _fy_options,
+        index=_fy_options.index(current_fiscal_year())
+        if current_fiscal_year() in _fy_options else 0,
+        help="SAWA fiscal year starts in July. FY2026 = Jul 2026–Jun 2027.",
+    )
+    _qtr = st.selectbox(
+        "Quarter",
+        [1, 2, 3, 4],
+        format_func=lambda q: {
+            1: "Q1 Jul–Sep", 2: "Q2 Oct–Dec",
+            3: "Q3 Jan–Mar", 4: "Q4 Apr–Jun",
+        }[q],
+        help="All data entry, tables and exports on this page filter to the selected quarter.",
+    )
     st.divider()
     st.caption(f"Role: **{st.session_state.get('role', 'Viewer')}**")
 
@@ -288,6 +296,9 @@ with tab_summary:
         key=_storage_key,
         placeholder="https://celglobal.sharepoint.com/sites/SAWA/...",
         disabled=not _can_write,
+        help="Paste the shared link to the CEL SAWA data folder. "
+             "This link is copied into §3.5 of the quarterly narrative report. "
+             "Ensure all team members have at least View access.",
     )
     if _storage_link:
         st.markdown(f"→ [Open data folder]({_storage_link})", unsafe_allow_html=True)
@@ -377,32 +388,127 @@ with tab_participants:
             with st.form("add_participant"):
                 fc1, fc2, fc3 = st.columns(3)
                 with fc1:
-                    _p_code = st.text_input("Participant code / Kobo ID *",
-                                            placeholder="e.g. SAWA-2026-001")
-                    _p_date = st.date_input("Registration date *", value=date.today())
-                    _p_partner = st.selectbox("Partner", _partner_names)
-                    _p_sex = st.selectbox("Sex", ["Female", "Male", "Prefer not to say"])
-                    _p_age = st.selectbox("Age group", ["18-24", "25-29", "30-35", "35+", "Under 18"])
+                    _p_code = st.text_input(
+                        "Participant code / Kobo ID *",
+                        placeholder="e.g. SAWA-2026-001",
+                        help="Unique identifier — use the Kobo submission ID or a SAWA-YYYY-### code. "
+                             "Must match the KoboToolbox record so data can be reconciled later.",
+                    )
+                    _p_date = st.date_input(
+                        "Registration date *",
+                        value=date.today(),
+                        help="Date the participant first engaged with the programme this quarter. "
+                             "Use Kobo submission date if available.",
+                    )
+                    _p_partner = st.selectbox(
+                        "Partner",
+                        _partner_names,
+                        help="Which anchor partner (AFRIGEM, AgroKings, Naple Betta, Aglow, NewAge) "
+                             "registered or referred this participant.",
+                    )
+                    _p_sex = st.selectbox(
+                        "Sex",
+                        ["Female", "Male", "Prefer not to say"],
+                        help="Self-reported. Required for §2.1 gender disaggregation. "
+                             "Do not infer from name.",
+                    )
+                    _p_age = st.selectbox(
+                        "Age group",
+                        ["18-24", "25-29", "30-35", "35+", "Under 18"],
+                        help="Youth = 18–35 per MCF definition. 'Under 18' records exist but "
+                             "do not count toward MCF Youth in Work targets.",
+                    )
                 with fc2:
-                    _p_fish = st.selectbox("Fish type *", ["Tilapia", "Catfish", "Both", "Other"])
-                    _p_loc = st.selectbox("Location type *", ["Rural", "Urban", "Peri-urban"])
-                    _p_region = st.text_input("Region")
-                    _p_district = st.text_input("District")
-                    _p_community = st.text_input("Community")
+                    _p_fish = st.selectbox(
+                        "Fish type *",
+                        ["Tilapia", "Catfish", "Both", "Other"],
+                        help="The species this participant primarily works with. "
+                             "Tilapia and Catfish are reported separately in §7 PIII.R2 and PIII.R3. "
+                             "Choose 'Both' only if genuinely dual-species.",
+                    )
+                    _p_loc = st.selectbox(
+                        "Location type *",
+                        ["Rural", "Urban", "Peri-urban"],
+                        help="Rural = outside municipal boundaries, no piped water/grid. "
+                             "Urban = within a municipal/metropolitan area. "
+                             "Peri-urban = transitional zones on the urban fringe.",
+                    )
+                    _p_region = st.text_input(
+                        "Region",
+                        help="Ghana region (e.g. Greater Accra, Volta, Ashanti). "
+                             "Required for geographic reach count in the summary table.",
+                    )
+                    _p_district = st.text_input(
+                        "District",
+                        help="Ghana district. Required for §2.5.1 E-SAWA reach mapping.",
+                    )
+                    _p_community = st.text_input(
+                        "Community",
+                        help="Village or community name. Used for the '40 communities' headline.",
+                    )
                 with fc3:
-                    _p_emp = st.selectbox("Employment status at entry",
-                                          ["New", "Improved", "Additional"])
-                    _p_ps = st.selectbox("Primary / Secondary", ["Primary", "Secondary"])
-                    _p_int = st.selectbox("Intervention type",
-                                          ["BDS", "WAN", "Safeguarding", "Coaching",
-                                           "E-SAWA", "Starter pack", "Other"])
-                    _p_stage = st.selectbox("Progression stage (MCF)",
-                                            ["WEO", "YIW", "D&F"])
-                    _p_youth = st.radio("Youth (18–35)?", ["Y", "N"], horizontal=True)
-                    _p_pwd = st.radio("PWD?", ["Y", "N"], horizontal=True)
-                    _p_wan = st.radio("WAN member?", ["Y", "N"], horizontal=True)
-                    _p_refugee = st.selectbox("Refugee/displaced", ["N", "Y", "Unknown"])
-                _p_notes = st.text_area("Notes (optional)")
+                    _p_emp = st.selectbox(
+                        "Employment status at entry",
+                        ["New", "Improved", "Additional"],
+                        help="New = had no income-generating work before programme entry. "
+                             "Improved = had a job; programme is enhancing it (productivity, earnings). "
+                             "Additional = has a primary job; this is a second income stream.",
+                    )
+                    _p_ps = st.selectbox(
+                        "Primary / Secondary",
+                        ["Primary", "Secondary"],
+                        help="Primary = direct programme participant (received training, coaching, BDS). "
+                             "Secondary = indirect beneficiary (household member, community peer). "
+                             "MCF Youth in Work targets count Primary only.",
+                    )
+                    _p_int = st.selectbox(
+                        "Intervention type",
+                        ["BDS", "WAN", "Safeguarding", "Coaching",
+                         "E-SAWA", "Starter pack", "Other"],
+                        help="The CEL-delivered activity this person was enrolled in. "
+                             "BDS = Business Development Services training. "
+                             "WAN = Women's Agribusiness Network. "
+                             "Safeguarding = awareness/focal person training.",
+                    )
+                    _p_stage = st.selectbox(
+                        "Progression stage (MCF)",
+                        ["WEO", "YIW", "D&F"],
+                        help="MCF IS Cycle stage at time of registration:\n"
+                             "WEO = World Economic Opportunity — mobilised but not yet earning.\n"
+                             "YIW = Youth in Work — generating income from the value chain.\n"
+                             "D&F = Deep & Far — sustained, higher income, mentoring others.",
+                    )
+                    _p_youth = st.radio(
+                        "Youth (18–35)?",
+                        ["Y", "N"],
+                        horizontal=True,
+                        help="Y if aged 18–35 at registration. Drives YiW target count (100 for CEL Y1).",
+                    )
+                    _p_pwd = st.radio(
+                        "PWD?",
+                        ["Y", "N"],
+                        horizontal=True,
+                        help="Person with a disability — self-identified or verified. "
+                             "Drives PWD YiW target (8) and mentor target (I.13).",
+                    )
+                    _p_wan = st.radio(
+                        "WAN member?",
+                        ["Y", "N"],
+                        horizontal=True,
+                        help="Member of the Women's Agribusiness Network this quarter. "
+                             "Counted separately in §2.4.",
+                    )
+                    _p_refugee = st.selectbox(
+                        "Refugee/displaced",
+                        ["N", "Y", "Unknown"],
+                        help="Y = confirmed refugee, IDP or returnee. "
+                             "Required by MCF inclusion checklist. "
+                             "Use 'Unknown' if status was not asked during registration.",
+                    )
+                _p_notes = st.text_area(
+                    "Notes (optional)",
+                    help="Any relevant context: consent status, data gaps, special circumstances.",
+                )
                 if st.form_submit_button("Register participant"):
                     if not _p_code.strip():
                         st.error("Participant code is required.")
@@ -497,20 +603,63 @@ with tab_mel_activities:
             with st.form("add_mel_activity"):
                 ma1, ma2 = st.columns(2)
                 with ma1:
-                    _ma_date = st.date_input("Activity date *", value=date.today())
+                    _ma_date = st.date_input(
+                        "Activity date *",
+                        value=date.today(),
+                        help="Date the activity was conducted (not the date you are logging it).",
+                    )
                     _ma_type = st.selectbox(
                         "Activity type *",
                         ["Field visit", "FGD", "Partner visit", "Kobo review",
                          "Pre/post test", "Data quality check", "Learning session", "Other"],
+                        help="Field visit = physical site check. "
+                             "FGD = Focus Group Discussion with participants. "
+                             "Partner visit = meeting with anchor partner management. "
+                             "Kobo review = checking form logic, skip patterns, or submission counts. "
+                             "Pre/post test = PMU knowledge assessment before/after training. "
+                             "Data quality check = spot-checking submitted data against source records.",
                     )
-                    _ma_loc = st.text_input("Location (region/district/community)")
-                    _ma_partner = st.selectbox("Partner (if applicable)", _partner_names)
-                    _ma_by = st.text_input("Conducted by", value=_user)
+                    _ma_loc = st.text_input(
+                        "Location (region/district/community)",
+                        help="Where the activity took place. For remote activities (phone calls, "
+                             "virtual meetings) enter the partner's location.",
+                    )
+                    _ma_partner = st.selectbox(
+                        "Partner (if applicable)",
+                        _partner_names,
+                        help="The implementing partner the activity related to. "
+                             "Leave as (none) for platform-wide activities.",
+                    )
+                    _ma_by = st.text_input(
+                        "Conducted by",
+                        value=_user,
+                        help="Name(s) of the CEL MEAL staff who conducted this activity.",
+                    )
                 with ma2:
-                    _ma_obj = st.text_area("Objective *", height=80)
-                    _ma_parts = st.text_input("Participants / roles involved")
-                    _ma_findings = st.text_area("Key findings", height=80)
-                    _ma_followup = st.text_area("Follow-up actions", height=60)
+                    _ma_obj = st.text_area(
+                        "Objective *",
+                        height=80,
+                        help="What the MEAL team intended to learn or verify — "
+                             "not what happened, but why the activity was planned. "
+                             "Example: 'Verify BDS attendance registers match Kobo submissions.'",
+                    )
+                    _ma_parts = st.text_input(
+                        "Participants / roles involved",
+                        help="Who took part — use roles, not full names. "
+                             "Example: '8 female fish traders, 1 partner field officer'.",
+                    )
+                    _ma_findings = st.text_area(
+                        "Key findings",
+                        height=80,
+                        help="What the activity revealed. This text feeds §3.1 of the quarterly report "
+                             "directly. Be specific: numbers, quotes, discrepancies found.",
+                    )
+                    _ma_followup = st.text_area(
+                        "Follow-up actions",
+                        height=60,
+                        help="Concrete next steps arising from findings. "
+                             "Who is responsible and by when (if known).",
+                    )
                 if st.form_submit_button("Log activity"):
                     if not _ma_obj.strip():
                         st.error("Objective is required.")
@@ -666,11 +815,32 @@ with tab_learnings:
         if _can_write:
             with st.expander("➕ Add learning", expanded=not _learnings_only):
                 with st.form("add_learning"):
-                    _lrn_cat = st.text_input("Category / theme",
-                                              placeholder="e.g. Data quality, BDS delivery")
-                    _lrn_stmt = st.text_area("Learning statement *", height=80)
-                    _lrn_ev = st.text_area("Evidence (what supports this)", height=60)
-                    _lrn_impl = st.text_area("Implication (so what?)", height=60)
+                    _lrn_cat = st.text_input(
+                        "Category / theme",
+                        placeholder="e.g. Data quality, BDS delivery",
+                        help="The programme area this learning comes from. "
+                             "Used to group learnings in the report and feed the learning agenda.",
+                    )
+                    _lrn_stmt = st.text_area(
+                        "Learning statement *",
+                        height=80,
+                        help="Complete sentence stating WHAT was learned. "
+                             "Start with 'We learned that…' or 'Evidence shows that…'. "
+                             "Be specific — avoid vague phrases like 'more work is needed'.",
+                    )
+                    _lrn_ev = st.text_area(
+                        "Evidence (what supports this)",
+                        height=60,
+                        help="How do you know? Reference the source: FGD date, field visit, "
+                             "Kobo data, partner report, pre/post test score, etc.",
+                    )
+                    _lrn_impl = st.text_area(
+                        "Implication (so what?)",
+                        height=60,
+                        help="What does this mean for programme delivery? "
+                             "Should something change as a result? "
+                             "This is the 'adaptive management' signal CEL acts on.",
+                    )
                     if st.form_submit_button("Add learning"):
                         if not _lrn_stmt.strip():
                             st.error("Statement is required.")
@@ -715,13 +885,32 @@ with tab_learnings:
         if _can_write:
             with st.expander("➕ Add influencing point", expanded=not _inf_points):
                 with st.form("add_inf_point"):
-                    _ip_cat = st.text_input("Topic / theme",
-                                             placeholder="e.g. PWD inclusion, fish type data")
-                    _ip_stmt = st.text_area("Influencing point *", height=80)
-                    _ip_reason = st.text_area(
-                        "Why this matters to Mastercard Foundation *", height=60
+                    _ip_cat = st.text_input(
+                        "Topic / theme",
+                        placeholder="e.g. PWD inclusion, fish type data",
+                        help="The subject area this point covers. "
+                             "MCF appreciates points on: adaptive management, inclusion, "
+                             "systems change, scale readiness, and unintended outcomes.",
                     )
-                    _ip_ev = st.text_input("Evidence source")
+                    _ip_stmt = st.text_area(
+                        "Influencing point *",
+                        height=80,
+                        help="A specific, evidence-backed observation from this quarter "
+                             "that Mastercard Foundation should factor into their decisions. "
+                             "Not a lesson — a point that INFLUENCES how MCF thinks or acts.",
+                    )
+                    _ip_reason = st.text_area(
+                        "Why this matters to Mastercard Foundation *",
+                        height=60,
+                        help="Connect the point to MCF's strategic priorities: "
+                             "youth employment, gender equity, financial inclusion, climate. "
+                             "What decision or policy conversation does this point feed?",
+                    )
+                    _ip_ev = st.text_input(
+                        "Evidence source",
+                        help="Reference the data: '32 FGD participants, Volta Region, Aug 2026' "
+                             "or 'Kobo pre/post test, n=48, mean score up 23 points'.",
+                    )
                     if st.form_submit_button("Add influencing point"):
                         if not _ip_stmt.strip() or not _ip_reason.strip():
                             st.error("Statement and reason are both required.")
@@ -866,46 +1055,78 @@ with tab_recon:
         )
         _recon_labels = [f"{r['indicator_code']} — {r['indicator_label']}"
                          for r in _qra_rows]
-        _sel_label = st.selectbox("Select indicator", _recon_labels)
+        _sel_label = st.selectbox(
+            "Select indicator",
+            _recon_labels,
+            help="I.x = input-level indicators (persons trained, starter packs). "
+                 "PIII.Rx = outcome-level results (jobs, fish traded, revenue). "
+                 "PII.Rx = programme-wide results (CEL's share only).",
+        )
         _sel_row = _qra_rows[_recon_labels.index(_sel_label)] if _sel_label else None
 
         if _sel_row:
             _needs_fish = _sel_row["indicator_code"] in ("PIII.R2", "PIII.R3", "PIII.R1")
             with st.form("edit_recon"):
                 er1, er2, er3, er4 = st.columns(4)
+                _actuals_help = (
+                    "Cumulative count for the quarter. "
+                    "Enter the verified figure from partner reports or Kobo. "
+                    "Leave blank if data is not yet available."
+                )
+                _fish_help = (
+                    "Tilapia + Catfish should sum to the total Actual above. "
+                    "These feed the species breakdown in §7 PIII.R2/R3."
+                )
                 with er1:
-                    st.markdown("**Q1**")
-                    _eq1 = st.text_input("Q1 actual", value=_sel_row.get("actual_q1") or "")
+                    st.markdown("**Q1** · Jul–Sep")
+                    _eq1 = st.text_input("Q1 actual", value=_sel_row.get("actual_q1") or "",
+                                         help=_actuals_help)
                     if _needs_fish:
-                        _eq1t = st.text_input("Q1 Tilapia", value=_sel_row.get("actual_q1_tilapia") or "")
-                        _eq1c = st.text_input("Q1 Catfish", value=_sel_row.get("actual_q1_catfish") or "")
+                        _eq1t = st.text_input("Q1 Tilapia", value=_sel_row.get("actual_q1_tilapia") or "",
+                                               help=_fish_help)
+                        _eq1c = st.text_input("Q1 Catfish", value=_sel_row.get("actual_q1_catfish") or "",
+                                               help=_fish_help)
                     else:
                         _eq1t, _eq1c = "", ""
                 with er2:
-                    st.markdown("**Q2**")
-                    _eq2 = st.text_input("Q2 actual", value=_sel_row.get("actual_q2") or "")
+                    st.markdown("**Q2** · Oct–Dec")
+                    _eq2 = st.text_input("Q2 actual", value=_sel_row.get("actual_q2") or "",
+                                         help=_actuals_help)
                     if _needs_fish:
-                        _eq2t = st.text_input("Q2 Tilapia", value=_sel_row.get("actual_q2_tilapia") or "")
-                        _eq2c = st.text_input("Q2 Catfish", value=_sel_row.get("actual_q2_catfish") or "")
+                        _eq2t = st.text_input("Q2 Tilapia", value=_sel_row.get("actual_q2_tilapia") or "",
+                                               help=_fish_help)
+                        _eq2c = st.text_input("Q2 Catfish", value=_sel_row.get("actual_q2_catfish") or "",
+                                               help=_fish_help)
                     else:
                         _eq2t, _eq2c = "", ""
                 with er3:
-                    st.markdown("**Q3**")
-                    _eq3 = st.text_input("Q3 actual", value=_sel_row.get("actual_q3") or "")
+                    st.markdown("**Q3** · Jan–Mar")
+                    _eq3 = st.text_input("Q3 actual", value=_sel_row.get("actual_q3") or "",
+                                         help=_actuals_help)
                     if _needs_fish:
-                        _eq3t = st.text_input("Q3 Tilapia", value=_sel_row.get("actual_q3_tilapia") or "")
-                        _eq3c = st.text_input("Q3 Catfish", value=_sel_row.get("actual_q3_catfish") or "")
+                        _eq3t = st.text_input("Q3 Tilapia", value=_sel_row.get("actual_q3_tilapia") or "",
+                                               help=_fish_help)
+                        _eq3c = st.text_input("Q3 Catfish", value=_sel_row.get("actual_q3_catfish") or "",
+                                               help=_fish_help)
                     else:
                         _eq3t, _eq3c = "", ""
                 with er4:
-                    st.markdown("**Q4**")
-                    _eq4 = st.text_input("Q4 actual", value=_sel_row.get("actual_q4") or "")
+                    st.markdown("**Q4** · Apr–Jun")
+                    _eq4 = st.text_input("Q4 actual", value=_sel_row.get("actual_q4") or "",
+                                         help=_actuals_help)
                     if _needs_fish:
-                        _eq4t = st.text_input("Q4 Tilapia", value=_sel_row.get("actual_q4_tilapia") or "")
-                        _eq4c = st.text_input("Q4 Catfish", value=_sel_row.get("actual_q4_catfish") or "")
+                        _eq4t = st.text_input("Q4 Tilapia", value=_sel_row.get("actual_q4_tilapia") or "",
+                                               help=_fish_help)
+                        _eq4c = st.text_input("Q4 Catfish", value=_sel_row.get("actual_q4_catfish") or "",
+                                               help=_fish_help)
                     else:
                         _eq4t, _eq4c = "", ""
-                _enotes = st.text_input("Notes", value=_sel_row.get("notes") or "")
+                _enotes = st.text_input(
+                    "Notes",
+                    value=_sel_row.get("notes") or "",
+                    help="Explain any variance, data source used, or caveats "
+                         "(e.g. 'Aglow data pending', 'excludes AgroKings starter packs').",
+                )
                 if st.form_submit_button("💾 Save actuals"):
                     run_write(
                         """UPDATE qr_actuals

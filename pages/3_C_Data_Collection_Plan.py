@@ -552,10 +552,21 @@ with tab_cal:
     pivot.index.name = "Year"
 
     # ── Submission deadline panel ─────────────────────────────────────────────
-    st.subheader("Partner Report Submission Deadlines")
+    _c_head, _c_link = st.columns([4, 1])
+    with _c_head:
+        st.subheader("Partner Report Submission Deadlines")
+    with _c_link:
+        st.page_link(
+            "pages/12_L_Quarterly_Report.py",
+            label="📋 Quarterly Report →",
+            use_container_width=True,
+            help="Open Module L to log MEL activities, enter actuals, "
+                 "and prepare the full quarterly narrative report.",
+        )
     st.caption(
         "AIL requires partner reports **7 days after each quarter end**. "
-        "Deadline months are marked ★ on the heatmap."
+        "Deadline months are marked ★ on the heatmap. "
+        "Monitoring tools listed above feed **§3.4** in the Quarterly Report."
     )
     _DEADLINE_COLS = st.columns(4)
     for _col, (_q, _qend, _deadline) in zip(_DEADLINE_COLS, [

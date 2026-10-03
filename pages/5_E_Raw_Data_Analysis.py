@@ -595,6 +595,15 @@ for r in filtered:
         })
 
 if _q_track_rows:
+    _e_qr_col1, _e_qr_col2 = st.columns([5, 1])
+    with _e_qr_col2:
+        st.page_link(
+            "pages/12_L_Quarterly_Report.py",
+            label="📋 Quarterly Report →",
+            use_container_width=True,
+            help="Open Module L to enter MEL activities, participant data, "
+                 "learnings, and §7 reconciliation actuals for the quarterly report.",
+        )
     with st.expander("Quarterly Target vs Actual (auto-parsed from target_value)", expanded=False):
         st.caption(
             "Parsed from inline Q-targets in target_value strings "
@@ -777,7 +786,8 @@ with st.expander(
         "Work Enabling Outreach (WEO) / Youth in Work (YiW) cross-portfolio aggregation "
         "categories. 'Covered' requires a SAWA indicator matching both the population and "
         "the counting unit, not just a related topic — most gaps below reflect categories "
-        "SAWA genuinely doesn't collect, not a reporting oversight."
+        "SAWA genuinely doesn't collect, not a reporting oversight. "
+        "**WEO/YiW totals feed the Summary Table in Module L (Quarterly Report).**"
     )
 
     def _mcf_css(val) -> str:

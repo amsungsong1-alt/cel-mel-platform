@@ -681,6 +681,13 @@ with tab_sync:
                                 if err:
                                     msg += f" ({err})"
                                 st.success(msg)
+                                st.page_link(
+                                    "pages/12_L_Quarterly_Report.py",
+                                    label="📋 Open §7 Reconciliation to enter actuals →",
+                                    help="Synced totals now appear in Module E. "
+                                         "Go to Module L → §7 Reconciliation to record "
+                                         "quarterly actuals and tilapia/catfish breakdown.",
+                                )
                             else:
                                 st.error(f"Sync failed: {err}")
                             st.rerun()

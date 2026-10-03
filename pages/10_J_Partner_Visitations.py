@@ -628,3 +628,10 @@ with tab_report:
             "Copy and paste into the LIP quarterly narrative template, "
             "or download and attach to the reporting pack."
         )
+        st.page_link(
+            "pages/12_L_Quarterly_Report.py",
+            label="📋 Log field visit findings as MEL Activity in Module L →",
+            help="Field visit findings from this report can be logged in Module L "
+                 "§3.1 (MEL Activities, activity type = Field visit) so they are captured "
+                 "in the MEAL-owned section of the quarterly narrative report.",
+        )

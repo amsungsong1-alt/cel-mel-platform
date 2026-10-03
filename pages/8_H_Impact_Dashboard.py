@@ -153,6 +153,17 @@ if not actuals_rows:
 
 df = pd.DataFrame(actuals_rows)
 
+# ── Quarterly Report shortcut ─────────────────────────────────────────────────
+_h_qr_l, _h_qr_r = st.columns([5, 1])
+with _h_qr_r:
+    st.page_link(
+        "pages/12_L_Quarterly_Report.py",
+        label="📋 Quarterly Report →",
+        use_container_width=True,
+        help="Open Module L to prepare the SAWA quarterly narrative report — "
+             "MEL activities, participant register, learnings and §7 reconciliation.",
+    )
+
 # ── Section 1: Headline KPI Cards ─────────────────────────────────────────────
 st.divider()
 st.subheader("Programme Highlights")

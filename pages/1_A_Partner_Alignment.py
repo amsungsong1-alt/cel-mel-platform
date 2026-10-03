@@ -1503,7 +1503,14 @@ with st.expander("Year 1 Target Consistency Check", expanded=False):
         "**Module A** (partner_targets Level 2), "
         "**Module B** (logframe target_annual), and "
         "**Module E** (raw_data_analysis target_value).  "
-        "Flags mismatches so they can be reconciled before reporting."
+        "Flags mismatches so they can be reconciled before reporting. "
+        "Resolve any mismatches here first, then record quarterly actuals in §7 of the Quarterly Report."
+    )
+    st.page_link(
+        "pages/12_L_Quarterly_Report.py",
+        label="📋 Go to §7 Reconciliation (Module L) →",
+        help="Once targets are aligned, open Module L to enter quarterly actuals "
+             "and tilapia/catfish breakdown for the SAWA §7 reconciliation table.",
     )
     _lf_targets = run_query(
         """SELECT lr.indicator_code, lr.indicator_statement, lr.target_annual
