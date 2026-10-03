@@ -168,6 +168,7 @@ def can_write_module(module: str) -> bool:
 
 
 _K_OVERSIGHT_ROLES = {"MEAL Admin", "MEAL Asst"}
+_K_OPEN_ROLES = {"Shared Documents"}
 
 
 def can_write_k_role(k_role: str) -> bool:
@@ -177,13 +178,19 @@ def can_write_k_role(k_role: str) -> bool:
     Each functional role's tasks/files are editable only by the account
     whose own k_role matches, so GYSI cannot edit Comms's tasks and vice
     versa. MEAL Admin and MEAL Asst are the exception — those k_roles can
-    see and edit every role's tasks/files (MEAL oversight). System Admin
-    accounts always pass, same as every other write check in this app.
+    see and edit every role's tasks/files (MEAL oversight). "Shared
+    Documents" is a second exception in the other direction: it isn't
+    owned by any one function, so any account with general Module K write
+    access can save a worked-on document there, regardless of their own
+    k_role. System Admin accounts always pass, same as every other write
+    check in this app.
     """
     if can("admin"):
         return True
     if not can_write_module("K"):
         return False
+    if k_role in _K_OPEN_ROLES:
+        return True
     user_k_role = st.session_state.get("k_role")
     if user_k_role in _K_OVERSIGHT_ROLES:
         return True

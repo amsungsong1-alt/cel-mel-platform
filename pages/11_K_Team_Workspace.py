@@ -13,12 +13,12 @@ Partner:            Partner MEAL
 from __future__ import annotations
 
 import io
-from datetime import date as _date
+from datetime import date as _date, datetime as _datetime, timezone as _timezone
 
 import pandas as pd
 import streamlit as st
 
-from database.db import init_db, run_query, run_write
+from database.db import ensure_team_activity_log, init_db, run_query, run_write
 from utils.auth import can_write_k_role, refresh_session_permissions
 from utils.nav_strip import render_nav_strip
 from utils.shared_widgets import project_selector
@@ -52,18 +52,23 @@ _CEL_ROLES = [
     "MEAL Asst",
 ]
 _PARTNER_ROLES = ["Partner MEAL"]
-ALL_ROLES = _CEL_ROLES + _PARTNER_ROLES
+# Not tied to one functional role — anyone with Module K write access can
+# save a worked-on document here, regardless of their own k_role (see
+# can_write_k_role's open-role handling in utils/auth.py).
+_SHARED_ROLES = ["Shared Documents"]
+ALL_ROLES = _CEL_ROLES + _PARTNER_ROLES + _SHARED_ROLES
 
 _ROLE_ICONS = {
-    "GYSI":         "♀",
-    "Biz Dev":      "📈",
-    "Biz Coach":    "🎯",
-    "Comms":        "📢",
-    "Admin":        "🗂",
-    "Finance":      "💰",
-    "MEAL Admin":   "📊",
-    "MEAL Asst":    "📋",
-    "Partner MEAL": "🤝",
+    "GYSI":             "♀",
+    "Biz Dev":          "📈",
+    "Biz Coach":        "🎯",
+    "Comms":            "📢",
+    "Admin":            "🗂",
+    "Finance":          "💰",
+    "MEAL Admin":       "📊",
+    "MEAL Asst":        "📋",
+    "Partner MEAL":     "🤝",
+    "Shared Documents": "🗄",
 }
 
 _STATUS_COLOUR = {
@@ -86,6 +91,32 @@ lf_options = ["None"] + [
 lf_code_to_id = {r["indicator_code"]: r["id"] for r in logframe_rows}
 
 _username  = st.session_state.get("username", "Team")
+
+# Self-heals the Daily Activity table on every page load, independent of
+# whether _run_migrations()'s own (silently-failable) creation attempt
+# succeeded for it — see ensure_team_activity_log()'s docstring.
+ensure_team_activity_log()
+
+
+def _log_activity(role: str, action_type: str) -> None:
+    """Record one timestamped activity event (task update/add, file add)
+    for the Daily Activity chart on the Time tab. This counts actions, not
+    time spent — Streamlit has no way to measure continuous page-open
+    duration without custom browser instrumentation, so it's an honest
+    activity-frequency proxy rather than tracked hours."""
+    run_write(
+        """INSERT INTO team_activity_log
+           (project_id, team_role, action_type, logged_by, logged_at)
+           VALUES (:pid, :role, :action, :by, :at)""",
+        {
+            "pid":    project_id,
+            "role":   role,
+            "action": action_type,
+            "by":     _username,
+            "at":     _datetime.now(_timezone.utc).isoformat(timespec="seconds"),
+        },
+    )
+
 
 # ── MEAL task allocation source data (21-row Module B logframe, 29 Sep 2026) ───
 # The logframe's Responsible column only names 3 coarse parties (CEL MEAL,
@@ -833,6 +864,17 @@ with left:
         if st.button(label, key=f"role_{role}", use_container_width=True):
             st.session_state["k_selected_role"] = role
 
+    st.markdown("**Shared**")
+    for role in _SHARED_ROLES:
+        task_count = run_query(
+            "SELECT COUNT(*) AS n FROM team_tasks WHERE project_id=:pid AND team_role=:r",
+            {"pid": project_id, "r": role},
+        )
+        n = task_count[0]["n"] if task_count else 0
+        label = f"{_ROLE_ICONS.get(role, '')} {role}" + (f"  `{n}`" if n else "")
+        if st.button(label, key=f"role_{role}", use_container_width=True):
+            st.session_state["k_selected_role"] = role
+
 # ── Default role if none selected ─────────────────────────────────────────────
 if "k_selected_role" not in st.session_state:
     st.session_state["k_selected_role"] = ALL_ROLES[0]
@@ -844,10 +886,7 @@ with right:
     icon = _ROLE_ICONS.get(selected_role, "")
     st.subheader(f"{icon} {selected_role}")
     if not _can_write_selected:
-        st.caption(
-            "🔒 View only — editing this role's tasks/files is restricted to "
-            f"{selected_role}, MEAL Admin and MEAL Asst."
-        )
+        st.caption("🔒 View only — you don't have edit access to this folder.")
 
     tab_tasks, tab_files, tab_time = st.tabs(["Tasks", "Files", "Time"])
 
@@ -908,6 +947,7 @@ with right:
                                     "UPDATE team_tasks SET status=:s WHERE id=:id",
                                     {"s": new_status, "id": t["id"]},
                                 )
+                                _log_activity(selected_role, "task_status_update")
                                 st.rerun()
                     st.markdown("---")
         else:
@@ -916,15 +956,15 @@ with right:
         if _can_write_selected:
             with st.expander("Add task", expanded=not tasks):
                 with st.form(f"add_task_{selected_role}"):
-                    nt_task = st.text_input("Task name")
-                    nt_desc = st.text_area("Description (optional)", height=72)
+                    nt_task = st.text_input("Task name", help="A short, specific action — this is what shows in the task list, so make it identifiable at a glance.")
+                    nt_desc = st.text_area("Description (optional)", height=72, help="Extra detail or context that doesn't fit in the task name — shown as a caption under the task.")
                     tc1, tc2 = st.columns(2)
                     with tc1:
                         nt_status = st.selectbox("Status", STATUS_OPTS, key="nt_status")
-                        nt_due    = st.date_input("Due date (optional)", value=None, key="nt_due")
+                        nt_due    = st.date_input("Due date (optional)", value=None, key="nt_due", help="Leave blank for tasks with no fixed deadline.")
                     with tc2:
-                        nt_asgn   = st.text_input("Assigned to", value=_username)
-                        nt_ind    = st.selectbox("Link to indicator (optional)", lf_options, key="nt_ind")
+                        nt_asgn   = st.text_input("Assigned to", value=_username, help="Who's doing this specific task — can differ from who created it.")
+                        nt_ind    = st.selectbox("Link to indicator (optional)", lf_options, key="nt_ind", help="Ties this task to a logframe indicator so it's traceable back to Module B/E — optional but useful for MEV-related tasks.")
                     if st.form_submit_button("Add task"):
                         if not nt_task.strip():
                             st.warning("Task name is required.")
@@ -953,6 +993,7 @@ with right:
                                     "by":   _username,
                                 },
                             )
+                            _log_activity(selected_role, "task_added")
                             st.success("Task added.")
                             st.rerun()
 
@@ -1008,8 +1049,8 @@ with right:
                 with st.form(f"add_file_{selected_role}"):
                     nf_label = st.text_input("Label", help="e.g. 'GYSI training attendance Q1 2026'")
                     nf_desc  = st.text_area("Description (optional)", height=60)
-                    nf_ind   = st.selectbox("Link to indicator (optional)", lf_options, key="nf_ind")
-                    nf_link  = st.text_input("URL / link (leave blank if uploading a file)")
+                    nf_ind   = st.selectbox("Link to indicator (optional)", lf_options, key="nf_ind", help="Ties this file to a logframe indicator so it shows up as supporting evidence for it.")
+                    nf_link  = st.text_input("URL / link (leave blank if uploading a file)", help="Use for a SharePoint/Drive link instead of uploading — avoids duplicating large files in the database.")
                     nf_file  = st.file_uploader(
                         "Upload file",
                         type=["pdf", "xlsx", "xls", "csv", "png", "jpg", "docx"],
@@ -1050,6 +1091,7 @@ with right:
                                     "at":   str(_date.today()),
                                 },
                             )
+                            _log_activity(selected_role, "file_added")
                             st.success("File saved.")
                             st.rerun()
 
@@ -1091,6 +1133,56 @@ with right:
             f"Total hours — {_sel_month} {int(_sel_year)} ({selected_role})",
             f"{total_hours:.1f} hrs",
         )
+
+        # ── Daily Activity (auto-logged — not a time-tracking measurement) ──
+        _activity_rows = run_query(
+            """SELECT logged_at, action_type FROM team_activity_log
+               WHERE project_id=:pid AND team_role=:r AND logged_at LIKE :pfx
+               ORDER BY logged_at""",
+            {"pid": project_id, "r": selected_role, "pfx": f"{_month_prefix}%"},
+        )
+        st.markdown(f"**Daily activity — {_sel_month} {int(_sel_year)} ({selected_role})**")
+        _ACT_GAP_CAP_MIN = 30
+        _ACT_SOLO_CREDIT_MIN = 1
+        st.caption(
+            "Auto-logged every time a task is updated, a task is added, or a file/link is "
+            "added. Estimated active time per day = time between consecutive actions, "
+            f"capped at {_ACT_GAP_CAP_MIN} min per gap so a lunch break or overnight gap "
+            "doesn't count as active (an action with nothing nearby adds "
+            f"{_ACT_SOLO_CREDIT_MIN} min on its own). Streamlit can't measure how long a "
+            "page actually stays open, so this is still an **estimate**, not tracked "
+            "time — use **Log time** below for actual hours."
+        )
+        if _activity_rows:
+            _act_df = pd.DataFrame(_activity_rows)
+            _act_df["logged_at"] = pd.to_datetime(_act_df["logged_at"])
+            _act_df["day"] = _act_df["logged_at"].dt.strftime("%Y-%m-%d")
+
+            def _estimate_active_minutes(times: pd.Series) -> float:
+                times = times.sort_values().tolist()
+                total = 0.0
+                for i, t in enumerate(times):
+                    if i + 1 < len(times):
+                        gap_min = (times[i + 1] - t).total_seconds() / 60
+                        total += min(gap_min, _ACT_GAP_CAP_MIN)
+                    else:
+                        total += _ACT_SOLO_CREDIT_MIN
+                return total
+
+            _days_in_month = pd.Period(_month_prefix, freq="M").days_in_month
+            _full_month_index = pd.date_range(
+                f"{_month_prefix}-01", periods=_days_in_month, freq="D"
+            ).strftime("%Y-%m-%d")
+            _daily_minutes = (
+                _act_df.groupby("day")["logged_at"].apply(_estimate_active_minutes)
+                .reindex(_full_month_index, fill_value=0.0)
+            )
+            _daily_hours = (_daily_minutes / 60).rename("Estimated hours")
+            _daily_hours.index.name = "Day"
+            st.line_chart(_daily_hours)
+            st.caption(f"Estimated total for the month: **{_daily_hours.sum():.1f} hrs**.")
+        else:
+            st.caption(f"No activity logged yet for {selected_role} in {_sel_month} {int(_sel_year)}.")
 
         # Download timesheet for all roles in the selected month
         all_time = run_query(
@@ -1149,10 +1241,12 @@ with right:
                         lt_hours = st.number_input(
                             "Hours", min_value=0.5, max_value=24.0,
                             value=1.0, step=0.5, key="lt_hours",
+                            help="Hours worked on this single entry — log separate entries for different activities on the same day rather than one combined total.",
                         )
                     with lt2:
                         lt_task = st.selectbox(
                             "Link to task (optional)", _task_opts, key="lt_task",
+                            help="Only lists tasks already in this role's own task list — add the task first if it's missing.",
                         )
                     lt_activity = st.text_area(
                         "Activity description", height=80, key="lt_activity",

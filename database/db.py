@@ -126,6 +126,31 @@ def _run_migrations() -> bool:
                 "ALTER TABLE raw_data_analysis ADD COLUMN IF NOT EXISTS partner_id INTEGER",
             ):
                 conn.execute(text(stmt))
+            # Add 'Pending' to partner_visits.status. Don't assume the CHECK
+            # constraint's name (guessing 'partner_visits_status_check' left
+            # a differently-named old constraint in place in production,
+            # which still rejected 'Pending' alongside the newly-added one —
+            # both constraints must pass, so the old one still blocked it).
+            # Look up every CHECK constraint actually on the status column via
+            # catalog tables and drop each by its real name, in Python rather
+            # than a PL/pgSQL DO block — avoids embedding literal '%'
+            # wildcards in SQL text passed through SQLAlchemy/psycopg, which
+            # use '%'-style paramstyles and can misinterpret stray '%' chars.
+            _pv_status_constraints = conn.execute(text("""
+                SELECT c.conname
+                FROM   pg_constraint c
+                JOIN   pg_attribute a
+                       ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+                WHERE  c.conrelid = 'partner_visits'::regclass
+                  AND  c.contype  = 'c'
+                  AND  a.attname  = 'status'
+            """)).fetchall()
+            for (_con_name,) in _pv_status_constraints:
+                conn.execute(text(f'ALTER TABLE partner_visits DROP CONSTRAINT "{_con_name}"'))
+            conn.execute(text(
+                "ALTER TABLE partner_visits ADD CONSTRAINT partner_visits_status_check "
+                "CHECK (status IN ('Pending','Scheduled','Completed','Cancelled'))"
+            ))
             # Index must come after ADD COLUMN (schema.sql can't do it safely on existing DBs).
             conn.execute(text(
                 "CREATE INDEX IF NOT EXISTS idx_rda_partner ON raw_data_analysis(partner_id)"
@@ -746,114 +771,6 @@ def _run_migrations() -> bool:
                     "pname": _pname, "label": _label, "val": _val,
                     "unit": _unit, "basis": _basis, "doc": _doc,
                 })
-            # ── Sample data for Module J & K (idempotent NOT EXISTS guards) ──
-            # Visits — two completed (with findings + evidence) and three scheduled.
-            for _pname, _vdate, _vtype, _status, _notes in [
-                ("Aglow Farms",   "2026-10-05", "In-person", "Completed",
-                 "Initial M&E mapping. Paper registers + Excel. KoboToolbox training needed."),
-                ("TechnoServe",   "2026-10-07", "Remote",    "Completed",
-                 "Virtual M&E review. Salesforce CRM + ODK. Strong disaggregation. Low overlap risk."),
-                ("AgroKings",     "2026-10-12", "In-person", "Scheduled",  ""),
-                ("Naple Betta",   "2026-10-15", "In-person", "Scheduled",  ""),
-                ("AFRIGEM",       "2026-10-20", "Joint",     "Scheduled",
-                 "Joint visit with Aglow Farms team — shared Kasunya community overlap."),
-            ]:
-                conn.execute(text("""
-                    INSERT INTO partner_visits
-                           (project_id, partner_id, visit_date, visit_type,
-                            conducted_by, status, general_notes, created_at)
-                    SELECT pr.project_id,
-                           (SELECT p.partner_id FROM partners p
-                            WHERE p.project_id=pr.project_id AND p.name=:pname),
-                           :vdate, :vtype, 'CEL MEAL Team', :status, :notes, :vdate
-                    FROM projects pr WHERE pr.name='SAWA'
-                      AND NOT EXISTS (
-                          SELECT 1 FROM partner_visits pv2
-                          JOIN partners p2 ON p2.partner_id=pv2.partner_id
-                          WHERE pv2.project_id=pr.project_id
-                            AND p2.name=:pname AND pv2.visit_date=:vdate
-                      )
-                """), {"pname": _pname, "vdate": _vdate, "vtype": _vtype,
-                       "status": _status, "notes": _notes})
-            # Needs assessment findings for the two completed visits.
-            for _pname, _vdate, _fp, _fe, _tools, _stor, _freq, _fmt, \
-                    _sex, _age, _dis, _vc, _comm, _risk, _onotes, \
-                    _conf, _disc, _supp, _snotes in [
-                ("Aglow Farms", "2026-10-05",
-                 "Grace Mensah", "g.mensah@aglowfarms.gh",
-                 "KoboToolbox (Form 1 partial), Paper register, Excel summary",
-                 "Local Excel files + physical folders; no cloud backup",
-                 "Monthly", "Excel",
-                 "Y", "N", "Partial", "Y",
-                 "Kasunya (Shai Osudoku), Dodowa, Prampram, Nungua",
-                 "Medium",
-                 "Kasunya and Nungua overlap with AgroKings coverage. Duplicate enrolment risk — cross-check needed before Q2 consolidation.",
-                 "PI.1,PII.R6",
-                 "Age disaggregation not collected in Form 1. Disability flag present but inconsistently applied. Q1 actual of 461 confirmed.",
-                 "Training",
-                 "Half-day KoboToolbox Form 1 training for Grace Mensah — November 2026. Shared list to be cross-checked with AgroKings."),
-                ("TechnoServe", "2026-10-07",
-                 "Kwame Asante", "k.asante@technoserve.org",
-                 "Salesforce CRM, ODK Collect, Excel exports",
-                 "Salesforce + Azure cloud backup; full audit trail",
-                 "Quarterly", "Salesforce report + Excel",
-                 "Y", "Y", "Y", "Partial",
-                 "Programme-wide — financial eligibility screening, not site-specific",
-                 "Low",
-                 "No geographic overlap risk. Cross-cutting financial partner serving all anchors.",
-                 "PIII.R1,PII.R5,PII.R6",
-                 "Value-chain node disaggregation not captured at beneficiary level. Salesforce tracks product category only. To be resolved in Q2 with revised intake form.",
-                 "Indicator definitions",
-                 "CEL MEAL to share updated definition sheet for PIII.R1 and PII.R5 with agreed disaggregation format by 31 Oct 2026."),
-            ]:
-                conn.execute(text("""
-                    INSERT INTO visit_findings
-                           (visit_id, mel_focal_person, mel_focal_email,
-                            existing_tools, data_storage, reporting_frequency, reporting_format,
-                            disagg_sex, disagg_age, disagg_disability, disagg_value_chain,
-                            communities_served, overlap_risk, overlap_notes,
-                            indicators_confirmed, discrepancies_found,
-                            support_agreed, support_notes)
-                    SELECT pv.id, :fp, :fe, :tools, :stor, :freq, :fmt,
-                           :sex, :age, :dis, :vc, :comm, :risk, :onotes,
-                           :conf, :disc, :supp, :snotes
-                    FROM partner_visits pv
-                    JOIN partners p ON p.partner_id=pv.partner_id
-                    JOIN projects pr ON pr.project_id=pv.project_id
-                    WHERE pr.name='SAWA' AND p.name=:pname AND pv.visit_date=:vdate
-                      AND NOT EXISTS (
-                          SELECT 1 FROM visit_findings vf2 WHERE vf2.visit_id=pv.id
-                      )
-                """), {"pname": _pname, "vdate": _vdate, "fp": _fp, "fe": _fe,
-                       "tools": _tools, "stor": _stor, "freq": _freq, "fmt": _fmt,
-                       "sex": _sex, "age": _age, "dis": _dis, "vc": _vc,
-                       "comm": _comm, "risk": _risk, "onotes": _onotes,
-                       "conf": _conf, "disc": _disc, "supp": _supp, "snotes": _snotes})
-            # Evidence items for completed visits.
-            for _pname, _vdate, _lbl, _code, _url in [
-                ("Aglow Farms",  "2026-10-05",
-                 "Participant Register Extract — Q1 2026 (Aglow Farms)", "PI.1",   ""),
-                ("TechnoServe",  "2026-10-07",
-                 "TechnoServe Catalytic Grant Disbursement Q1 Report",  "PIII.R1", ""),
-            ]:
-                conn.execute(text("""
-                    INSERT INTO visit_evidence
-                           (visit_id, project_id, logframe_row_id, label,
-                            link_url, uploaded_by, uploaded_at)
-                    SELECT pv.id, pr.project_id,
-                           (SELECT lr.id FROM logframe_rows lr
-                            WHERE lr.project_id=pr.project_id AND lr.indicator_code=:code),
-                           :lbl, :url, 'CEL MEAL Team', :vdate
-                    FROM partner_visits pv
-                    JOIN partners p ON p.partner_id=pv.partner_id
-                    JOIN projects pr ON pr.project_id=pv.project_id
-                    WHERE pr.name='SAWA' AND p.name=:pname AND pv.visit_date=:vdate
-                      AND NOT EXISTS (
-                          SELECT 1 FROM visit_evidence ve2
-                          WHERE ve2.visit_id=pv.id AND ve2.label=:lbl
-                      )
-                """), {"pname": _pname, "vdate": _vdate, "lbl": _lbl,
-                       "code": _code, "url": _url or None})
             # Sample tasks for Module K — one per role to seed the workspace.
             for _role, _task, _desc, _status, _due, _asgn, _code in [
                 ("GYSI",   "Collect disaggregated enrolment data from all 5 anchor partners",
@@ -978,6 +895,25 @@ def _run_migrations() -> bool:
                 _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tte_date    ON team_time_entries(entry_date)"))
         except Exception:
             pass  # table already exists (created manually in Supabase SQL Editor)
+        # Same isolated-transaction treatment for team_activity_log (Daily
+        # Activity chart on the Time tab) — new table, same rationale as above.
+        try:
+            with engine.begin() as _tc:
+                _tc.execute(text("""
+                    CREATE TABLE IF NOT EXISTS team_activity_log (
+                        id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                        project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                        team_role   TEXT    NOT NULL,
+                        action_type TEXT    NOT NULL,
+                        logged_by   TEXT,
+                        logged_at   TEXT    NOT NULL
+                    )
+                """))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_project ON team_activity_log(project_id)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_role    ON team_activity_log(team_role)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at)"))
+        except Exception:
+            pass
         return True
 
     schema = SCHEMA_PATH.read_text()
@@ -1006,6 +942,40 @@ def _run_migrations() -> bool:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_rda_partner ON raw_data_analysis(partner_id)"
         )
+    except Exception:
+        pass
+    # Add 'Pending' to partner_visits.status. SQLite has no ALTER TABLE ...
+    # DROP/ADD CONSTRAINT, so rebuild the table when the old CHECK (without
+    # 'Pending') is still in place — only runs once, since the rebuilt table's
+    # own CREATE statement already includes 'Pending'.
+    try:
+        _pv_row = conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='partner_visits'"
+        ).fetchone()
+        if _pv_row and _pv_row[0] and "'Pending'" not in _pv_row[0]:
+            conn.execute("ALTER TABLE partner_visits RENAME TO partner_visits_old")
+            conn.execute("""
+                CREATE TABLE partner_visits (
+                    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                    project_id    INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                    partner_id    INTEGER REFERENCES partners(partner_id) ON DELETE SET NULL,
+                    visit_date    TEXT    NOT NULL,
+                    visit_type    TEXT    CHECK(visit_type IN ('In-person','Remote','Joint')),
+                    conducted_by  TEXT,
+                    status        TEXT    DEFAULT 'Scheduled'
+                                  CHECK(status IN ('Pending','Scheduled','Completed','Cancelled')),
+                    general_notes TEXT,
+                    created_at    TEXT    NOT NULL
+                )
+            """)
+            conn.execute(
+                "INSERT INTO partner_visits "
+                "(id, project_id, partner_id, visit_date, visit_type, conducted_by, "
+                " status, general_notes, created_at) "
+                "SELECT id, project_id, partner_id, visit_date, visit_type, conducted_by, "
+                "       status, general_notes, created_at FROM partner_visits_old"
+            )
+            conn.execute("DROP TABLE partner_visits_old")
     except Exception:
         pass
     # Ensure workplan_activities table exists (added after initial schema deploy).
@@ -1043,7 +1013,7 @@ def _run_migrations() -> bool:
                 visit_type    TEXT    CHECK(visit_type IN ('In-person','Remote','Joint')),
                 conducted_by  TEXT,
                 status        TEXT    DEFAULT 'Scheduled'
-                              CHECK(status IN ('Scheduled','Completed','Cancelled')),
+                              CHECK(status IN ('Pending','Scheduled','Completed','Cancelled')),
                 general_notes TEXT,
                 created_at    TEXT    NOT NULL
             )
@@ -1171,124 +1141,18 @@ def _run_migrations() -> bool:
                  )""",
             (_code, current_fiscal_year(), _pname, _q1, _ps, _pl, _code, _pname),
         )
-    # ── Sample data for Module J & K (SQLite, idempotent) ────────────────────
+    # ── Sample data for Module K (SQLite, idempotent) ─────────────────────────
     _sawa_pid = conn.execute(
         "SELECT project_id FROM projects WHERE name='SAWA' LIMIT 1"
     ).fetchone()
     if _sawa_pid:
         _sawa_pid = _sawa_pid[0]
-        def _pid_of(name):
-            r = conn.execute(
-                "SELECT partner_id FROM partners WHERE project_id=? AND name=? LIMIT 1",
-                (_sawa_pid, name)
-            ).fetchone()
-            return r[0] if r else None
         def _lf_of(code):
             r = conn.execute(
                 "SELECT id FROM logframe_rows WHERE project_id=? AND indicator_code=? LIMIT 1",
                 (_sawa_pid, code)
             ).fetchone()
             return r[0] if r else None
-        def _visit_id(pname, vdate):
-            pid = _pid_of(pname)
-            if not pid:
-                return None
-            r = conn.execute(
-                "SELECT id FROM partner_visits WHERE project_id=? AND partner_id=? AND visit_date=? LIMIT 1",
-                (_sawa_pid, pid, vdate)
-            ).fetchone()
-            return r[0] if r else None
-
-        for _pname, _vdate, _vtype, _status, _notes in [
-            ("Aglow Farms", "2026-10-05", "In-person", "Completed",
-             "Initial M&E mapping. Paper registers + Excel. KoboToolbox training needed."),
-            ("TechnoServe", "2026-10-07", "Remote",    "Completed",
-             "Virtual M&E review. Salesforce CRM + ODK. Strong disaggregation. Low overlap risk."),
-            ("AgroKings",   "2026-10-12", "In-person", "Scheduled",  ""),
-            ("Naple Betta", "2026-10-15", "In-person", "Scheduled",  ""),
-            ("AFRIGEM",     "2026-10-20", "Joint",     "Scheduled",
-             "Joint visit with Aglow Farms — shared Kasunya community overlap."),
-        ]:
-            if not _visit_id(_pname, _vdate):
-                _par = _pid_of(_pname)
-                if _par:
-                    conn.execute(
-                        """INSERT INTO partner_visits
-                           (project_id,partner_id,visit_date,visit_type,
-                            conducted_by,status,general_notes,created_at)
-                           VALUES (?,?,?,?,'CEL MEAL Team',?,?,?)""",
-                        (_sawa_pid, _par, _vdate, _vtype, _status, _notes, _vdate)
-                    )
-
-        for _pname, _vdate, _fp, _fe, _tools, _stor, _freq, _fmt, \
-                _sex, _age, _dis, _vc, _comm, _risk, _onotes, \
-                _conf, _disc, _supp, _snotes in [
-            ("Aglow Farms", "2026-10-05",
-             "Grace Mensah", "g.mensah@aglowfarms.gh",
-             "KoboToolbox (Form 1 partial), Paper register, Excel summary",
-             "Local Excel files + physical folders; no cloud backup",
-             "Monthly", "Excel",
-             "Y","N","Partial","Y",
-             "Kasunya (Shai Osudoku), Dodowa, Prampram, Nungua",
-             "Medium",
-             "Kasunya and Nungua overlap with AgroKings. Cross-check before Q2 consolidation.",
-             "PI.1,PII.R6",
-             "Age disaggregation not collected. Disability flag inconsistently applied. Q1 actual 461 confirmed.",
-             "Training",
-             "Half-day KoboToolbox Form 1 training for Grace Mensah — Nov 2026."),
-            ("TechnoServe", "2026-10-07",
-             "Kwame Asante", "k.asante@technoserve.org",
-             "Salesforce CRM, ODK Collect, Excel exports",
-             "Salesforce + Azure cloud backup; full audit trail",
-             "Quarterly", "Salesforce report + Excel",
-             "Y","Y","Y","Partial",
-             "Programme-wide — financial eligibility screening, not site-specific",
-             "Low",
-             "No geographic overlap risk. Cross-cutting financial partner.",
-             "PIII.R1,PII.R5,PII.R6",
-             "Value-chain node not captured at beneficiary level. Resolved in Q2 with revised intake form.",
-             "Indicator definitions",
-             "CEL MEAL to share updated definition sheet for PIII.R1 and PII.R5 by 31 Oct 2026."),
-        ]:
-            _vid = _visit_id(_pname, _vdate)
-            if _vid:
-                existing = conn.execute(
-                    "SELECT id FROM visit_findings WHERE visit_id=? LIMIT 1", (_vid,)
-                ).fetchone()
-                if not existing:
-                    conn.execute(
-                        """INSERT INTO visit_findings
-                           (visit_id,mel_focal_person,mel_focal_email,existing_tools,
-                            data_storage,reporting_frequency,reporting_format,
-                            disagg_sex,disagg_age,disagg_disability,disagg_value_chain,
-                            communities_served,overlap_risk,overlap_notes,
-                            indicators_confirmed,discrepancies_found,
-                            support_agreed,support_notes)
-                           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                        (_vid,_fp,_fe,_tools,_stor,_freq,_fmt,
-                         _sex,_age,_dis,_vc,_comm,_risk,_onotes,
-                         _conf,_disc,_supp,_snotes)
-                    )
-
-        for _pname, _vdate, _lbl, _code in [
-            ("Aglow Farms", "2026-10-05",
-             "Participant Register Extract — Q1 2026 (Aglow Farms)", "PI.1"),
-            ("TechnoServe", "2026-10-07",
-             "TechnoServe Catalytic Grant Disbursement Q1 Report", "PIII.R1"),
-        ]:
-            _vid = _visit_id(_pname, _vdate)
-            if _vid:
-                existing = conn.execute(
-                    "SELECT id FROM visit_evidence WHERE visit_id=? AND label=? LIMIT 1",
-                    (_vid, _lbl)
-                ).fetchone()
-                if not existing:
-                    conn.execute(
-                        """INSERT INTO visit_evidence
-                           (visit_id,project_id,logframe_row_id,label,uploaded_by,uploaded_at)
-                           VALUES (?,?,?,?,'CEL MEAL Team',?)""",
-                        (_vid, _sawa_pid, _lf_of(_code), _lbl, _vdate)
-                    )
 
         for _role, _task, _desc, _status, _due, _asgn, _code in [
             ("GYSI","Collect disaggregated enrolment data from all 5 anchor partners",
@@ -1474,6 +1338,23 @@ def _run_migrations() -> bool:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_tte_date    ON team_time_entries(entry_date)")
     except Exception:
         pass
+    # Module K: activity log table, drives the Time tab's Daily Activity chart.
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS team_activity_log (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                team_role   TEXT    NOT NULL,
+                action_type TEXT    NOT NULL,
+                logged_by   TEXT,
+                logged_at   TEXT    NOT NULL
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tal_project ON team_activity_log(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tal_role    ON team_activity_log(team_role)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at)")
+    except Exception:
+        pass
     conn.commit()
     conn.close()
     return True
@@ -1493,6 +1374,40 @@ def run_write(sql: str, params: dict | None = None):
     engine = get_engine()
     with engine.begin() as conn:
         conn.execute(text(sql), params or {})
+
+
+def ensure_team_activity_log() -> None:
+    """Idempotent CREATE TABLE IF NOT EXISTS for team_activity_log, callable
+    at any time — not just at app startup.
+
+    _run_migrations() already creates this table in its own isolated
+    transaction (same pattern as team_time_entries), but that transaction's
+    failure mode is a silent `except Exception: pass` (deliberately, so one
+    bad table can't abort the rest of the startup migration) — which also
+    means a real failure there is invisible. Module K calls this directly
+    before it touches the table, so the table gets created on first actual
+    use regardless of whether the startup path succeeded for it.
+    """
+    engine = get_engine()
+    id_col = (
+        "id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY"
+        if IS_POSTGRES else
+        "id INTEGER PRIMARY KEY AUTOINCREMENT"
+    )
+    with engine.begin() as conn:
+        conn.execute(text(f"""
+            CREATE TABLE IF NOT EXISTS team_activity_log (
+                {id_col},
+                project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                team_role   TEXT    NOT NULL,
+                action_type TEXT    NOT NULL,
+                logged_by   TEXT,
+                logged_at   TEXT    NOT NULL
+            )
+        """))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_project ON team_activity_log(project_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_role    ON team_activity_log(team_role)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at)"))
 
 
 def recompute_actual_year(row_id: int) -> None:

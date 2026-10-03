@@ -29,18 +29,14 @@ if not st.session_state.get("authentication_status"):
     st.error("Please log in from the main page.")
     st.stop()
 
+_VISIT_STATUSES = ["Pending", "Scheduled", "Completed", "Cancelled"]
+
 with st.sidebar:
     project_id = project_selector()
     if project_id is None:
         st.stop()
     st.divider()
     st.caption(f"Role: **{st.session_state.get('role', 'Viewer')}**")
-
-st.title("Module J — Partner Visitations")
-st.caption(
-    "SAWA Programme · Sept–Oct 2026 — "
-    "Map partner M&E systems, confirm disaggregation, agree data-sharing frequency, flag overlap risks."
-)
 
 # ── Reference data ─────────────────────────────────────────────────────────────
 partners = run_query(
@@ -49,6 +45,33 @@ partners = run_query(
 )
 partner_name_to_id = {p["name"]: p["partner_id"] for p in partners}
 partner_id_to_name = {p["partner_id"]: p["name"] for p in partners}
+
+with st.sidebar:
+    st.divider()
+    st.caption("Visits tab navigation")
+    filter_partner = st.selectbox(
+        "Filter by partner",
+        ["All partners"] + [p["name"] for p in partners],
+        key="vf_partner",
+        help="Jumps straight to one partner's visits in the Visits tab table below, instead of scrolling through all of them.",
+    )
+    filter_status = st.selectbox(
+        "Filter by status",
+        ["All"] + _VISIT_STATUSES,
+        key="vf_status",
+    )
+    hide_pending = st.checkbox(
+        "Hide pending (unconfirmed) visits",
+        value=True,
+        key="vf_hide_pending",
+        help="Pending visits stay in the database — this just keeps unconfirmed dates out of the table below. Uncheck here, or pick 'Pending' above, to see them again.",
+    )
+
+st.title("Module J — Partner Visitations")
+st.caption(
+    "SAWA Programme · Sept–Oct 2026 — "
+    "Map partner M&E systems, confirm disaggregation, agree data-sharing frequency, flag overlap risks."
+)
 
 logframe_rows = run_query(
     """SELECT id, indicator_code, indicator_statement
@@ -80,27 +103,23 @@ tab_visits, tab_assess, tab_evidence, tab_report = st.tabs(
 # TAB 1 — VISITS
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab_visits:
-    col_f1, col_f2 = st.columns(2)
-    with col_f1:
-        filter_partner = st.selectbox(
-            "Filter by partner",
-            ["All partners"] + [p["name"] for p in partners],
-            key="vf_partner",
-        )
-    with col_f2:
-        filter_status = st.selectbox(
-            "Filter by status",
-            ["All", "Scheduled", "Completed", "Cancelled"],
-            key="vf_status",
-        )
-
     visible = [
         v for v in visits
         if (filter_partner == "All partners" or v["partner_name"] == filter_partner)
         and (filter_status == "All" or v["status"] == filter_status)
+        and (filter_status != "All" or not hide_pending or v["status"] != "Pending")
     ]
+    _n_hidden_pending = (
+        sum(1 for v in visits if v["status"] == "Pending") - sum(1 for v in visible if v["status"] == "Pending")
+        if hide_pending and filter_status == "All" else 0
+    )
+    if _n_hidden_pending:
+        st.caption(
+            f"🟡 {_n_hidden_pending} pending visit(s) hidden — "
+            "uncheck **Hide pending visits** in the sidebar to see them."
+        )
 
-    _STATUS_COLOUR = {"Scheduled": "🔵", "Completed": "🟢", "Cancelled": "⚫"}
+    _STATUS_COLOUR = {"Pending": "🟡", "Scheduled": "🔵", "Completed": "🟢", "Cancelled": "⚫"}
 
     if visible:
         st.dataframe(
@@ -131,7 +150,7 @@ with tab_visits:
                     nv_partner   = st.selectbox("Partner", [p["name"] for p in partners], key="nv_partner")
                     nv_date      = st.date_input("Visit date", value=_date.today(), key="nv_date")
                 with c2:
-                    nv_type      = st.selectbox("Visit type", ["In-person", "Remote", "Joint"], key="nv_type")
+                    nv_type      = st.selectbox("Visit type", ["In-person", "Remote", "Joint"], key="nv_type", help="'Joint' = conducted together with another partner or CEL team — note which in General notes below.")
                     nv_conducted = st.text_input("Conducted by", value=_username, key="nv_conducted")
                 nv_notes = st.text_area("General notes", key="nv_notes", height=80)
                 if st.form_submit_button("Schedule visit"):
@@ -154,7 +173,7 @@ with tab_visits:
                     st.rerun()
 
         if visits:
-            with st.expander("Update visit status"):
+            with st.expander("Update visit"):
                 visit_labels = [
                     f"{v['partner_name']} — {v['visit_date']} ({v['status']})"
                     for v in visits
@@ -164,19 +183,61 @@ with tab_visits:
                     range(len(visit_labels)),
                     format_func=lambda i: visit_labels[i],
                     key="upd_visit_sel",
+                    help="Choosing a visit here pre-fills its current type, conducted by and notes below.",
                 )
-                new_status = st.selectbox(
-                    "New status",
-                    ["Scheduled", "Completed", "Cancelled"],
-                    key="upd_status",
-                )
-                if st.button("Update status"):
-                    run_write(
-                        "UPDATE partner_visits SET status=:s WHERE id=:id",
-                        {"s": new_status, "id": visits[upd_idx]["id"]},
+                upd_visit = visits[upd_idx]
+                # Keys include the visit id so each field re-initialises from
+                # *this* visit's data when the selection changes — a fixed key
+                # would keep showing whatever was last typed for a different
+                # visit, since Streamlit widgets ignore value=/index= once
+                # their key already has state from a previous rerun.
+                _uk = upd_visit["id"]
+
+                with st.form(f"update_visit_form_{_uk}"):
+                    uc1, uc2 = st.columns(2)
+                    with uc1:
+                        new_status = st.selectbox(
+                            "Status",
+                            _VISIT_STATUSES,
+                            index=_VISIT_STATUSES.index(upd_visit["status"])
+                            if upd_visit.get("status") in _VISIT_STATUSES else 0,
+                            key=f"upd_status_{_uk}",
+                        )
+                        new_type = st.selectbox(
+                            "Visit type",
+                            ["In-person", "Remote", "Joint"],
+                            index=["In-person", "Remote", "Joint"].index(upd_visit["visit_type"])
+                            if upd_visit.get("visit_type") in ["In-person", "Remote", "Joint"] else 0,
+                            key=f"upd_type_{_uk}",
+                            help="'Joint' = conducted together with another partner or CEL team — note which in General notes below.",
+                        )
+                    with uc2:
+                        new_conducted = st.text_input(
+                            "Conducted by",
+                            value=upd_visit.get("conducted_by") or "",
+                            key=f"upd_conducted_{_uk}",
+                        )
+                    new_notes = st.text_area(
+                        "General notes",
+                        value=upd_visit.get("general_notes") or "",
+                        key=f"upd_notes_{_uk}",
+                        height=80,
                     )
-                    st.success("Status updated.")
-                    st.rerun()
+                    if st.form_submit_button("Update visit"):
+                        run_write(
+                            """UPDATE partner_visits
+                               SET status=:s, visit_type=:vt, conducted_by=:cb, general_notes=:notes
+                               WHERE id=:id""",
+                            {
+                                "s": new_status,
+                                "vt": new_type,
+                                "cb": new_conducted.strip(),
+                                "notes": new_notes.strip() or None,
+                                "id": upd_visit["id"],
+                            },
+                        )
+                        st.success("Visit updated.")
+                        st.rerun()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -245,6 +306,7 @@ with tab_assess:
                 "Indicators for which partner can supply confirmed figures",
                 indicator_codes,
                 default=confirmed_default,
+                help="Only select indicators this partner's own M&E system can actually produce a verified number for — not every indicator they're relevant to.",
             )
             f_discrepancies = st.text_area(
                 "Discrepancies / gaps found",
@@ -261,10 +323,11 @@ with tab_assess:
                     "Overlap risk level", _risk_opts,
                     index=_risk_opts.index(ex["overlap_risk"]) if ex.get("overlap_risk") in _risk_opts else 0,
                     key="da_risk",
+                    help="Risk that this partner's reported participants/results double-count with another partner serving the same communities — not a general risk rating.",
                 )
             with rc2:
                 f_communities = st.text_area("Communities / sites served", value=ex.get("communities_served") or "", height=72)
-            f_overlap_notes = st.text_area("Overlap notes", value=ex.get("overlap_notes") or "", height=72)
+            f_overlap_notes = st.text_area("Overlap notes", value=ex.get("overlap_notes") or "", height=72, help="Specifically which other partner(s) might overlap here, and what's being done to avoid double-counting — feeds Module A's cross-partner checks.")
 
             st.divider()
             st.subheader("Agreed MEAL Support")

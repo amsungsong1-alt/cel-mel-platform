@@ -307,6 +307,7 @@ for proto in protocols:
                         "6. Reviewer role",
                         value=proto.get("reviewer_role") or "",
                         key=f"role_{proto['id']}",
+                        help="Who is responsible for conducting this review, e.g. 'MEAL Officer' — shown on the protocol card and the Upcoming Reviews calendar.",
                     )
                 with fc3:
                     nsd_val = proto.get("next_scheduled_date") or ""
@@ -318,6 +319,7 @@ for proto in protocols:
                         "7. Next scheduled date",
                         value=nsd_date,
                         key=f"nsd_{proto['id']}",
+                        help="Auto-advances by the review frequency each time a review is logged below — only set this manually to correct the schedule.",
                     )
 
                 if st.form_submit_button("💾 Save protocol", type="primary"):
@@ -457,6 +459,7 @@ else:
             "Indicators this review touched (from Module E)",
             options=lf_options,
             placeholder="Select one or more logframe indicators…",
+            help="Links this log entry to specific indicators — required for the 'Open Module G' follow-up shortcut to carry them over automatically.",
         )
         fu_required = st.radio(
             "Follow-up required?",

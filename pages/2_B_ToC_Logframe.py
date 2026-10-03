@@ -215,9 +215,10 @@ with tab_lf:
             all_levels,
             default=st.session_state.get("toc_level_filter", []),
             key="lf_level_filter",
+            help="Filter to one or more logframe result levels (Impact/Outcome/Output/etc). Also set by the level buttons on the Theory of Change tab.",
         )
     with col_f2:
-        sel_resp = st.multiselect("Responsible", all_responsible, key="lf_resp_filter")
+        sel_resp = st.multiselect("Responsible", all_responsible, key="lf_resp_filter", help="Filter to the party accountable for reporting this indicator's data.")
     with col_f3:
         st.markdown("&nbsp;", unsafe_allow_html=True)
         if st.button("Clear filters", use_container_width=True):
@@ -245,25 +246,27 @@ with tab_lf:
 
     col_config = {
         "_id":                    st.column_config.NumberColumn("DB ID", disabled=True, width="small"),
-        "Results Level":          st.column_config.SelectboxColumn("Results Level", options=_RESULT_LEVEL_OPTIONS, width="medium"),
-        "Indicator ID":           st.column_config.TextColumn("Indicator ID", width="small"),
+        "Results Level":          st.column_config.SelectboxColumn("Results Level", options=_RESULT_LEVEL_OPTIONS, width="medium", help="Where this indicator sits in the Theory of Change hierarchy (Impact → Outcome → Output → Activity → Input)."),
+        "Indicator ID":           st.column_config.TextColumn("Indicator ID", width="small", help="Fixed code referenced throughout the app (Modules D-K) — e.g. PI.1, PII.R5. Do not change once Kobo mappings or tasks are linked to it."),
         "Indicator (SMART)":      st.column_config.TextColumn("Indicator (SMART)", width="large"),
-        "Disaggregation":         st.column_config.TextColumn("Disaggregation", width="medium"),
-        "Baseline":               st.column_config.TextColumn("Baseline", width="small"),
-        "Target (Annual)":        st.column_config.TextColumn("Target (Annual)", width="small"),
-        "Target (LOP)":           st.column_config.TextColumn("Target (LOP)", width="small"),
-        "Means of Verification":  st.column_config.TextColumn("Means of Verification", width="large"),
+        "Disaggregation":         st.column_config.TextColumn("Disaggregation", width="medium", help="How this indicator's data must be broken down when reported, e.g. 'Sex, age, disability'."),
+        "Baseline":               st.column_config.TextColumn("Baseline", width="small", help="Starting value before the programme began — the reference point actuals are measured against."),
+        "Target (Annual)":        st.column_config.TextColumn("Target (Annual)", width="small", help="Target for THIS fiscal year only (Jul-Jun). Feeds Module E's quarterly tracking — not the same as Target (LOP)."),
+        "Target (LOP)":           st.column_config.TextColumn("Target (LOP)", width="small", help="Life-of-Programme target — the cumulative multi-year goal. Do not sum with Target (Annual); they're different time bases."),
+        "Means of Verification":  st.column_config.TextColumn("Means of Verification", width="large", help="The document/record/system that proves the reported value — what an auditor would ask to see."),
         "Frequency":              st.column_config.SelectboxColumn(
                                       "Frequency",
                                       options=["Quarterly", "Bi-annual", "Annual"],
                                       width="small",
+                                      help="How often this indicator's actual value is expected to be reported in Module E.",
                                   ),
         "Responsible":            st.column_config.SelectboxColumn(
                                       "Responsible",
                                       options=["CEL MEAL", "Partner MEAL", "Programme Team"],
                                       width="medium",
+                                      help="Which party is accountable for collecting and reporting this indicator's actuals.",
                                   ),
-        "Critical Assumption":    st.column_config.TextColumn("Critical Assumption", width="large"),
+        "Critical Assumption":    st.column_config.TextColumn("Critical Assumption", width="large", help="What has to hold true for this indicator's target to be achievable — flags risk, not a data field."),
     }
 
     # ── Render table ──────────────────────────────────────────────────────────

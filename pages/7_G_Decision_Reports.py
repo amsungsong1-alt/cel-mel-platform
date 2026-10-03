@@ -488,7 +488,7 @@ with tab_edit:
                 break
         st.session_state["g_edit_report_id"] = None
 
-    sel = st.selectbox("Report", sel_opts, index=default_idx, key="g_report_sel")
+    sel = st.selectbox("Report", sel_opts, index=default_idx, key="g_report_sel", help="Pick '— New report —' to start fresh, or select an existing RPT-id to continue editing it.")
 
     is_new       = (sel == "— New report —")
     active       = {} if is_new else all_reports[sel_opts.index(sel) - 1]
@@ -524,6 +524,7 @@ with tab_edit:
         options=lf_opts,
         index=lf_opts.index(current_lf_opt) if current_lf_opt in lf_opts else 0,
         key="g_indicator_sel",
+        help="Changing this re-pulls Target value and Actual value from Module E for a new report — existing reports keep their saved values.",
     )
     chosen_lf_id = lf_id_for_opt.get(sel_lf)
     pf = prefill if (is_new and chosen_lf_id == prefill.get("lf_row_id")) else (
@@ -673,10 +674,10 @@ with tab_edit:
         actions_df,
         column_config={
             "_id":            st.column_config.NumberColumn("ID", disabled=True, width="small"),
-            "Decision Maker": st.column_config.TextColumn("Decision Maker", width="medium"),
-            "Action":         st.column_config.TextColumn("Action", width="large"),
-            "Due Date":       st.column_config.DateColumn("Due Date", format="YYYY-MM-DD"),
-            "Status":         st.column_config.SelectboxColumn("Status", options=ACTION_STATUSES, width="medium"),
+            "Decision Maker": st.column_config.TextColumn("Decision Maker", width="medium", help="Who owns this action — the person accountable for getting it done, not necessarily who logs the update."),
+            "Action":         st.column_config.TextColumn("Action", width="large", help="One concrete, specific action — avoid vague items like 'investigate further'."),
+            "Due Date":       st.column_config.DateColumn("Due Date", format="YYYY-MM-DD", help="Defaults to the next AIL quarterly report deadline. Rows past due and not Resolved appear in the Dashboard's overdue list."),
+            "Status":         st.column_config.SelectboxColumn("Status", options=ACTION_STATUSES, width="medium", help="Set to 'Resolved' to clear this action from the Dashboard's open/overdue counts."),
         },
         num_rows="dynamic",
         hide_index=True,
@@ -696,6 +697,7 @@ with tab_edit:
                 if active.get("status") in REPORT_STATUSES
                 else 0
             ),
+            help="Draft while investigating, Under review once submitted for sign-off, Approved once actions are confirmed, Closed once all actions resolve.",
         )
     with ctl_c2:
         created_by = st.text_input(

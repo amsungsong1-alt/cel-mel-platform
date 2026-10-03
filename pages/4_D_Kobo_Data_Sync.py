@@ -490,6 +490,7 @@ with tab_sync:
                 options=list(BASE_URLS.keys()),
                 index=list(BASE_URLS.keys()).index(st.session_state["kobo_server"]),
                 format_func=lambda s: f"{s}  ({BASE_URLS[s]})",
+                help="Which KoboToolbox deployment your forms live on — most accounts use 'global' unless your organisation was set up on a regional server.",
             )
             st.session_state["kobo_server"] = server
 
@@ -499,6 +500,7 @@ with tab_sync:
                 value=st.session_state["kobo_token"],
                 type="password",
                 placeholder="Paste your KoboToolbox API token here",
+                help="From KoboToolbox: Account Settings → Security → API Key. Grants this app read access to your forms — treat it like a password.",
             )
 
         btn_c1, btn_c2, btn_c3 = st.columns(3)
@@ -702,10 +704,12 @@ with tab_sync:
                     else st.column_config.TextColumn("Kobo Field", width="medium")
                 ),
                 "Indicator": st.column_config.SelectboxColumn(
-                    "Target Indicator", options=indicator_codes, width="medium"
+                    "Target Indicator", options=indicator_codes, width="medium",
+                    help="The logframe indicator this Kobo field's values roll up into. Codes repeat per partner — check the (#id) and Responsible shown in parentheses before picking one.",
                 ),
                 "Transform": st.column_config.SelectboxColumn(
-                    "Transform", options=TRANSFORM_OPTS, width="small"
+                    "Transform", options=TRANSFORM_OPTS, width="small",
+                    help="How to roll up multiple submissions into one value: count = number of responses, sum = add values, mean = average, latest = most recent submission only.",
                 ),
             }
 
@@ -774,9 +778,9 @@ with tab_sync:
         with st.expander("Register a new form manually"):
             nc1, nc2, nc3 = st.columns(3)
             with nc1:
-                new_uid  = st.text_input("Asset UID", placeholder="e.g. aXXXXXXXXXXXXXXXXXXXX")
+                new_uid  = st.text_input("Asset UID", placeholder="e.g. aXXXXXXXXXXXXXXXXXXXX", help="Found in KoboToolbox under the form's Settings → Media, or in its URL after /#/forms/.")
             with nc2:
-                new_name = st.text_input("Form name", placeholder="e.g. SAWA Enrolment Form")
+                new_name = st.text_input("Form name", placeholder="e.g. SAWA Enrolment Form", help="Display name only — doesn't need to match KoboToolbox exactly.")
             with nc3:
                 st.markdown("&nbsp;", unsafe_allow_html=True)
                 if st.button("Register", use_container_width=True, type="primary"):
@@ -917,11 +921,14 @@ with tab_upload:
     if not upload_forms:
         st.info("No forms registered yet. Configure field mappings in the Sync & Mapping tab first.")
     else:
+        uf_labels = [f"{f['kobo_form_name']}  ({f['asset_uid']})" for f in upload_forms]
+
         ul_c1, ul_c2 = st.columns([2, 3])
-        with ul_c1:
-            uf_labels = [f"{f['kobo_form_name']}  ({f['asset_uid']})" for f in upload_forms]
-            uf_label  = st.selectbox("Form these files belong to", uf_labels, key="upload_form_sel")
-            sel_form  = upload_forms[uf_labels.index(uf_label)]
+
+        # Rendered out of visual order (uploader before selectbox) so the
+        # uploaded file's columns are known before the selectbox below picks
+        # its auto-matched default — `with ul_c2` still places it visually
+        # on the right.
         with ul_c2:
             up_files = st.file_uploader(
                 "KoboToolbox export(s) (CSV or XLSX) — add one file per quarter with the "
@@ -930,6 +937,71 @@ with tab_upload:
                 accept_multiple_files=True,
                 key="kobo_manual_upload",
             )
+
+        # ── Auto-match "Form these files belong to" from uploaded column names ──
+        # Only re-runs the match when the uploaded file set actually changes
+        # (tracked by name), so a user's manual override of the dropdown
+        # isn't silently reset by an unrelated widget interaction elsewhere
+        # on the page.
+        _match_note = None
+        _file_sig = tuple(f.name for f in up_files) if up_files else ()
+        if up_files and _file_sig != st.session_state.get("_kobo_upload_file_sig"):
+            st.session_state["_kobo_upload_file_sig"] = _file_sig
+
+            def _peek_columns(f) -> set[str]:
+                try:
+                    if f.name.lower().endswith(".csv"):
+                        cols = set(pd.read_csv(f, nrows=0).columns)
+                    else:
+                        cols = set(pd.read_excel(f, sheet_name=0, nrows=0).columns)
+                except Exception:
+                    cols = set()
+                finally:
+                    try:
+                        f.seek(0)
+                    except Exception:
+                        pass
+                return cols
+
+            _uploaded_cols: set[str] = set()
+            for _f in up_files:
+                _uploaded_cols |= _peek_columns(_f)
+
+            _fields_by_uid: dict[str, set[str]] = defaultdict(set)
+            for _m in run_query(
+                """SELECT asset_uid, kobo_field_name FROM kobo_form_mapping
+                   WHERE  project_id=:pid AND kobo_field_name != '_placeholder'""",
+                {"pid": project_id},
+            ):
+                _fields_by_uid[_m["asset_uid"]].add(_m["kobo_field_name"])
+
+            _best_uid, _best_score = None, 0
+            for _uid, _fields in _fields_by_uid.items():
+                _score = len(_fields & _uploaded_cols)
+                if _score > _best_score:
+                    _best_uid, _best_score = _uid, _score
+
+            if _best_uid is not None:
+                _best_form = next((f for f in upload_forms if f["asset_uid"] == _best_uid), None)
+                if _best_form is not None:
+                    _best_label = f"{_best_form['kobo_form_name']}  ({_best_form['asset_uid']})"
+                    st.session_state["upload_form_sel"] = _best_label
+                    _match_note = (
+                        f"🔎 Auto-matched to **{_best_form['kobo_form_name']}** "
+                        f"— {_best_score} column name(s) matched its field mapping. "
+                        "Change the dropdown if this isn't right."
+                    )
+            if _match_note is None:
+                _match_note = (
+                    "🔎 Couldn't auto-detect the form from this file's column names "
+                    "— select it manually below."
+                )
+
+        with ul_c1:
+            uf_label  = st.selectbox("Form these files belong to", uf_labels, key="upload_form_sel", help="Auto-matched from the uploaded file's column names where possible — must match the form whose Field Mapping (above) you want applied to this upload.")
+            sel_form  = upload_forms[uf_labels.index(uf_label)]
+            if _match_note:
+                st.caption(_match_note)
 
         if up_files:
             # A CSV or single-sheet workbook is one quarter; a multi-sheet workbook

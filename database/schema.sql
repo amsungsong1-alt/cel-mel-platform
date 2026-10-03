@@ -397,7 +397,7 @@ CREATE TABLE IF NOT EXISTS partner_visits (
     visit_type    TEXT    CHECK(visit_type IN ('In-person','Remote','Joint')),
     conducted_by  TEXT,
     status        TEXT    DEFAULT 'Scheduled'
-                  CHECK(status IN ('Scheduled','Completed','Cancelled')),
+                  CHECK(status IN ('Pending','Scheduled','Completed','Cancelled')),
     general_notes TEXT,
     created_at    TEXT    NOT NULL
 );
@@ -498,3 +498,19 @@ CREATE TABLE IF NOT EXISTS team_time_entries (
 CREATE INDEX IF NOT EXISTS idx_tte_project ON team_time_entries(project_id);
 CREATE INDEX IF NOT EXISTS idx_tte_role    ON team_time_entries(team_role);
 CREATE INDEX IF NOT EXISTS idx_tte_date    ON team_time_entries(entry_date);
+
+-- Module K: auto-logged activity events (task update/add, file add) that
+-- drive the Time tab's Daily Activity chart — an action-count proxy, not a
+-- time-tracking measurement (Streamlit can't measure page-open duration).
+CREATE TABLE IF NOT EXISTS team_activity_log (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id  INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+    team_role   TEXT    NOT NULL,
+    action_type TEXT    NOT NULL,
+    logged_by   TEXT,
+    logged_at   TEXT    NOT NULL   -- ISO-8601 timestamp, UTC
+);
+
+CREATE INDEX IF NOT EXISTS idx_tal_project ON team_activity_log(project_id);
+CREATE INDEX IF NOT EXISTS idx_tal_role    ON team_activity_log(team_role);
+CREATE INDEX IF NOT EXISTS idx_tal_date    ON team_activity_log(logged_at);

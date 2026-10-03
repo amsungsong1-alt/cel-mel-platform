@@ -424,26 +424,28 @@ col_config = {
     "Code":              st.column_config.TextColumn("Code", disabled=True, width="small"),
     "Level":             st.column_config.TextColumn("Level", disabled=True, width="small"),
     "Indicator":         st.column_config.TextColumn("Indicator", disabled=True, width="large"),
-    "Type":              st.column_config.SelectboxColumn("Type", options=DATA_TYPES, width="small"),
-    "Target":            st.column_config.TextColumn("Target", disabled=True, width="medium"),
-    "Trigger":           st.column_config.TextColumn("Trigger", width="small"),
-    "Problem Definition":st.column_config.TextColumn("Problem Definition", width="large"),
-    "Baseline?":         st.column_config.SelectboxColumn("Baseline?", options=BASELINE_OPTS, width="small"),
-    "Baseline Value":    st.column_config.TextColumn("Baseline Value", width="small"),
+    "Type":              st.column_config.SelectboxColumn("Type", options=DATA_TYPES, width="small", help="What kind of data this indicator represents — e.g. 'Performance' for a KPI, 'Assumption' for a condition being tracked rather than a target."),
+    "Target":            st.column_config.TextColumn("Target", disabled=True, width="medium", help="Read-only here — set in Module B (ToC & Logframe). Flagged below if it disagrees with the logframe's target_annual."),
+    "Trigger":           st.column_config.TextColumn("Trigger", width="small", help="The value that, once reached, flags this indicator 'Completed - on track' in the Auto-Status Suggestions below."),
+    "Problem Definition":st.column_config.TextColumn("Problem Definition", width="large", help="What's being investigated or watched for this indicator — only relevant for 'Problem' or 'Assumption' data types."),
+    "Baseline?":         st.column_config.SelectboxColumn("Baseline?", options=BASELINE_OPTS, width="small", help="Whether a baseline value has been collected yet for this indicator."),
+    "Baseline Value":    st.column_config.TextColumn("Baseline Value", width="small", help="The starting value this indicator is measured against — should match Module B's Baseline for the same indicator."),
     Q1_LABEL:            st.column_config.TextColumn(Q1_LABEL, width="small"),
     Q2_LABEL:            st.column_config.TextColumn(Q2_LABEL, width="small"),
     Q3_LABEL:            st.column_config.TextColumn(Q3_LABEL, width="small"),
     Q4_LABEL:            st.column_config.TextColumn(Q4_LABEL, width="small"),
     YEAR_LABEL:          st.column_config.TextColumn(YEAR_LABEL, width="small"),
     "Indicator Status":  st.column_config.SelectboxColumn(
-                             "Indicator Status", options=IND_STATUS_OPTS, width="medium"),
+                             "Indicator Status", options=IND_STATUS_OPTS, width="medium",
+                             help="Where data collection for this indicator stands this fiscal year. Drives the status summary tiles above."),
     "Action Status":     st.column_config.SelectboxColumn(
-                             "Action Status", options=ACTION_STATUS_OPTS, width="large"),
-    "Action Description":st.column_config.TextColumn("Action Description", width="large"),
-    "Stage":             st.column_config.SelectboxColumn("Stage", options=PROGRESSION_STAGE_OPTS, width="small"),
-    "Pillar":            st.column_config.SelectboxColumn("Pillar", options=PILLAR_OPTS, width="medium"),
-    "DQA Stage":         st.column_config.SelectboxColumn("DQA Stage", options=DQA_STAGE_OPTS, width="medium"),
-    "Disaggregation":    st.column_config.TextColumn("Disaggregation (JSON)", width="large"),
+                             "Action Status", options=ACTION_STATUS_OPTS, width="large",
+                             help="Anything other than 'No action needed' requires an Action Description and surfaces this row in the flagged-action panel and Module G."),
+    "Action Description":st.column_config.TextColumn("Action Description", width="large", help="Required whenever Action Status is not 'No action needed - data reporting only' — save is blocked without it."),
+    "Stage":             st.column_config.SelectboxColumn("Stage", options=PROGRESSION_STAGE_OPTS, width="small", help="WEO = Work Enabling Outreach (in programme/trained), YIW = Youth in Work (placed into work), D&F = Dignified & Fulfilling work (highest MCF outcome level) — the results-chain progression stage this indicator measures."),
+    "Pillar":            st.column_config.SelectboxColumn("Pillar", options=PILLAR_OPTS, width="medium", help="Which SAWA programme pillar this indicator belongs to — used for pillar-level rollups in Module H/I."),
+    "DQA Stage":         st.column_config.SelectboxColumn("DQA Stage", options=DQA_STAGE_OPTS, width="medium", help="Data Quality Assessment stage. Advances automatically toward 'Traceability Verified' when quarterly actuals are saved — manual edits are for the final 'Outcome Validated' step."),
+    "Disaggregation":    st.column_config.TextColumn("Disaggregation (JSON)", width="large", help="Breakdown by sex/age/disability etc. as JSON, e.g. {\"female\": 120, \"male\": 30}. Leave blank if not disaggregated."),
 }
 
 if can_write_module("E"):
@@ -708,6 +710,103 @@ with st.expander(
     else:
         st.success("No mismatches — every indicator's target agrees with the logframe.")
 
+# ── MCF standard aggregation coverage reference ───────────────────────────────
+# Source: Mastercard Foundation's standard Work Enabling Outreach (WEO) /
+# Youth in Work (YiW) cross-portfolio aggregation taxonomy (provided 2 Oct
+# 2026). This checks which of MCF's standard reporting categories SAWA's own
+# 21-indicator logframe has a genuinely matching indicator for — "Covered"
+# requires the SAWA indicator to match both the population and the counting
+# unit, not just a loosely related topic. Most "Not tracked" rows reflect
+# categories SAWA's logframe (Module B) genuinely doesn't collect, not a
+# reporting oversight — this is a coverage/gap reference, not an official
+# MCF submission.
+_MCF_COVERAGE = [
+    # (Section, MCF Category, Coverage, SAWA Indicator(s), Note)
+    ("Work Enabling Outreach (WEO)", "Total Youth (WEO)", "✅ Covered", "PI.1",
+     "SAWA's enrolment count is inherently young-women/PWD-focused, not general youth."),
+    ("Work Enabling Outreach (WEO)", "Total Youth women 18-35 (accessing training)", "⚠️ Partial", "PI.3, PI.19, PI.20",
+     "SAWA tracks training access by type (BDS, gender-transformative, safeguarding) — no single combined 'any training' count."),
+    ("Work Enabling Outreach (WEO)", "Total Youth women 18-35 (accessing starter pack)", "❌ Not tracked", "—",
+     "Partner narratives mention starter-pack support (e.g. Naple Betta) but it isn't a logframe indicator."),
+    ("Work Enabling Outreach (WEO)", "Total Rural / Urban / Peri-Urban", "❌ Not tracked", "—",
+     "SAWA's disaggregation fields are sex / age / disability — no rural / urban / peri-urban breakdown."),
+    ("Operational Reach", "Total Regions / Districts / Communities", "⚠️ Partial", "—",
+     "Module J captures 'Communities served' per partner visit as free text — not an aggregated, counted indicator."),
+    ("Youth In Work", "Total Youth in Work", "⚠️ Partial", "LoP.1, PIII.R1, PII.R5",
+     "LoP.1 is Life-of-Programme, not annual; PIII.R1/PII.R5 are value-chain/PWD subsets, not one combined total."),
+    ("Youth In Work", "Primary / Secondary / Tertiary sector breakdown", "❌ Not tracked", "—",
+     "SAWA doesn't disaggregate Youth-in-Work by economic sector tier."),
+    ("Women Youth In Work", "Total Women Youth in Work", "⚠️ Partial", "PIII.R1",
+     "PIII.R1 covers Value Addition activities only, not the full D&F value chain."),
+    ("Women Youth In Work", "Primary / Secondary / Tertiary sector breakdown", "❌ Not tracked", "—",
+     "Same sector-tier gap as above."),
+    ("Employment Category", "Self Employment / Wage Employment (+ Women)", "❌ Not tracked", "—",
+     "SAWA's outcome indicators don't distinguish self- vs wage-employment."),
+    ("Employment Type", "New / Improved / Additional Employment (+ Women, + Self/Wage splits)", "❌ Not tracked", "—",
+     "SAWA doesn't track employment-type transitions at all."),
+    ("Refugee and/or Displaced Persons", "All 6 sub-categories (incl. Host Community, PWD overlap)", "❌ Not tracked", "—",
+     "No refugee/displaced or host-community disaggregation anywhere in the logframe."),
+    ("Persons with Disabilities", "Total Youth with Disabilities", "⚠️ Partial", "PI.1 (disaggregation)",
+     "Disability is a disaggregation field on PI.1's enrolment count, not its own standalone indicator."),
+    ("Persons with Disabilities", "Total Young Women with Disabilities", "⚠️ Partial", "PI.1 (disaggregation)",
+     "Same — a PI.1 disaggregation dimension, not a standalone count."),
+    ("Persons with Disabilities", "Total Youth with Disabilities in Work", "✅ Covered", "PII.R5",
+     "Direct match — PII.R5 is exactly this count."),
+    ("Persons with Disabilities", "Total Women Youth with Disabilities in Work", "⚠️ Likely overlap", "PII.R5",
+     "PII.R5's statement doesn't explicitly restrict to women, though SAWA's PWD cohort sits within its women-focused participant base."),
+    ("Persons with Disabilities", "Refugee/Displaced PWD in Work (+ Women)", "❌ Not tracked", "—",
+     "Compounds the refugee/displaced gap above."),
+    ("Enterprises Supported", "Number of Enterprises Supported - Total", "⚠️ Partial", "—",
+     "TechnoServe's catalytic/micro-grant enterprise counts appear in Module A's partner narrative, not as a formal logframe indicator."),
+    ("Enterprises Supported", "Women-Led / Youth-Led Enterprises Supported", "❌ Not tracked", "—",
+     "No leadership-gender/age disaggregation on enterprise counts."),
+    ("Women in Aquaculture Network (WAN)", "Number of WAN formed / supported - Total", "❌ Not tracked", "—",
+     "PI.11/PI.12 count individual women engaged in WAN forums/bootcamps, not the number of WAN groups formed or supported — a different counting unit."),
+]
+_mcf_df = pd.DataFrame(_MCF_COVERAGE, columns=["Section", "MCF Category", "Coverage", "SAWA Indicator(s)", "Note"])
+_n_covered = int((_mcf_df["Coverage"] == "✅ Covered").sum())
+_n_partial = int(_mcf_df["Coverage"].str.startswith("⚠️").sum())
+_n_gap     = int((_mcf_df["Coverage"] == "❌ Not tracked").sum())
+
+with st.expander(
+    f"📐 MCF standard aggregation coverage — {_n_covered} covered · {_n_partial} partial · {_n_gap} not tracked",
+    expanded=False,
+):
+    st.caption(
+        "Checks SAWA's 21-indicator logframe against Mastercard Foundation's standard "
+        "Work Enabling Outreach (WEO) / Youth in Work (YiW) cross-portfolio aggregation "
+        "categories. 'Covered' requires a SAWA indicator matching both the population and "
+        "the counting unit, not just a related topic — most gaps below reflect categories "
+        "SAWA genuinely doesn't collect, not a reporting oversight."
+    )
+
+    def _mcf_css(val) -> str:
+        if val == "✅ Covered":
+            return "background-color:#E8F5E9;color:#2E7D32;"
+        if str(val).startswith("⚠️"):
+            return "background-color:#FFF8E1;color:#E65100;"
+        if val == "❌ Not tracked":
+            return "background-color:#FFEBEE;color:#C62828;"
+        return ""
+
+    try:
+        _styled_mcf = _mcf_df.style.map(_mcf_css, subset=["Coverage"])
+    except AttributeError:
+        _styled_mcf = _mcf_df.style.applymap(_mcf_css, subset=["Coverage"])
+
+    st.dataframe(
+        _styled_mcf,
+        hide_index=True,
+        use_container_width=True,
+        column_config={
+            "Section":           st.column_config.TextColumn("Section", width="medium"),
+            "MCF Category":      st.column_config.TextColumn("MCF Category", width="large"),
+            "Coverage":          st.column_config.TextColumn("Coverage", width="small"),
+            "SAWA Indicator(s)": st.column_config.TextColumn("SAWA Indicator(s)", width="medium"),
+            "Note":              st.column_config.TextColumn("Note", width="large"),
+        },
+    )
+
 
 # =============================================================================
 # Evidence & Means of Verification
@@ -824,28 +923,33 @@ else:
                     "Description *",
                     placeholder="e.g. Training attendance sheet — R&B Farms Q2",
                     key="ev_up_label",
+                    help="What this evidence is — shown in the evidence list above. Be specific enough to identify it without opening the file.",
                 )
             with up_c2:
                 up_quarter = st.selectbox(
                     "Quarter *", ["Q1", "Q2", "Q3", "Q4", "Annual"],
                     key="ev_up_qtr",
+                    help="Which reporting period this evidence supports — used to filter the evidence list above.",
                 )
             with up_c3:
                 up_year = st.number_input(
                     "Year *", value=selected_year, min_value=2020, max_value=2040,
                     step=1, key="ev_up_year",
+                    help="Fiscal year this evidence belongs to — defaults to the year selected at the top of the page.",
                 )
 
             up_url = st.text_input(
                 "SharePoint / Google Drive link (optional)",
                 placeholder="https://mastercardfdn.sharepoint.com/…",
                 key="ev_up_url",
+                help="Use this instead of (or alongside) a file upload for documents already stored elsewhere — avoids duplicating large files in the database.",
             )
 
             up_file = st.file_uploader(
                 "Scanned document (PDF, JPEG, PNG, DOCX — max 10 MB)",
                 type=["pdf", "jpg", "jpeg", "png", "docx"],
                 key="ev_up_file",
+                help="Stored directly in the database — fine for scanned registers/certificates, but prefer the link field above for large files.",
             )
 
             if up_file is not None:

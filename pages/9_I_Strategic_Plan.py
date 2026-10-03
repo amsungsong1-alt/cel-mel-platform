@@ -159,11 +159,12 @@ if is_admin:
                     "Strategic outcome",
                     options=[o["code"] for o in STRATEGIC_OUTCOMES],
                     format_func=lambda c: next(o["label"] for o in STRATEGIC_OUTCOMES if o["code"] == c),
+                    help="Which of CEL's 6 org-wide 2030 targets this figure contributes to.",
                 )
-                project_choice = st.selectbox("Programme", options=project_options)
+                project_choice = st.selectbox("Programme", options=project_options, help="Which programme this figure comes from — pick 'Org-wide' for a figure that isn't tied to a single programme.")
             with mc2:
-                value = st.number_input("Value", min_value=0.0, step=1.0)
-                note = st.text_input("Note (source of this figure)")
+                value = st.number_input("Value", min_value=0.0, step=1.0, help="The actual figure to add toward this strategic outcome's total — not a target, an achieved value.")
+                note = st.text_input("Note (source of this figure)", help="Where this number comes from, e.g. 'SAWA Q2 2027 partner report' — shown alongside the entry for anyone reviewing later.")
 
             if st.form_submit_button("Save entry", type="primary"):
                 chosen_project_id = None

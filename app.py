@@ -342,12 +342,12 @@ for _sector, _projects in _sectors.items():
 if can("admin"):
     with st.expander("➕ Register a New / Future Project", expanded=False):
         with st.form("new_project_form"):
-            np_name   = st.text_input("Project name *")
-            np_donor  = st.text_input("Donor / funder")
-            np_budget = st.number_input("Budget (USD)", min_value=0, step=10000)
+            np_name   = st.text_input("Project name *", help="Exact name used throughout the app — matched by string, e.g. 'SAWA'. Choose one you won't need to rename later.")
+            np_donor  = st.text_input("Donor / funder", help="Primary funding organisation, e.g. 'Mastercard Foundation'. Shown on the project selector and exports.")
+            np_budget = st.number_input("Budget (USD)", min_value=0, step=10000, help="Total project budget in USD. Used for high-level reporting only — not tied to Module A's pillar budget breakdown.")
             c1, c2 = st.columns(2)
-            np_start  = c1.text_input("Start date (YYYY-MM-DD)")
-            np_end    = c2.text_input("End date (YYYY-MM-DD)")
+            np_start  = c1.text_input("Start date (YYYY-MM-DD)", help="ISO format required, e.g. 2026-07-01. Leave blank if not yet confirmed.")
+            np_end    = c2.text_input("End date (YYYY-MM-DD)", help="ISO format required, e.g. 2030-06-30. Leave blank if not yet confirmed.")
             submitted = st.form_submit_button("Register project")
             if submitted and np_name:
                 try:
