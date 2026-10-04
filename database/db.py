@@ -1044,6 +1044,18 @@ def _run_migrations() -> bool:
                 _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_qra_year    ON qr_actuals(fiscal_year)"))
         except Exception:
             pass
+        # qr_actuals — add submitting_org + quarterly target columns (idempotent)
+        try:
+            with engine.begin() as _tc:
+                _tc.execute(text("ALTER TABLE qr_actuals ADD COLUMN IF NOT EXISTS submitting_org TEXT NOT NULL DEFAULT 'CEL'"))
+                _tc.execute(text("ALTER TABLE qr_actuals ADD COLUMN IF NOT EXISTS target_q1 TEXT"))
+                _tc.execute(text("ALTER TABLE qr_actuals ADD COLUMN IF NOT EXISTS target_q2 TEXT"))
+                _tc.execute(text("ALTER TABLE qr_actuals ADD COLUMN IF NOT EXISTS target_q3 TEXT"))
+                _tc.execute(text("ALTER TABLE qr_actuals ADD COLUMN IF NOT EXISTS target_q4 TEXT"))
+                _tc.execute(text("DROP INDEX IF EXISTS idx_qra_key"))
+                _tc.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_qra_key ON qr_actuals(project_id, fiscal_year, indicator_code, submitting_org)"))
+        except Exception:
+            pass
         return True
 
     schema = SCHEMA_PATH.read_text()
@@ -1609,6 +1621,17 @@ def _run_migrations() -> bool:
         """)
         conn.execute("CREATE INDEX IF NOT EXISTS idx_qra_project ON qr_actuals(project_id)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_qra_year    ON qr_actuals(fiscal_year)")
+    except Exception:
+        pass
+    # qr_actuals — add submitting_org + quarterly target columns (idempotent)
+    try:
+        conn.execute("ALTER TABLE qr_actuals ADD COLUMN submitting_org TEXT NOT NULL DEFAULT 'CEL'")
+        conn.execute("ALTER TABLE qr_actuals ADD COLUMN target_q1 TEXT")
+        conn.execute("ALTER TABLE qr_actuals ADD COLUMN target_q2 TEXT")
+        conn.execute("ALTER TABLE qr_actuals ADD COLUMN target_q3 TEXT")
+        conn.execute("ALTER TABLE qr_actuals ADD COLUMN target_q4 TEXT")
+        conn.execute("DROP INDEX IF EXISTS idx_qra_key")
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_qra_key ON qr_actuals(project_id, fiscal_year, indicator_code, submitting_org)")
     except Exception:
         pass
     conn.commit()

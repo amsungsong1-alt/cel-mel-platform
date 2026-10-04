@@ -610,10 +610,15 @@ CREATE TABLE IF NOT EXISTS qr_actuals (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT,
     project_id          INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
     fiscal_year         INTEGER NOT NULL,
-    indicator_code      TEXT NOT NULL,    -- e.g. 'PIII.R1', 'I.3'
+    submitting_org      TEXT NOT NULL DEFAULT 'CEL',  -- 'CEL' | 'TechnoServe' | partner name
+    indicator_code      TEXT NOT NULL,    -- e.g. 'PIII.R1', 'I.3', 'II.R7'
     indicator_label     TEXT NOT NULL,    -- human-readable label
-    unit                TEXT,             -- persons / MT / USD / groups
+    unit                TEXT,             -- persons / MT / USD / groups / enterprises
     target_y1           TEXT,             -- Year 1 annual target
+    target_q1           TEXT,             -- Planned Q1 target (from workplan)
+    target_q2           TEXT,
+    target_q3           TEXT,
+    target_q4           TEXT,
     actual_q1           TEXT,
     actual_q1_tilapia   TEXT,
     actual_q1_catfish   TEXT,
@@ -630,6 +635,6 @@ CREATE TABLE IF NOT EXISTS qr_actuals (
     updated_by          TEXT,
     updated_at          TEXT
 );
-CREATE UNIQUE INDEX IF NOT EXISTS idx_qra_key ON qr_actuals(project_id, fiscal_year, indicator_code);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_qra_key ON qr_actuals(project_id, fiscal_year, indicator_code, submitting_org);
 CREATE INDEX IF NOT EXISTS idx_qra_project  ON qr_actuals(project_id);
 CREATE INDEX IF NOT EXISTS idx_qra_year     ON qr_actuals(fiscal_year);
