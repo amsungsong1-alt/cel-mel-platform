@@ -200,7 +200,7 @@ CREATE TABLE IF NOT EXISTS kobo_form_mapping (
     kobo_form_name  TEXT,
     kobo_field_name TEXT    NOT NULL,
     logframe_row_id INTEGER REFERENCES logframe_rows(id) ON DELETE SET NULL,
-    transform       TEXT    CHECK(transform IN ('count','count_yes','count_no','sum','mean','latest'))
+    transform       TEXT    CHECK(transform IN ('count','count_unique','count_yes','count_no','sum','mean','latest'))
 );
 
 -- Module E: Audit log — one row per sync attempt per form.

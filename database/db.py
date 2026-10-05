@@ -163,7 +163,7 @@ def _run_migrations() -> bool:
                 conn.execute(text(f'ALTER TABLE kobo_form_mapping DROP CONSTRAINT "{_con_name}"'))
             conn.execute(text(
                 "ALTER TABLE kobo_form_mapping ADD CONSTRAINT kobo_form_mapping_transform_check "
-                "CHECK (transform IN ('count','count_yes','count_no','sum','mean','latest'))"
+                "CHECK (transform IN ('count','count_unique','count_yes','count_no','sum','mean','latest'))"
             ))
             # Index must come after ADD COLUMN (schema.sql can't do it safely on existing DBs).
             conn.execute(text(

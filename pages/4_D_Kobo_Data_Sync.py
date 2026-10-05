@@ -64,13 +64,15 @@ if "kobo_forms_cache" not in st.session_state:
     st.session_state["kobo_forms_cache"] = []
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-TRANSFORM_OPTS = ["count", "count_yes", "count_no", "sum", "mean", "latest"]
+TRANSFORM_OPTS = ["count", "count_unique", "count_yes", "count_no", "sum", "mean", "latest"]
 
 
 def _apply_transform(series: pd.Series, transform: str) -> str:
     nums = pd.to_numeric(series.dropna(), errors="coerce").dropna()
     if transform == "count":
         return str(int(series.dropna().shape[0]))
+    if transform == "count_unique":
+        return str(int(series.dropna().str.strip().str.lower().nunique()))
     if transform == "count_yes":
         return str(int(series.str.strip().str.lower().eq("yes").sum()))
     if transform == "count_no":
@@ -382,8 +384,8 @@ with tab_sync:
     st.caption(
         "Each row maps one Kobo form field to one SAWA logframe indicator. "
         "**Transform** controls how multiple submissions roll up: "
-        "`count` (all non-blank responses), `count_yes` / `count_no` (rows where value = Yes/No — "
-        "use for yes/no questions like disability or enrolment), `sum`, `mean`, or `latest` (most recent value)."
+        "`count` (all non-blank responses), `count_unique` (distinct values — use on phone/name to deduplicate), "
+        "`count_yes` / `count_no` (rows where value = Yes/No), `sum`, `mean`, or `latest` (most recent value)."
     )
 
     all_mappings = run_query(
@@ -506,7 +508,7 @@ with tab_sync:
                 ),
                 "Transform": st.column_config.SelectboxColumn(
                     "Transform", options=TRANSFORM_OPTS, width="small",
-                    help="How to roll up multiple submissions: count = all non-blank rows; count_yes / count_no = rows where value is Yes or No (use for yes/no fields like disability); sum = add numeric values; mean = average; latest = most recent value.",
+                    help="How to roll up multiple submissions: count = all non-blank rows; count_unique = distinct values (use on phone or name to deduplicate); count_yes / count_no = rows where value is Yes or No; sum = add numeric values; mean = average; latest = most recent value.",
                 ),
             }
 
