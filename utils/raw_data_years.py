@@ -20,7 +20,8 @@ def get_or_create_year_row(project_id: int, logframe_row_id: int, year: int) -> 
     """
     existing = run_query(
         """SELECT id FROM raw_data_analysis
-           WHERE  project_id=:pid AND logframe_row_id=:lf AND reporting_year=:yr""",
+           WHERE  project_id=:pid AND logframe_row_id=:lf AND reporting_year=:yr
+           ORDER  BY id ASC LIMIT 1""",
         {"pid": project_id, "lf": logframe_row_id, "yr": year},
     )
     if existing:
@@ -28,7 +29,8 @@ def get_or_create_year_row(project_id: int, logframe_row_id: int, year: int) -> 
 
     legacy = run_query(
         """SELECT id FROM raw_data_analysis
-           WHERE  project_id=:pid AND logframe_row_id=:lf AND reporting_year IS NULL""",
+           WHERE  project_id=:pid AND logframe_row_id=:lf AND reporting_year IS NULL
+           ORDER  BY id ASC LIMIT 1""",
         {"pid": project_id, "lf": logframe_row_id},
     )
     if legacy:
