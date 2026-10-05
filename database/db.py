@@ -151,6 +151,20 @@ def _run_migrations() -> bool:
                 "ALTER TABLE partner_visits ADD CONSTRAINT partner_visits_status_check "
                 "CHECK (status IN ('Pending','Scheduled','Completed','Cancelled'))"
             ))
+            # Expand kobo_form_mapping.transform CHECK to include count_yes / count_no.
+            _kfm_constraints = conn.execute(text("""
+                SELECT a.conname FROM pg_constraint a
+                JOIN   pg_class    b ON b.oid = a.conrelid
+                WHERE  b.relname = 'kobo_form_mapping'
+                AND    a.contype = 'c'
+                AND    a.conname LIKE '%transform%'
+            """)).fetchall()
+            for (_con_name,) in _kfm_constraints:
+                conn.execute(text(f'ALTER TABLE kobo_form_mapping DROP CONSTRAINT "{_con_name}"'))
+            conn.execute(text(
+                "ALTER TABLE kobo_form_mapping ADD CONSTRAINT kobo_form_mapping_transform_check "
+                "CHECK (transform IN ('count','count_yes','count_no','sum','mean','latest'))"
+            ))
             # Index must come after ADD COLUMN (schema.sql can't do it safely on existing DBs).
             conn.execute(text(
                 "CREATE INDEX IF NOT EXISTS idx_rda_partner ON raw_data_analysis(partner_id)"
