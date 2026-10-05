@@ -1337,3 +1337,36 @@ with tab_supply:
   story numbers match the data and that participant consent for stories is documented.
         """
     )
+
+    # ── Download Narrative Report ─────────────────────────────────────────────
+    st.divider()
+    st.markdown(
+        '<div class="qr-section-head"><b>Download Narrative Report (.docx)</b></div>',
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        "Generates a pre-filled Word document of the SAWA Technical Narrative Report. "
+        "MEAL-owned sections (§3, §7, §8) are populated with live app data. "
+        "Other sections show **[PLACEHOLDER — data not yet available]** for your team to complete. "
+        "Re-download at any time — each download reflects the latest data in the app."
+    )
+
+    try:
+        from utils.report_generator import build_report as _build_report
+        _q_labels = {1: "Q1_Jul-Sep", 2: "Q2_Oct-Dec", 3: "Q3_Jan-Mar", 4: "Q4_Apr-Jun"}
+        _fname = f"SAWA_Narrative_Report_{_q_labels[_qtr]}_FY{_fy}.docx"
+        _report_bytes = _build_report(project_id, _fy, _qtr)
+        st.download_button(
+            label=f"📄 Download SAWA Narrative Report — Q{_qtr} FY{_fy}/{str(_fy+1)[-2:]}",
+            data=_report_bytes,
+            file_name=_fname,
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            help=(
+                "Downloads a Word (.docx) file with all 9 report sections. "
+                "Sections with live data: Summary table, §2.1.4 PWD counts, §3.1 MEL activities, "
+                "§3.4 Monitoring tools, §7 Learnings & influencing points, §8 Reconciliation tables. "
+                "All other sections contain [PLACEHOLDER] text ready for your team to complete."
+            ),
+        )
+    except Exception as _e:
+        st.error(f"Report generation failed: {_e}")
