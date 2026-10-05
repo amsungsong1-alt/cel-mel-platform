@@ -1067,6 +1067,7 @@ def _run_migrations() -> bool:
                 _tc.execute(text("ALTER TABLE qr_actuals ADD COLUMN IF NOT EXISTS target_q3 TEXT"))
                 _tc.execute(text("ALTER TABLE qr_actuals ADD COLUMN IF NOT EXISTS target_q4 TEXT"))
                 _tc.execute(text("DROP INDEX IF EXISTS idx_qra_key"))
+                _tc.execute(text("DROP INDEX IF EXISTS qr_actuals_project_id_fiscal_year_indicator_code_key"))
                 _tc.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_qra_key ON qr_actuals(project_id, fiscal_year, indicator_code, submitting_org)"))
         except Exception:
             pass
