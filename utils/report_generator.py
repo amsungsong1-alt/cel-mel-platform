@@ -3,15 +3,21 @@ from __future__ import annotations
 import io
 from datetime import datetime
 
-from docx import Document
-from docx.shared import Pt, Inches, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import qn
-from docx.oxml import OxmlElement
-
 from database.db import run_query
 
 PH = "[PLACEHOLDER — data not yet available]"
+
+
+def _shd(cell, hex_color: str):
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:fill"), hex_color)
+    shd.set(qn("w:val"), "clear")
+    tcPr.append(shd)
+
 
 # ── Section catalogue ─────────────────────────────────────────────────────────
 # Each tuple: (section_code, section_title, owner_role)
@@ -58,16 +64,8 @@ def get_section_content(project_id: int, fiscal_year: int, quarter: int) -> dict
     return {r["section_code"]: r["content"] for r in rows if r.get("content", "").strip()}
 
 
-def _shd(cell, hex_color: str):
-    tc = cell._tc
-    tcPr = tc.get_or_add_tcPr()
-    shd = OxmlElement("w:shd")
-    shd.set(qn("w:fill"), hex_color)
-    shd.set(qn("w:val"), "clear")
-    tcPr.append(shd)
-
-
 def _hrow(row, *headers, bg="4A5568"):
+    from docx.shared import Pt, RGBColor
     for i, h in enumerate(headers):
         if i >= len(row.cells):
             break
@@ -97,6 +95,10 @@ def _qtr_period(q: int, fy: int) -> str:
 
 
 def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
+    from docx import Document
+    from docx.shared import Pt, Inches, RGBColor
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
     # Load any narrative content saved by team members in Module L
     _sc = get_section_content(project_id, fiscal_year, quarter)
 
