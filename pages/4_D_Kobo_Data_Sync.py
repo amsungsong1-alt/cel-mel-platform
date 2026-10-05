@@ -64,13 +64,17 @@ if "kobo_forms_cache" not in st.session_state:
     st.session_state["kobo_forms_cache"] = []
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-TRANSFORM_OPTS = ["count", "sum", "mean", "latest"]
+TRANSFORM_OPTS = ["count", "count_yes", "count_no", "sum", "mean", "latest"]
 
 
 def _apply_transform(series: pd.Series, transform: str) -> str:
     nums = pd.to_numeric(series.dropna(), errors="coerce").dropna()
     if transform == "count":
         return str(int(series.dropna().shape[0]))
+    if transform == "count_yes":
+        return str(int(series.str.strip().str.lower().eq("yes").sum()))
+    if transform == "count_no":
+        return str(int(series.str.strip().str.lower().eq("no").sum()))
     if transform == "sum":
         return f"{nums.sum():.4g}" if len(nums) else ""
     if transform == "mean":
@@ -378,7 +382,8 @@ with tab_sync:
     st.caption(
         "Each row maps one Kobo form field to one SAWA logframe indicator. "
         "**Transform** controls how multiple submissions roll up: "
-        "`count` (number of responses), `sum`, `mean`, or `latest` (most recent value)."
+        "`count` (all non-blank responses), `count_yes` / `count_no` (rows where value = Yes/No — "
+        "use for yes/no questions like disability or enrolment), `sum`, `mean`, or `latest` (most recent value)."
     )
 
     all_mappings = run_query(
@@ -501,7 +506,7 @@ with tab_sync:
                 ),
                 "Transform": st.column_config.SelectboxColumn(
                     "Transform", options=TRANSFORM_OPTS, width="small",
-                    help="How to roll up multiple submissions into one value: count = number of responses, sum = add values, mean = average, latest = most recent submission only.",
+                    help="How to roll up multiple submissions: count = all non-blank rows; count_yes / count_no = rows where value is Yes or No (use for yes/no fields like disability); sum = add numeric values; mean = average; latest = most recent value.",
                 ),
             }
 
