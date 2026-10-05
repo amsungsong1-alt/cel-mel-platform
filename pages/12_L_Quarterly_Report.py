@@ -124,6 +124,7 @@ st.caption(
     tab_learnings,
     tab_recon,
     tab_supply,
+    tab_report_sections,
 ) = st.tabs([
     "Summary Table",
     "Participant Register",
@@ -132,6 +133,7 @@ st.caption(
     "§6 Learnings",
     "§7 Reconciliation",
     "Data Supply",
+    "Report Sections",
 ])
 
 
@@ -1363,10 +1365,184 @@ with tab_supply:
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             help=(
                 "Downloads a Word (.docx) file with all 9 report sections. "
-                "Sections with live data: Summary table, §2.1.4 PWD counts, §3.1 MEL activities, "
-                "§3.4 Monitoring tools, §7 Learnings & influencing points, §8 Reconciliation tables. "
-                "All other sections contain [PLACEHOLDER] text ready for your team to complete."
+                "Sections written in the Report Sections tab are included as real text. "
+                "Sections not yet written show [PLACEHOLDER — data not yet available]."
             ),
         )
     except Exception as _e:
         st.error(f"Report generation failed: {_e}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TAB 8 — REPORT SECTIONS
+# ─────────────────────────────────────────────────────────────────────────────
+with tab_report_sections:
+    from utils.report_generator import REPORT_SECTIONS as _RS_DEFS
+
+    st.markdown(
+        '<div class="qr-section-head"><b>Report Sections — Team Content Entry</b> '
+        '<span class="qr-badge-supply">feeds Word download</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        f"Each section below maps to a [PLACEHOLDER] in the Word report for Q{_qtr} FY{_fy}/{str(_fy+1)[-2:]}. "
+        "The assigned role writes the narrative here; the next Word download will include it. "
+        "A matching task is auto-created in Module K (Team Workspace) for each section."
+    )
+
+    # ── Auto-seed report_sections rows + K tasks (idempotent) ─────────────────
+    for _rs_code, _rs_title, _rs_role in _RS_DEFS:
+        run_write(
+            """INSERT INTO report_sections
+               (project_id, fiscal_year, quarter, section_code, section_title, owner_role)
+               VALUES (:pid, :fy, :q, :code, :title, :role)
+               ON CONFLICT(project_id, fiscal_year, quarter, section_code) DO NOTHING""",
+            {"pid": project_id, "fy": _fy, "q": _qtr,
+             "code": _rs_code, "title": _rs_title, "role": _rs_role},
+        )
+        # K task: one per section per project/quarter — check by name before inserting
+        _task_name = f"Write {_rs_title} — Q{_qtr} FY{_fy} Narrative Report"
+        _k_exists = run_query(
+            "SELECT id FROM team_tasks WHERE project_id=:pid AND team_role=:r AND task=:t LIMIT 1",
+            {"pid": project_id, "r": _rs_role, "t": _task_name},
+        )
+        if not _k_exists:
+            run_write(
+                """INSERT INTO team_tasks
+                   (project_id, team_role, task, description, status, created_at, created_by)
+                   VALUES (:pid, :role, :task, :desc, 'Not Started', :now, 'System')""",
+                {
+                    "pid": project_id,
+                    "role": _rs_role,
+                    "task": _task_name,
+                    "desc": (
+                        f"Fill the '{_rs_title}' section of the SAWA Technical Narrative Report "
+                        f"for Q{_qtr} FY{_fy}/{str(_fy+1)[-2:]}. "
+                        "Go to Module L → Report Sections tab to write the content. "
+                        "The text will appear in the next Word download automatically."
+                    ),
+                    "now": _now,
+                },
+            )
+
+    # ── Load all sections for this quarter ────────────────────────────────────
+    _rs_rows = run_query(
+        """SELECT section_code, section_title, owner_role, content, status, updated_by, updated_at
+           FROM report_sections
+           WHERE project_id=:pid AND fiscal_year=:fy AND quarter=:q
+           ORDER BY section_code""",
+        {"pid": project_id, "fy": _fy, "q": _qtr},
+    )
+    _rs_map = {r["section_code"]: r for r in _rs_rows}
+
+    # Group by role
+    _roles_seen: list = []
+    for _, _, _role in _RS_DEFS:
+        if _role not in _roles_seen:
+            _roles_seen.append(_role)
+
+    _ROLE_COLOURS = {
+        "GYSI":         "#8E3B72",
+        "Biz Dev":      "#1B5E7A",
+        "Biz Coach":    "#4A6B5C",
+        "Comms":        "#2E6F9E",
+        "Admin":        "#5E6A6A",
+        "Finance":      "#8A6D1E",
+        "MEAL Admin":   "#1E7E76",
+        "MEAL Asst":    "#2E9E8F",
+        "Partner MEAL": "#B96A2E",
+    }
+
+    for _grp_role in _roles_seen:
+        _grp_sections = [(c, t, r) for c, t, r in _RS_DEFS if r == _grp_role]
+        _grp_done = sum(
+            1 for c, _, _ in _grp_sections
+            if _rs_map.get(c, {}).get("status") == "Complete"
+        )
+        _rc = _ROLE_COLOURS.get(_grp_role, "#4A5568")
+        st.markdown(
+            f'<div style="border-left:4px solid {_rc};padding:4px 0 4px 12px;margin:14px 0 6px 0;">'
+            f'<b>{_grp_role}</b> — {_grp_done}/{len(_grp_sections)} sections complete</div>',
+            unsafe_allow_html=True,
+        )
+
+        for _rs_code, _rs_title, _ in _grp_sections:
+            _rs_row = _rs_map.get(_rs_code, {})
+            _rs_content = _rs_row.get("content") or ""
+            _rs_status = _rs_row.get("status") or "Pending"
+            _rs_updated = _rs_row.get("updated_at") or ""
+            _rs_by = _rs_row.get("updated_by") or ""
+
+            _status_fg = {
+                "Pending":     "#888",
+                "In Progress": "#E65100",
+                "Complete":    "#2E7D32",
+            }.get(_rs_status, "#888")
+            _status_badge = (
+                f'<span style="background:{_status_fg}22;color:{_status_fg};'
+                f'padding:1px 7px;border-radius:10px;font-size:0.72em;font-weight:700;">'
+                f'{_rs_status}</span>'
+            )
+            _meta = f" · {_rs_by[:20]} · {_rs_updated[:10]}" if _rs_by else ""
+
+            with st.expander(
+                f"{_rs_title}  [{_rs_status}]",
+                expanded=(_rs_status in ("Pending", "In Progress")),
+            ):
+                st.markdown(_status_badge + f'<span style="font-size:0.78em;color:#888;">{_meta}</span>',
+                            unsafe_allow_html=True)
+
+                if _can_write:
+                    with st.form(f"rs_form_{_rs_code}_{_fy}_{_qtr}"):
+                        _new_content = st.text_area(
+                            "Section content",
+                            value=_rs_content,
+                            height=180,
+                            help=(
+                                f"Write the narrative for '{_rs_title}'. "
+                                "This text will replace [PLACEHOLDER] in the Word download. "
+                                "Save as 'In Progress' while drafting, 'Complete' when ready."
+                            ),
+                        )
+                        _new_status = st.selectbox(
+                            "Status",
+                            ["Pending", "In Progress", "Complete"],
+                            index=["Pending", "In Progress", "Complete"].index(_rs_status),
+                            key=f"rs_st_{_rs_code}",
+                        )
+                        if st.form_submit_button("Save"):
+                            run_write(
+                                """UPDATE report_sections
+                                   SET content=:content, status=:status,
+                                       updated_by=:by, updated_at=:at
+                                   WHERE project_id=:pid AND fiscal_year=:fy
+                                     AND quarter=:q AND section_code=:code""",
+                                {
+                                    "content": _new_content.strip() or None,
+                                    "status": _new_status,
+                                    "by": _user,
+                                    "at": _now,
+                                    "pid": project_id, "fy": _fy, "q": _qtr,
+                                    "code": _rs_code,
+                                },
+                            )
+                            # Update K task status to match
+                            _task_name_upd = f"Write {_rs_title} — Q{_qtr} FY{_fy} Narrative Report"
+                            _new_k_status = (
+                                "Complete" if _new_status == "Complete"
+                                else "In Progress" if _new_content.strip()
+                                else "Not Started"
+                            )
+                            run_write(
+                                """UPDATE team_tasks SET status=:s
+                                   WHERE project_id=:pid AND team_role=:r AND task=:t""",
+                                {"s": _new_k_status, "pid": project_id,
+                                 "r": _grp_role, "t": _task_name_upd},
+                            )
+                            st.success("Saved.")
+                            st.rerun()
+                else:
+                    if _rs_content:
+                        st.markdown(_rs_content)
+                    else:
+                        st.caption("No content yet.")

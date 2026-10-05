@@ -13,6 +13,50 @@ from database.db import run_query
 
 PH = "[PLACEHOLDER — data not yet available]"
 
+# ── Section catalogue ─────────────────────────────────────────────────────────
+# Each tuple: (section_code, section_title, owner_role)
+# Sections marked with owner_role are surfaced in Module L for that role to fill.
+# Auto-filled sections (Summary table, §3 MEL, §7 Learning, §8 Reconciliation)
+# are NOT in this list — they draw from structured app tables, not free text.
+REPORT_SECTIONS = [
+    ("summary_narrative",   "Summary Narrative",                               "MEAL Admin"),
+    ("s1_1_models",         "§1.1 Models and Approaches",                      "Admin"),
+    ("s1_2_attraction",     "§1.2 Participant Attraction Strategy",             "Admin"),
+    ("s1_3_pathways",       "§1.3 Pathways to Work",                           "Admin"),
+    ("s1_4_political",      "§1.4 Political Environment",                      "Admin"),
+    ("s2_1_1_gender",       "§2.1.1 Gender — Narrative",                       "GYSI"),
+    ("s2_1_2_safeguarding", "§2.1.2 Safeguarding Checklist",                   "GYSI"),
+    ("s2_1_3_youth_voice",  "§2.1.3 Youth Voice and Agency",                   "GYSI"),
+    ("s2_1_4_pwd",          "§2.1.4 PWD Inclusion — Narrative",                "GYSI"),
+    ("s2_2_1_tilapia_prod", "§2.2.1 Production — Tilapia",                     "Partner MEAL"),
+    ("s2_2_2_catfish_prod", "§2.2.2 Production — Catfish",                     "Partner MEAL"),
+    ("s2_3_1_tilapia_va",   "§2.3.1 Value Addition — Tilapia",                 "Biz Coach"),
+    ("s2_3_2_catfish_va",   "§2.3.2 Value Addition — Catfish",                 "Biz Coach"),
+    ("s2_4_wan",            "§2.4 Ecosystem — WAN Narrative",                  "GYSI"),
+    ("s2_5_esawa",          "§2.5.1 E-SAWA / Digital Technology",              "Comms"),
+    ("s3_2_partners",       "§3.2 Work with Anchor Partners",                  "MEAL Admin"),
+    ("s4_comms",            "§4 Communication",                                "Comms"),
+    ("s5_risk",             "§5 Risk",                                         "MEAL Admin"),
+    ("s6_safeguarding_upd", "§6 Safeguarding Update",                          "GYSI"),
+    ("s7_3_priorities",     "§7.3 Priority Activities for Reporting Period",    "MEAL Admin"),
+    ("s7_4_next_quarter",   "§7.4 Next Quarter Activities",                    "MEAL Admin"),
+    ("s9_1_levers",         "§9.1 Levers of Change",                           "Admin"),
+    ("s9_2_delays",         "§9.2 Delays and Challenges",                      "MEAL Admin"),
+    ("s9_3_unintended",     "§9.3 Unintended Outcomes and Outputs",            "MEAL Admin"),
+    ("s9_4_story",          "§9.4 Story",                                      "Comms"),
+    ("s9_5_investment",     "§9.5 Other Investment Levels",                    "Finance"),
+]
+
+
+def get_section_content(project_id: int, fiscal_year: int, quarter: int) -> dict[str, str]:
+    """Return {section_code: content} for all sections that have content saved."""
+    rows = run_query(
+        "SELECT section_code, content FROM report_sections "
+        "WHERE project_id=:p AND fiscal_year=:fy AND quarter=:q AND content IS NOT NULL",
+        {"p": project_id, "fy": fiscal_year, "q": quarter},
+    )
+    return {r["section_code"]: r["content"] for r in rows if r.get("content", "").strip()}
+
 
 def _shd(cell, hex_color: str):
     tc = cell._tc
@@ -53,6 +97,12 @@ def _qtr_period(q: int, fy: int) -> str:
 
 
 def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
+    # Load any narrative content saved by team members in Module L
+    _sc = get_section_content(project_id, fiscal_year, quarter)
+
+    def _sec(code: str) -> str:
+        """Return saved content for a section, or the placeholder if not yet written."""
+        return _sc.get(code) or PH
     doc = Document()
 
     # A4 page setup
@@ -196,7 +246,7 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
         "and key elements for the Consolidated Annual Report."
     )
     p.italic = True
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("summary_narrative"))
 
     doc.add_heading("Key Highlights for the Quarter", level=2)
 
@@ -284,14 +334,14 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
     # §1 PROGRAM DELIVERY
     # ═══════════════════════════════════════════════════════════════════════════
     doc.add_heading("1.  PROGRAM DELIVERY MODELS OR APPROACHES", level=1)
-    for num, title in [
-        ("1.1.", "Models and Approaches"),
-        ("1.2.", "Participant Attraction Strategy"),
-        ("1.3.", "Pathways to Work"),
-        ("1.4.", "Political Environment and Socioeconomic Developments"),
+    for num, title, code in [
+        ("1.1.", "Models and Approaches",                       "s1_1_models"),
+        ("1.2.", "Participant Attraction Strategy",             "s1_2_attraction"),
+        ("1.3.", "Pathways to Work",                           "s1_3_pathways"),
+        ("1.4.", "Political Environment and Socioeconomic Developments", "s1_4_political"),
     ]:
         doc.add_heading(f"{num} {title}", level=2)
-        doc.add_paragraph(PH)
+        doc.add_paragraph(_sec(code))
 
     # ═══════════════════════════════════════════════════════════════════════════
     # §2 KEY ACTIVITIES
@@ -325,20 +375,21 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
 
     doc.add_paragraph()
     p = doc.add_paragraph("Key Achievements on Gender Parity", style="Intense Quote")
+    _gender_auto = ""
     if n_f > 0:
-        doc.add_paragraph(
+        _gender_auto = (
             f"During {period}, {n_f} young women were registered as participants "
-            f"out of {n} total ({n_f / max(n, 1) * 100:.0f}% female). " + PH
+            f"out of {n} total ({n_f / max(n, 1) * 100:.0f}% female). "
         )
-    else:
-        doc.add_paragraph(PH)
+    _gender_content = _sc.get("s2_1_1_gender") or ""
+    doc.add_paragraph(_gender_auto + _gender_content if (_gender_auto or _gender_content) else PH)
 
     p = doc.add_paragraph("Gender and Safeguarding Challenges and Barriers", style="Intense Quote")
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s2_1_2_safeguarding"))
     p = doc.add_paragraph("Most Significant Incidents (Gender & Inclusion)", style="Intense Quote")
     p2 = doc.add_paragraph("Report at least 3 incidents. Include at least one PWD-related incident.")
     p2.italic = True
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s2_1_2_safeguarding") if _sc.get("s2_1_2_safeguarding") else PH)
 
     # §2.1.2 Safeguarding checklist
     doc.add_heading("2.1.2.  SAWA Safeguarding Checklist", level=3)
@@ -376,7 +427,10 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
             bp = doc.add_paragraph(style="List Bullet")
             bp.add_run(f"{r.get('activity_date', '—')} · {r.get('location', '—')}:").bold = True
             bp.add_run(f" {_v(r.get('key_findings'))}")
-    else:
+    _yv_content = _sc.get("s2_1_3_youth_voice")
+    if _yv_content:
+        doc.add_paragraph(_yv_content)
+    elif not fgds:
         doc.add_paragraph(PH)
 
     # §2.1.4 PWD Inclusion
@@ -391,9 +445,9 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
     else:
         doc.add_paragraph(PH)
     p = doc.add_paragraph("Barriers to PWDs participation:", style="Intense Quote")
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s2_1_4_pwd"))
     p = doc.add_paragraph("Measures taken to increase participation of PWDs:", style="Intense Quote")
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s2_1_4_pwd") if _sc.get("s2_1_4_pwd") else PH)
 
     # ── §2.2 Production ───────────────────────────────────────────────────────
     doc.add_heading("2.2.  Production Expansion and Productivity Enhancement", level=2)
@@ -422,23 +476,26 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
     doc.add_paragraph()
 
     doc.add_heading("2.2.1.  Tilapia", level=3)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s2_2_1_tilapia_prod"))
     doc.add_heading("2.2.2.  Catfish", level=3)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s2_2_2_catfish_prod"))
 
     # ── §2.3 Value Addition ───────────────────────────────────────────────────
     doc.add_heading("2.3.  Value Addition, Market Systems and Entrepreneurship", level=2)
     doc.add_heading("2.3.1.  Tilapia", level=3)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s2_3_1_tilapia_va"))
     doc.add_heading("2.3.2.  Catfish", level=3)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s2_3_2_catfish_va"))
 
     # ── §2.4 Ecosystem ────────────────────────────────────────────────────────
     doc.add_heading("2.4.  Ecosystem Strengthening", level=2)
     doc.add_heading("2.4.1.  Women in Aquaculture Enterprises (WAN)", level=3)
     if n_wan > 0:
         doc.add_paragraph(f"{n_wan} WAN member(s) registered this quarter.")
-    else:
+    _wan_content = _sc.get("s2_4_wan")
+    if _wan_content:
+        doc.add_paragraph(_wan_content)
+    elif n_wan == 0:
         doc.add_paragraph(PH)
 
     # ── §2.5 Crosscutting ─────────────────────────────────────────────────────
@@ -447,7 +504,10 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
     esawa = [r for r in pr if r.get("intervention_type") == "E-SAWA"]
     if esawa:
         doc.add_paragraph(f"{len(esawa)} participant(s) enrolled in E-SAWA this quarter.")
-    else:
+    _esawa_content = _sc.get("s2_5_esawa")
+    if _esawa_content:
+        doc.add_paragraph(_esawa_content)
+    elif not esawa:
         doc.add_paragraph(PH)
 
     # ═══════════════════════════════════════════════════════════════════════════
@@ -477,7 +537,7 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
 
     # §3.2
     doc.add_heading("3.2.  Work with Anchor Partners", level=2)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s3_2_partners"))
 
     # §3.3 Training Outcomes
     doc.add_heading("3.3.  Training and Capacity Development Outcomes Assessment", level=2)
@@ -525,6 +585,7 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
     doc.add_heading("4.  COMMUNICATION", level=1)
     p = doc.add_paragraph("Prepared by Communications team. MEAL verifies that story numbers match the data.")
     p.italic = True
+    _comms_content = _sec("s4_comms")
     for num, title in [
         ("4.1.", "Introduction"), ("4.2.", "Highlights & Impact"),
         ("4.3.", "Participant's Impact Story"), ("4.4.", "Branding & Visibility Compliance"),
@@ -532,7 +593,7 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
         ("4.7.", "Links to Stories & Social Media Updates"),
     ]:
         doc.add_heading(f"{num} {title}", level=2)
-        doc.add_paragraph(PH)
+        doc.add_paragraph(_comms_content if _sc.get("s4_comms") and num == "4.1." else PH)
 
     # ═══════════════════════════════════════════════════════════════════════════
     # §5 RISK
@@ -592,9 +653,9 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
         awt.rows[i].cells[2].text = m_v
     doc.add_paragraph()
     doc.add_heading("2. Prevention", level=2)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s6_safeguarding_upd"))
     doc.add_heading("3. Reporting and Responding", level=2)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s6_safeguarding_upd") if _sc.get("s6_safeguarding_upd") else PH)
 
     # ═══════════════════════════════════════════════════════════════════════════
     # §7 LEARNING — MEAL OWNS
@@ -630,11 +691,11 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
         doc.add_paragraph(PH)
 
     doc.add_heading("7.3.  Priority Activities for Reporting Period", level=2)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s7_3_priorities"))
 
     next_q = (quarter % 4) + 1
     doc.add_heading(f"7.4.  Next Quarter (Q{next_q}) Activities", level=2)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s7_4_next_quarter"))
 
     # ═══════════════════════════════════════════════════════════════════════════
     # §8 TECHNICAL RECONCILIATION — MEAL OWNS
@@ -721,15 +782,15 @@ def build_report(project_id: int, fiscal_year: int, quarter: int) -> bytes:
     doc.add_paragraph()
 
     doc.add_heading("9.2.  Delays in Implementation, Challenges, Lessons Learned & Best Practices", level=2)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s9_2_delays"))
     doc.add_heading("9.3.  Unintended Outcomes and Outputs", level=2)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s9_3_unintended"))
     doc.add_heading("9.4.  Story", level=2)
     p = doc.add_paragraph("In ¼–½ page, describe a specific achievement or lesson learnt. Photos with captions encouraged.")
     p.italic = True
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s9_4_story"))
     doc.add_heading("9.5.  Other Investment Levels", level=2)
-    doc.add_paragraph(PH)
+    doc.add_paragraph(_sec("s9_5_investment"))
 
     # ═══════════════════════════════════════════════════════════════════════════
     # FOOTER

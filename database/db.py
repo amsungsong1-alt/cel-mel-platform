@@ -1074,6 +1074,30 @@ def _run_migrations() -> bool:
                 _tc.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_qra_key ON qr_actuals(project_id, fiscal_year, indicator_code, submitting_org)"))
         except Exception:
             pass
+        # Module L: Report Sections — narrative content per section, per quarter
+        try:
+            with engine.begin() as _tc:
+                _tc.execute(text("""
+                    CREATE TABLE IF NOT EXISTS report_sections (
+                        id            INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                        project_id    INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                        fiscal_year   INTEGER NOT NULL,
+                        quarter       INTEGER NOT NULL CHECK(quarter IN (1,2,3,4)),
+                        section_code  TEXT NOT NULL,
+                        section_title TEXT NOT NULL,
+                        owner_role    TEXT NOT NULL,
+                        content       TEXT,
+                        status        TEXT DEFAULT 'Pending'
+                                        CHECK(status IN ('Pending','In Progress','Complete')),
+                        updated_by    TEXT,
+                        updated_at    TEXT,
+                        UNIQUE(project_id, fiscal_year, quarter, section_code)
+                    )
+                """))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_rs_project ON report_sections(project_id)"))
+                _tc.execute(text("CREATE INDEX IF NOT EXISTS idx_rs_quarter ON report_sections(fiscal_year, quarter)"))
+        except Exception:
+            pass
         return True
 
     schema = SCHEMA_PATH.read_text()
@@ -1650,6 +1674,29 @@ def _run_migrations() -> bool:
         conn.execute("ALTER TABLE qr_actuals ADD COLUMN target_q4 TEXT")
         conn.execute("DROP INDEX IF EXISTS idx_qra_key")
         conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_qra_key ON qr_actuals(project_id, fiscal_year, indicator_code, submitting_org)")
+    except Exception:
+        pass
+    # Module L: Report Sections — narrative content per section, per quarter
+    try:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS report_sections (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id    INTEGER NOT NULL REFERENCES projects(project_id) ON DELETE CASCADE,
+                fiscal_year   INTEGER NOT NULL,
+                quarter       INTEGER NOT NULL CHECK(quarter IN (1,2,3,4)),
+                section_code  TEXT NOT NULL,
+                section_title TEXT NOT NULL,
+                owner_role    TEXT NOT NULL,
+                content       TEXT,
+                status        TEXT DEFAULT 'Pending'
+                                CHECK(status IN ('Pending','In Progress','Complete')),
+                updated_by    TEXT,
+                updated_at    TEXT,
+                UNIQUE(project_id, fiscal_year, quarter, section_code)
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_rs_project ON report_sections(project_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_rs_quarter ON report_sections(fiscal_year, quarter)")
     except Exception:
         pass
     conn.commit()
