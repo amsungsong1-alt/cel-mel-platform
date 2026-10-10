@@ -2,11 +2,86 @@
 
 PROJECT = {
     "name":         "SAWA",
+    "full_name":    "Sustainable Aquaculture for Women Advancement",
+    "tagline":      "Empowering women, Transforming aquaculture",
     "donor":        "Mastercard Foundation",
+    "lead_ip":      "Agri-Impact Ltd",
     "budget_total": 39_810_000,   # USD 39.81M
     "start_date":   "2026-07-01",
     "end_date":     "2030-06-30",
+    # Programme-level headline targets (source: SAWA Programme Overview, Oct 2026)
+    "target_jobs":           60_000,   # dignified & fulfilling jobs for young women 18–35
+    "target_pwd":             3_000,   # persons with disabilities included
+    "target_fish_mt":        50_000,   # annual fish production increase (metric tons)
+    "target_revenue_pa_usd": 90_000_000,  # revenue generated per year
+    "target_revenue_lop_usd": 360_000_000, # total revenue over programme lifecycle
 }
+
+# ── 5 Participant Personas (source: SAWA Programme Overview, Oct 2026) ────────
+PERSONAS = [
+    {"id": 1, "name": "The Aspiring Young Entrepreneur",
+     "description": "Motivated, no capital or infrastructure access"},
+    {"id": 2, "name": "The Resilient Single Mother",
+     "description": "Needs flexible work with childcare support"},
+    {"id": 3, "name": "The Married Woman with Care Burdens",
+     "description": "Constrained by household and social norms"},
+    {"id": 4, "name": "The Rural Independent Woman",
+     "description": "Remote location, limited market and input access"},
+    {"id": 5, "name": "The Person with Disability",
+     "description": "Faces discrimination, stigma and exclusion"},
+]
+
+# ── 5 Participant Journey Stages (source: SAWA Programme Overview, Oct 2026) ──
+JOURNEY_STAGES = [
+    "Awareness and mobilisation",
+    "Onboarding and needs assessment",
+    "Modular skills training",
+    "Employment and entrepreneurship transition",
+    "Enterprise scaling and formalisation",
+]
+
+# ── 4 Strategic Intervention Pillars (source: SAWA Programme Overview, Oct 2026)
+INTERVENTION_PILLARS = [
+    "Inclusive Capacity Building and Empowerment",
+    "Production Expansion and Productivity Enhancement",
+    "Value Addition and Market Systems Development",
+    "Ecosystem Strengthening and Policy Influence",
+]
+
+# ── 6 Implementation Models (source: SAWA Programme Overview, Oct 2026) ───────
+IMPLEMENTATION_MODELS = [
+    ("Enclave-Based / Production Hub Model",
+     "Private sector-led production hubs bringing together infrastructure, inputs, "
+     "technical services, financing and market linkages to support enterprise growth."),
+    ("Community-Level Aggregator Model",
+     "Young women aquapreneurs organised into community and zonal clusters to improve "
+     "bargaining power, market access and profitability."),
+    ("Private Sector-Led Investment Model",
+     "Anchor partners invest in land, production infrastructure, hatcheries, ponds, "
+     "processing, storage, cold-chain and logistics."),
+    ("Public Sector Leveraging Model",
+     "SAWA leverages public sector investments, expertise, infrastructure and regulatory "
+     "support for land, broodstock, fingerlings and technology access."),
+    ("Ecosystem Enablers Model",
+     "Specialised service providers support entrepreneurship, BDS, finance access, "
+     "data systems and market information; establishes the Aquaculture Women Network (WAN)."),
+    ("Alignment and Synergies with HAPPY Program",
+     "Builds on tools, systems, partnerships and value chains from HAPPY to reduce "
+     "production costs and create cross-value-chain linkages."),
+]
+
+# ── 3 Safeguarding Mechanisms (source: SAWA Programme Overview, Oct 2026) ─────
+SAFEGUARDING_MECHANISMS = [
+    ("Grievance & Reporting Channel",
+     "Independently managed by Centre for Enterprise Learning, with case escalation "
+     "protocols and a named Programme Safeguarding Lead accountable for resolution timelines."),
+    ("Safe Spaces in Production Hubs",
+     "Trained female facilitators deliver personal development, health, and psychosocial "
+     "support sessions throughout the participant journey."),
+    ("Inclusive Infrastructure",
+     "Assistive technologies across all programme facilities ensuring full physical and "
+     "programmatic accessibility for the 3,000 PWD participants."),
+]
 
 # ── Partners ──────────────────────────────────────────────────────────────────
 # Source: CEL's contribution to SAWA (Sep 2026) slides 02, 08-10.
@@ -44,6 +119,10 @@ PARTNERS = [
     {"name": "e-SAWA/KNUST",
      "role": "Technical Partner — SAWAtech digital tools, SAWA Voices and e-SAWA platform",
      "tier": "Technical"},
+    # ── Institutional Strengthening Partner ──────────────────────────────────
+    {"name": "PwC",
+     "role": "Institutional Strengthening Partner — organisational capacity and governance support",
+     "tier": "Institutional"},
 ]
 
 # ── Module A — Partner Target Funnel ──────────────────────────────────────────
@@ -141,11 +220,11 @@ PARTNER_TARGETS = [
 
 # ── Budget by pillar (source: SAWA Proposal s8.1) ─────────────────────────────
 PILLAR_BUDGETS = {
-    "Pillar I — Capacity":         2_410_000,
-    "Pillar II — Production":     26_780_000,
-    "Pillar III — Value Addition":  7_270_000,
-    "Pillar IV — Ecosystem":          820_000,
-    "Delivery Fee":                 2_580_000,
+    "Pillar I — Inclusive Capacity Building & Empowerment":       2_410_000,
+    "Pillar II — Production Expansion & Productivity Enhancement": 26_780_000,
+    "Pillar III — Value Addition & Market Systems Development":     7_270_000,
+    "Pillar IV — Ecosystem Strengthening & Policy Influence":         820_000,
+    "Delivery Fee":                                                 2_580_000,
 }
 
 # ── Module B: Theory of Change nodes ─────────────────────────────────────────

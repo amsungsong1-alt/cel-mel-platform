@@ -21,7 +21,7 @@ import plotly.graph_objects as go
 from database.db import init_db, run_query, run_write
 from utils.shared_widgets import project_selector
 from utils.auth import can, can_write_module
-from projects.sawa import PILLAR_BUDGETS, PROJECT
+from projects.sawa import PILLAR_BUDGETS, PROJECT, PERSONAS, JOURNEY_STAGES, IMPLEMENTATION_MODELS, INTERVENTION_PILLARS
 from utils.nav_strip import render_nav_strip
 
 st.set_page_config(page_title="Partner Alignment — CEL MEL", layout="wide")
@@ -332,6 +332,50 @@ with st.expander("SAWA Partners on the Map", expanded=False):
     _map_path = Path(__file__).parent.parent / "assets" / "sawa_partner_map.webp"
     if _map_path.exists():
         st.image(str(_map_path), use_container_width=True)
+
+# ── Programme Overview: Personas, Pillars, Journey Stages ────────────────────
+with st.expander("SAWA Programme Design — Personas, Pillars & Journey Stages", expanded=False):
+    st.caption("Source: SAWA Programme Overview, Oct 2026 (Mastercard Foundation / Agri-Impact Ltd)")
+
+    st.markdown(f"**Programme tagline:** *{PROJECT['tagline']}*")
+    st.markdown(
+        f"**Headline targets** — "
+        f"{PROJECT['target_jobs']:,} dignified jobs · "
+        f"{PROJECT['target_pwd']:,} PWDs included · "
+        f"{PROJECT['target_fish_mt']:,} MT annual fish production increase · "
+        f"USD {PROJECT['target_revenue_pa_usd']//1_000_000}M revenue/year · "
+        f"USD {PROJECT['target_revenue_lop_usd']//1_000_000}M total over programme life"
+    )
+
+    st.divider()
+    st.markdown("**The 5 Participant Personas**")
+    _pcols = st.columns(5)
+    _persona_colors = ["#1565C0", "#6A1B9A", "#2E7D32", "#E65100", "#B71C1C"]
+    for _col, _p, _color in zip(_pcols, PERSONAS, _persona_colors):
+        _col.markdown(
+            f'<div style="background:{_color}15;border-left:3px solid {_color};'
+            f'border-radius:4px;padding:8px 10px;height:100%;">'
+            f'<div style="font-weight:bold;font-size:0.82em;color:{_color};">#{_p["id"]} {_p["name"]}</div>'
+            f'<div style="font-size:0.76em;color:#555;margin-top:4px;">{_p["description"]}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.divider()
+    _c1, _c2 = st.columns(2)
+    with _c1:
+        st.markdown("**4 Strategic Intervention Pillars**")
+        for _i, _pillar in enumerate(INTERVENTION_PILLARS, 1):
+            st.markdown(f"**{_i}.** {_pillar}")
+    with _c2:
+        st.markdown("**5 Participant Journey Stages**")
+        for _i, _stage in enumerate(JOURNEY_STAGES, 1):
+            st.markdown(f"**{_i}.** {_stage}")
+
+    st.divider()
+    st.markdown("**6 Implementation Models**")
+    for _model_name, _model_desc in IMPLEMENTATION_MODELS:
+        st.markdown(f"**{_model_name}** — {_model_desc}")
 
 # ── CEL's Role in SAWA ────────────────────────────────────────────────────────
 with st.expander("CEL's Delivery Role in SAWA", expanded=False):
